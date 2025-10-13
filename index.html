@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="vi">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Giao Diện Web Tĩnh - Tailwind CSS</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+            rel="stylesheet"
+        />
+        <style>
+            @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+            body {
+                font-family: "Inter", sans-serif;
+            }
+            .gradient-bg {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            }
+            .card-hover {
+                transition: all 0.3s ease;
+            }
+            .card-hover:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+                    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            }
+        </style>
+    </head>
+    <body class="bg-gray-50">
+        <!-- Header -->
+        <header class="bg-white shadow-lg sticky top-0 z-50">
+            <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center py-4">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <h1 class="text-2xl font-bold text-gray-900">
+                                <i class="fas fa-rocket text-blue-600 mr-2"></i>
+                                WebApp
+                            </h1>
+                        </div>
+                    </div>
+                    <div class="hidden md:block">
+                        <div class="ml-10 flex items-baseline space-x-4">
+                            <a
+                                href="#home"
+                                class="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                                >Trang chủ</a
+                            >
+                            <a
+                                href="#features"
+                                class="text-gray-500 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                                >Tính năng</a
+                            >
+                            <a
+                                href="#about"
+                                class="text-gray-500 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                                >Giới thiệu</a
+                            >
+                            <a
+                                href="#contact"
+                                class="text-gray-500 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                                >Liên hệ</a
+                            >
+                        </div>
+                    </div>
+                    <div class="md:hidden">
+                        <button
+                            type="button"
+                            class="text-gray-500 hover:text-gray-600 focus:outline-none focus:text-gray-600"
+                        >
+                            <i class="fas fa-bars text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+            </nav>
+        </header>
+
+        <!-- Hero Section -->
+        <section id="home" class="gradient-bg text-white py-20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h1 class="text-4xl md:text-6xl font-bold mb-6">
+                        Chào mừng đến với
+                        <span class="text-yellow-300">WebApp</span>
+                    </h1>
+                    <p class="text-xl md:text-2xl mb-8 text-gray-200">
+                        Giải pháp công nghệ hiện đại cho doanh nghiệp của bạn
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <button
+                            class="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+                        >
+                            <i class="fas fa-play mr-2"></i>
+                            Bắt đầu ngay
+                        </button>
+                        <button
+                            class="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-colors"
+                        >
+                            <i class="fas fa-info-circle mr-2"></i>
+                            Tìm hiểu thêm
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section id="features" class="py-20 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h2
+                        class="text-3xl md:text-4xl font-bold text-gray-900 mb-4"
+                    >
+                        Tính năng nổi bật
+                    </h2>
+                    <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                        Khám phá những tính năng mạnh mẽ giúp tối ưu hóa công
+                        việc của bạn
+                    </p>
+                </div>
+
+                <div
+                    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+                >
+                    <!-- Feature 1 -->
+                    <div
+                        class="bg-white p-8 rounded-xl shadow-lg card-hover border border-gray-100"
+                    >
+                        <div class="text-center">
+                            <div
+                                class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
+                            >
+                                <i
+                                    class="fas fa-lightning-bolt text-blue-600 text-2xl"
+                                ></i>
+                            </div>
+                            <h3
+                                class="text-xl font-semibold text-gray-900 mb-4"
+                            >
+                                Tốc độ cao
+                            </h3>
+                            <p class="text-gray-600">
+                                Xử lý dữ liệu với tốc độ nhanh chóng, đảm bảo
+                                hiệu suất tối ưu cho doanh nghiệp.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Feature 2 -->
+                    <div
+                        class="bg-white p-8 rounded-xl shadow-lg card-hover border border-gray-100"
+                    >
+                        <div class="text-center">
+                            <div
+                                class="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
+                            >
+                                <i
+                                    class="fas fa-shield-alt text-green-600 text-2xl"
+                                ></i>
+                            </div>
+                            <h3
+                                class="text-xl font-semibold text-gray-900 mb-4"
+                            >
+                                Bảo mật cao
+                            </h3>
+                            <p class="text-gray-600">
+                                Hệ thống bảo mật đa lớp, đảm bảo an toàn tuyệt
+                                đối cho dữ liệu của bạn.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Feature 3 -->
+                    <div
+                        class="bg-white p-8 rounded-xl shadow-lg card-hover border border-gray-100"
+                    >
+                        <div class="text-center">
+                            <div
+                                class="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
+                            >
+                                <i
+                                    class="fas fa-mobile-alt text-purple-600 text-2xl"
+                                ></i>
+                            </div>
+                            <h3
+                                class="text-xl font-semibold text-gray-900 mb-4"
+                            >
+                                Responsive
+                            </h3>
+                            <p class="text-gray-600">
+                                Giao diện thân thiện trên mọi thiết bị, từ
+                                desktop đến mobile.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Feature 4 -->
+                    <div
+                        class="bg-white p-8 rounded-xl shadow-lg card-hover border border-gray-100"
+                    >
+                        <div class="text-center">
+                            <div
+                                class="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
+                            >
+                                <i
+                                    class="fas fa-chart-line text-orange-600 text-2xl"
+                                ></i>
+                            </div>
+                            <h3
+                                class="text-xl font-semibold text-gray-900 mb-4"
+                            >
+                                Phân tích dữ liệu
+                            </h3>
+                            <p class="text-gray-600">
+                                Báo cáo chi tiết và phân tích dữ liệu thông minh
+                                giúp đưa ra quyết định.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Feature 5 -->
+                    <div
+                        class="bg-white p-8 rounded-xl shadow-lg card-hover border border-gray-100"
+                    >
+                        <div class="text-center">
+                            <div
+                                class="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
+                            >
+                                <i
+                                    class="fas fa-users text-red-600 text-2xl"
+                                ></i>
+                            </div>
+                            <h3
+                                class="text-xl font-semibold text-gray-900 mb-4"
+                            >
+                                Hỗ trợ 24/7
+                            </h3>
+                            <p class="text-gray-600">
+                                Đội ngũ hỗ trợ chuyên nghiệp sẵn sàng giúp đỡ
+                                bạn mọi lúc.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Feature 6 -->
+                    <div
+                        class="bg-white p-8 rounded-xl shadow-lg card-hover border border-gray-100"
+                    >
+                        <div class="text-center">
+                            <div
+                                class="bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
+                            >
+                                <i
+                                    class="fas fa-cog text-indigo-600 text-2xl"
+                                ></i>
+                            </div>
+                            <h3
+                                class="text-xl font-semibold text-gray-900 mb-4"
+                            >
+                                Tùy chỉnh
+                            </h3>
+                            <p class="text-gray-600">
+                                Khả năng tùy chỉnh linh hoạt theo nhu cầu riêng
+                                của doanh nghiệp.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="py-20 bg-gray-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div
+                    class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
+                >
+                    <div>
+                        <h2
+                            class="text-3xl md:text-4xl font-bold text-gray-900 mb-6"
+                        >
+                            Về chúng tôi
+                        </h2>
+                        <p class="text-lg text-gray-600 mb-6">
+                            Chúng tôi là đội ngũ chuyên gia công nghệ với hơn 10
+                            năm kinh nghiệm trong việc phát triển các giải pháp
+                            phần mềm hiện đại. Sứ mệnh của chúng tôi là mang đến
+                            những sản phẩm công nghệ chất lượng cao, giúp doanh
+                            nghiệp phát triển bền vững.
+                        </p>
+                        <div class="grid grid-cols-2 gap-6">
+                            <div class="text-center">
+                                <div
+                                    class="text-3xl font-bold text-blue-600 mb-2"
+                                >
+                                    500+
+                                </div>
+                                <div class="text-gray-600">
+                                    Dự án hoàn thành
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <div
+                                    class="text-3xl font-bold text-green-600 mb-2"
+                                >
+                                    99%
+                                </div>
+                                <div class="text-gray-600">
+                                    Khách hàng hài lòng
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <div
+                            class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl p-8 text-white"
+                        >
+                            <h3 class="text-2xl font-bold mb-4">
+                                Tại sao chọn chúng tôi?
+                            </h3>
+                            <ul class="space-y-3">
+                                <li class="flex items-center">
+                                    <i
+                                        class="fas fa-check-circle text-green-300 mr-3"
+                                    ></i>
+                                    Kinh nghiệm dày dặn
+                                </li>
+                                <li class="flex items-center">
+                                    <i
+                                        class="fas fa-check-circle text-green-300 mr-3"
+                                    ></i>
+                                    Công nghệ tiên tiến
+                                </li>
+                                <li class="flex items-center">
+                                    <i
+                                        class="fas fa-check-circle text-green-300 mr-3"
+                                    ></i>
+                                    Hỗ trợ tận tình
+                                </li>
+                                <li class="flex items-center">
+                                    <i
+                                        class="fas fa-check-circle text-green-300 mr-3"
+                                    ></i>
+                                    Giá cả hợp lý
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="py-20 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h2
+                        class="text-3xl md:text-4xl font-bold text-gray-900 mb-4"
+                    >
+                        Liên hệ với chúng tôi
+                    </h2>
+                    <p class="text-xl text-gray-600">
+                        Sẵn sàng hỗ trợ bạn mọi lúc, mọi nơi
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                    <!-- Contact Info -->
+                    <div>
+                        <h3 class="text-2xl font-semibold text-gray-900 mb-6">
+                            Thông tin liên hệ
+                        </h3>
+                        <div class="space-y-6">
+                            <div class="flex items-center">
+                                <div class="bg-blue-100 p-3 rounded-lg mr-4">
+                                    <i
+                                        class="fas fa-map-marker-alt text-blue-600"
+                                    ></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">
+                                        Địa chỉ
+                                    </h4>
+                                    <p class="text-gray-600">
+                                        123 Đường ABC, Quận XYZ, TP.HCM
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center">
+                                <div class="bg-green-100 p-3 rounded-lg mr-4">
+                                    <i class="fas fa-phone text-green-600"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">
+                                        Điện thoại
+                                    </h4>
+                                    <p class="text-gray-600">+84 123 456 789</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center">
+                                <div class="bg-purple-100 p-3 rounded-lg mr-4">
+                                    <i
+                                        class="fas fa-envelope text-purple-600"
+                                    ></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">
+                                        Email
+                                    </h4>
+                                    <p class="text-gray-600">
+                                        contact@webapp.com
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Form -->
+                    <div>
+                        <form class="space-y-6">
+                            <div>
+                                <label
+                                    class="block text-sm font-medium text-gray-700 mb-2"
+                                    >Họ và tên</label
+                                >
+                                <input
+                                    type="text"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="Nhập họ và tên"
+                                />
+                            </div>
+
+                            <div>
+                                <label
+                                    class="block text-sm font-medium text-gray-700 mb-2"
+                                    >Email</label
+                                >
+                                <input
+                                    type="email"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="Nhập email"
+                                />
+                            </div>
+
+                            <div>
+                                <label
+                                    class="block text-sm font-medium text-gray-700 mb-2"
+                                    >Tin nhắn</label
+                                >
+                                <textarea
+                                    rows="4"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="Nhập tin nhắn"
+                                ></textarea>
+                            </div>
+
+                            <button
+                                type="submit"
+                                class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                            >
+                                <i class="fas fa-paper-plane mr-2"></i>
+                                Gửi tin nhắn
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="bg-gray-900 text-white py-12">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                    <div>
+                        <h3 class="text-xl font-bold mb-4">
+                            <i class="fas fa-rocket text-blue-400 mr-2"></i>
+                            WebApp
+                        </h3>
+                        <p class="text-gray-400 mb-4">
+                            Giải pháp công nghệ hiện đại cho doanh nghiệp của
+                            bạn.
+                        </p>
+                        <div class="flex space-x-4">
+                            <a
+                                href="#"
+                                class="text-gray-400 hover:text-white transition-colors"
+                            >
+                                <i class="fab fa-facebook-f"></i>
+                            </a>
+                            <a
+                                href="#"
+                                class="text-gray-400 hover:text-white transition-colors"
+                            >
+                                <i class="fab fa-twitter"></i>
+                            </a>
+                            <a
+                                href="#"
+                                class="text-gray-400 hover:text-white transition-colors"
+                            >
+                                <i class="fab fa-linkedin-in"></i>
+                            </a>
+                            <a
+                                href="#"
+                                class="text-gray-400 hover:text-white transition-colors"
+                            >
+                                <i class="fab fa-instagram"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-lg font-semibold mb-4">Liên kết</h4>
+                        <ul class="space-y-2">
+                            <li>
+                                <a
+                                    href="#"
+                                    class="text-gray-400 hover:text-white transition-colors"
+                                    >Trang chủ</a
+                                >
+                            </li>
+                            <li>
+                                <a
+                                    href="#"
+                                    class="text-gray-400 hover:text-white transition-colors"
+                                    >Tính năng</a
+                                >
+                            </li>
+                            <li>
+                                <a
+                                    href="#"
+                                    class="text-gray-400 hover:text-white transition-colors"
+                                    >Giới thiệu</a
+                                >
+                            </li>
+                            <li>
+                                <a
+                                    href="#"
+                                    class="text-gray-400 hover:text-white transition-colors"
+                                    >Liên hệ</a
+                                >
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h4 class="text-lg font-semibold mb-4">Dịch vụ</h4>
+                        <ul class="space-y-2">
+                            <li>
+                                <a
+                                    href="#"
+                                    class="text-gray-400 hover:text-white transition-colors"
+                                    >Phát triển web</a
+                                >
+                            </li>
+                            <li>
+                                <a
+                                    href="#"
+                                    class="text-gray-400 hover:text-white transition-colors"
+                                    >Ứng dụng mobile</a
+                                >
+                            </li>
+                            <li>
+                                <a
+                                    href="#"
+                                    class="text-gray-400 hover:text-white transition-colors"
+                                    >Tư vấn IT</a
+                                >
+                            </li>
+                            <li>
+                                <a
+                                    href="#"
+                                    class="text-gray-400 hover:text-white transition-colors"
+                                    >Bảo trì hệ thống</a
+                                >
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h4 class="text-lg font-semibold mb-4">Hỗ trợ</h4>
+                        <ul class="space-y-2">
+                            <li>
+                                <a
+                                    href="#"
+                                    class="text-gray-400 hover:text-white transition-colors"
+                                    >Trung tâm trợ giúp</a
+                                >
+                            </li>
+                            <li>
+                                <a
+                                    href="#"
+                                    class="text-gray-400 hover:text-white transition-colors"
+                                    >Tài liệu</a
+                                >
+                            </li>
+                            <li>
+                                <a
+                                    href="#"
+                                    class="text-gray-400 hover:text-white transition-colors"
+                                    >Cộng đồng</a
+                                >
+                            </li>
+                            <li>
+                                <a
+                                    href="#"
+                                    class="text-gray-400 hover:text-white transition-colors"
+                                    >Liên hệ hỗ trợ</a
+                                >
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="border-t border-gray-800 mt-8 pt-8 text-center">
+                    <p class="text-gray-400">
+                        © 2024 WebApp. Tất cả quyền được bảo lưu.
+                    </p>
+                </div>
+            </div>
+        </footer>
+
+        <!-- JavaScript for smooth scrolling -->
+        <script>
+            // Smooth scrolling for navigation links
+            document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+                anchor.addEventListener("click", function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(
+                        this.getAttribute("href")
+                    );
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: "smooth",
+                            block: "start",
+                        });
+                    }
+                });
+            });
+
+            // Add scroll effect to header
+            window.addEventListener("scroll", function () {
+                const header = document.querySelector("header");
+                if (window.scrollY > 100) {
+                    header.classList.add("bg-white", "shadow-lg");
+                } else {
+                    header.classList.remove("bg-white", "shadow-lg");
+                }
+            });
+        </script>
+    </body>
+</html>
