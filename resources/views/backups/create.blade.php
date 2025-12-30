@@ -12,8 +12,8 @@
                     </svg>
                 </a>
                 <div>
-                    <h1 class="text-3xl font-bold text-white mb-2">Tạo Backup Mới</h1>
-                    <p class="text-gray-400">Tạo bản sao lưu dữ liệu hệ thống</p>
+                    <h1 class="text-3xl font-bold text-white mb-2">Create New Backup</h1>
+                    <p class="text-gray-400">Create a system data backup</p>
                 </div>
             </div>
         </div>
@@ -39,7 +39,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
                             </svg>
                         </div>
-                        <h2 class="text-xl font-semibold text-white">Thông tin Backup</h2>
+                        <h2 class="text-xl font-semibold text-white">Backup Information</h2>
                     </div>
 
                     <form method="POST" action="{{ route('backups.store') }}" class="space-y-6">
@@ -47,22 +47,22 @@
 
                         <!-- Description -->
                         <div>
-                            <label for="description" class="block text-sm font-medium text-gray-300 mb-2">Mô tả</label>
+                            <label for="description" class="block text-sm font-medium text-gray-300 mb-2">Description</label>
                             <input type="text" id="description" name="description" value="{{ old('description') }}"
                                    class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
-                                   placeholder="Mô tả ngắn gọn về backup này">
-                            <p class="text-sm text-gray-400 mt-1">Mô tả giúp bạn nhớ lý do tạo backup này</p>
+                                   placeholder="Short description for this backup">
+                            <p class="text-sm text-gray-400 mt-1">A description helps you remember why this backup was created</p>
                         </div>
 
                         <!-- Compression Type -->
                         <div>
-                            <label for="compression_type" class="block text-sm font-medium text-gray-300 mb-2">Loại nén</label>
+                            <label for="compression_type" class="block text-sm font-medium text-gray-300 mb-2">Compression type</label>
                             <select id="compression_type" name="compression_type"
                                     class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
-                                <option value="gzip" {{ old('compression_type', 'gzip') === 'gzip' ? 'selected' : '' }}>Gzip (Khuyến nghị)</option>
-                                <option value="none" {{ old('compression_type') === 'none' ? 'selected' : '' }}>Không nén</option>
+                                <option value="gzip" {{ old('compression_type', 'gzip') === 'gzip' ? 'selected' : '' }}>Gzip (Recommended)</option>
+                                <option value="none" {{ old('compression_type') === 'none' ? 'selected' : '' }}>No compression</option>
                             </select>
-                            <p class="text-sm text-gray-400 mt-1">Gzip giúp giảm kích thước file backup</p>
+                            <p class="text-sm text-gray-400 mt-1">Gzip reduces backup file size</p>
                         </div>
 
                         <!-- Encryption -->
@@ -70,23 +70,23 @@
                             <div class="flex items-center mb-2">
                                 <input type="checkbox" id="is_encrypted" name="is_encrypted" value="1" {{ old('is_encrypted') ? 'checked' : '' }}
                                        class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2">
-                                <label for="is_encrypted" class="ml-2 text-sm font-medium text-gray-300">Mã hóa backup</label>
+                                <label for="is_encrypted" class="ml-2 text-sm font-medium text-gray-300">Encrypt backup</label>
                             </div>
-                            <p class="text-sm text-gray-400 ml-6">Mã hóa để bảo vệ dữ liệu nhạy cảm</p>
+                            <p class="text-sm text-gray-400 ml-6">Encrypt to protect sensitive data</p>
                         </div>
 
                         <!-- Encryption Key -->
                         <div id="encryption_key_section" class="{{ old('is_encrypted') ? '' : 'hidden' }}">
-                            <label for="encryption_key" class="block text-sm font-medium text-gray-300 mb-2">Khóa mã hóa</label>
+                            <label for="encryption_key" class="block text-sm font-medium text-gray-300 mb-2">Encryption key</label>
                             <input type="password" id="encryption_key" name="encryption_key" value="{{ old('encryption_key') }}"
                                    class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
-                                   placeholder="Nhập khóa mã hóa (ít nhất 8 ký tự)">
-                            <p class="text-sm text-gray-400 mt-1">Lưu ý: Khóa này cần thiết để restore backup</p>
+                                   placeholder="Enter encryption key (at least 8 characters)">
+                            <p class="text-sm text-gray-400 mt-1">Note: This key is required to restore the backup</p>
                         </div>
 
                         <!-- Excluded Tables -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-300 mb-2">Bảng loại trừ</label>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Excluded tables</label>
                             <div class="bg-gray-700 border border-gray-600 rounded-lg p-4 max-h-48 overflow-y-auto">
                                 <div class="grid grid-cols-2 gap-3">
                                     @foreach($tables as $table)
@@ -100,21 +100,21 @@
                                     @endforeach
                                 </div>
                             </div>
-                            <p class="text-sm text-gray-400 mt-1">Chọn các bảng không cần backup</p>
+                            <p class="text-sm text-gray-400 mt-1">Select tables to exclude from backup</p>
                         </div>
 
                         <!-- Submit Button -->
                         <div class="flex justify-end pt-4">
                             <a href="{{ route('backups.index') }}" 
                                class="px-6 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors duration-200 mr-3">
-                                Hủy
+                                Cancel
                             </a>
                             <button type="submit" 
                                     class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors duration-200">
                                 <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
                                 </svg>
-                                Tạo Backup
+                                Create Backup
                             </button>
                         </div>
                     </form>
@@ -125,26 +125,26 @@
             <div class="lg:col-span-1">
                 <!-- System Status -->
                 <div class="bg-gray-800 rounded-xl border border-gray-700 p-6 mb-6">
-                    <h3 class="text-lg font-semibold text-white mb-4">Trạng thái hệ thống</h3>
+                    <h3 class="text-lg font-semibold text-white mb-4">System status</h3>
                     <div class="space-y-3">
                         <div class="flex justify-between">
-                            <span class="text-gray-400">Tổng backup:</span>
+                            <span class="text-gray-400">Total backups:</span>
                             <span class="text-white font-medium">{{ $status['total_backups'] }}</span>
                         </div>
                         <div class="flex justify-between">
-                            <span class="text-gray-400">Thành công:</span>
+                            <span class="text-gray-400">Successful:</span>
                             <span class="text-green-400 font-medium">{{ $status['successful_backups'] }}</span>
                         </div>
                         <div class="flex justify-between">
-                            <span class="text-gray-400">Thất bại:</span>
+                            <span class="text-gray-400">Failed:</span>
                             <span class="text-red-400 font-medium">{{ $status['failed_backups'] }}</span>
                         </div>
                         <div class="flex justify-between">
-                            <span class="text-gray-400">Tổng dung lượng:</span>
+                            <span class="text-gray-400">Total size:</span>
                             <span class="text-white font-medium">{{ $status['total_size'] }}</span>
                         </div>
                         <div class="flex justify-between">
-                            <span class="text-gray-400">Dung lượng còn trống:</span>
+                            <span class="text-gray-400">Available space:</span>
                             <span class="text-white font-medium">{{ $status['available_space'] }}</span>
                         </div>
                     </div>
@@ -152,31 +152,31 @@
 
                 <!-- Tips -->
                 <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-6">
-                    <h3 class="text-lg font-semibold text-blue-400 mb-4">💡 Lưu ý quan trọng</h3>
+                    <h3 class="text-lg font-semibold text-blue-400 mb-4">💡 Important notes</h3>
                     <ul class="space-y-2 text-sm text-blue-300">
-                        <li>• Backup sẽ bao gồm tất cả dữ liệu quan trọng</li>
-                        <li>• Nên tạo backup định kỳ hàng ngày</li>
-                        <li>• Lưu trữ backup ở nhiều nơi khác nhau</li>
-                        <li>• Kiểm tra backup sau khi tạo</li>
-                        <li>• Mã hóa backup nếu chứa dữ liệu nhạy cảm</li>
+                        <li>• Backups include all critical data</li>
+                        <li>• Create backups regularly (daily recommended)</li>
+                        <li>• Store backups in multiple locations</li>
+                        <li>• Verify backups after creation</li>
+                        <li>• Encrypt backups if they contain sensitive data</li>
                     </ul>
                 </div>
 
                 <!-- Latest Backup -->
                 @if($status['latest_backup'])
                     <div class="bg-gray-800 rounded-xl border border-gray-700 p-6 mt-6">
-                        <h3 class="text-lg font-semibold text-white mb-4">Backup gần nhất</h3>
+                        <h3 class="text-lg font-semibold text-white mb-4">Latest backup</h3>
                         <div class="space-y-2">
                             <div class="text-sm">
                                 <span class="text-gray-400">File:</span>
                                 <span class="text-white">{{ $status['latest_backup']->filename }}</span>
                             </div>
                             <div class="text-sm">
-                                <span class="text-gray-400">Kích thước:</span>
+                                <span class="text-gray-400">Size:</span>
                                 <span class="text-white">{{ $status['latest_backup']->formatted_file_size }}</span>
                             </div>
                             <div class="text-sm">
-                                <span class="text-gray-400">Thời gian:</span>
+                                <span class="text-gray-400">Time:</span>
                                 <span class="text-white">{{ $status['latest_backup']->created_at->format('d/m/Y H:i') }}</span>
                             </div>
                         </div>

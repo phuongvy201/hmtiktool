@@ -12,8 +12,8 @@
                     </svg>
                 </a>
                 <div>
-                    <h1 class="text-3xl font-bold text-white mb-2">Quản lý Gói Dịch vụ Team</h1>
-                    <p class="text-gray-400">Quản lý và gán gói dịch vụ cho các team</p>
+                    <h1 class="text-3xl font-bold text-white mb-2">Team Service Package Management</h1>
+                    <p class="text-gray-400">Manage and assign service packages to teams</p>
                 </div>
             </div>
         </div>
@@ -26,7 +26,7 @@
                     <div>
                         <label for="team_id" class="block text-sm font-medium text-gray-300 mb-1">Team</label>
                         <select name="team_id" id="team_id" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
-                            <option value="">Tất cả team</option>
+                            <option value="">All teams</option>
                             @foreach($teams as $team)
                                 <option value="{{ $team->id }}" {{ request('team_id') == $team->id ? 'selected' : '' }}>
                                     {{ $team->name }}
@@ -37,9 +37,9 @@
 
                     <!-- Package Filter -->
                     <div>
-                        <label for="service_package_id" class="block text-sm font-medium text-gray-300 mb-1">Gói dịch vụ</label>
+                        <label for="service_package_id" class="block text-sm font-medium text-gray-300 mb-1">Service package</label>
                         <select name="service_package_id" id="service_package_id" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
-                            <option value="">Tất cả gói</option>
+                            <option value="">All packages</option>
                             @foreach($packages as $package)
                                 <option value="{{ $package->id }}" {{ request('service_package_id') == $package->id ? 'selected' : '' }}>
                                     {{ $package->name }}
@@ -50,19 +50,19 @@
 
                     <!-- Status Filter -->
                     <div>
-                        <label for="status" class="block text-sm font-medium text-gray-300 mb-1">Trạng thái</label>
+                        <label for="status" class="block text-sm font-medium text-gray-300 mb-1">Status</label>
                         <select name="status" id="status" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
-                            <option value="">Tất cả</option>
-                            <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Đang hoạt động</option>
-                            <option value="expired" {{ request('status') === 'expired' ? 'selected' : '' }}>Đã hết hạn</option>
-                            <option value="cancelled" {{ request('status') === 'cancelled' ? 'selected' : '' }}>Đã hủy</option>
-                            <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Chờ xử lý</option>
+                            <option value="">All</option>
+                            <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
+                            <option value="expired" {{ request('status') === 'expired' ? 'selected' : '' }}>Expired</option>
+                            <option value="cancelled" {{ request('status') === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                            <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending</option>
                         </select>
                     </div>
 
                     <!-- Start Date Filter -->
                     <div>
-                        <label for="start_date" class="block text-sm font-medium text-gray-300 mb-1">Từ ngày</label>
+                        <label for="start_date" class="block text-sm font-medium text-gray-300 mb-1">From date</label>
                         <input type="date" 
                                name="start_date" 
                                id="start_date" 
@@ -72,7 +72,7 @@
 
                     <!-- End Date Filter -->
                     <div>
-                        <label for="end_date" class="block text-sm font-medium text-gray-300 mb-1">Đến ngày</label>
+                        <label for="end_date" class="block text-sm font-medium text-gray-300 mb-1">To date</label>
                         <input type="date" 
                                name="end_date" 
                                id="end_date" 
@@ -86,7 +86,7 @@
                             <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                             </svg>
-                            Tìm kiếm
+                            Search
                         </button>
                     </div>
                 </div>
@@ -105,19 +105,19 @@
                                         Team
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                        Gói dịch vụ
+                                        Service package
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                        Thời gian
+                                        Duration
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                        Trạng thái
+                                        Status
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                        Người gán
+                                        Assigned by
                                     </th>
                                     <th class="px-6 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                        Thao tác
+                                        Actions
                                     </th>
                                 </tr>
                             </thead>
@@ -138,7 +138,7 @@
                                                         {{ $subscription->team->name }}
                                                     </div>
                                                     <div class="text-sm text-gray-400">
-                                                        {{ $subscription->team->description ? Str::limit($subscription->team->description, 30) : 'Không có mô tả' }}
+                                                        {{ $subscription->team->description ? Str::limit($subscription->team->description, 30) : 'No description' }}
                                                     </div>
                                                 </div>
                                             </div>
@@ -164,9 +164,9 @@
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                                             <div class="space-y-1">
-                                                <div>📅 Bắt đầu: {{ $subscription->start_date->format('d/m/Y') }}</div>
-                                                <div>📅 Kết thúc: {{ $subscription->end_date->format('d/m/Y') }}</div>
-                                                <div>⏰ Còn lại: {{ $subscription->remaining_days }} ngày</div>
+                                                <div>📅 Start: {{ $subscription->start_date->format('d/m/Y') }}</div>
+                                                <div>📅 End: {{ $subscription->end_date->format('d/m/Y') }}</div>
+                                                <div>⏰ Remaining: {{ $subscription->remaining_days }} days</div>
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
@@ -185,7 +185,7 @@
                                                 </div>
                                                 <div class="ml-3">
                                                     <div class="text-sm font-medium text-white">
-                                                        {{ $subscription->assignedBy ? $subscription->assignedBy->name : 'Hệ thống' }}
+                                                        {{ $subscription->assignedBy ? $subscription->assignedBy->name : 'System' }}
                                                     </div>
                                                     <div class="text-sm text-gray-400">
                                                         {{ $subscription->created_at->format('d/m/Y H:i') }}
@@ -210,7 +210,7 @@
                                                     </svg>
                                                 </a>
 
-                                                <form action="{{ route('team-subscriptions.destroy', $subscription) }}" method="POST" class="inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa gói dịch vụ này?')">
+                                                <form action="{{ route('team-subscriptions.destroy', $subscription) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this subscription?')">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="text-red-400 hover:text-red-300 transition-colors duration-200">
@@ -236,15 +236,15 @@
                         <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                         </svg>
-                        <h3 class="mt-2 text-sm font-medium text-gray-300">Chưa có gói dịch vụ nào được gán</h3>
-                        <p class="mt-1 text-sm text-gray-400">Bắt đầu gán gói dịch vụ cho team.</p>
+                        <h3 class="mt-2 text-sm font-medium text-gray-300">No subscriptions assigned</h3>
+                        <p class="mt-1 text-sm text-gray-400">Start assigning service packages to teams.</p>
                         <div class="mt-6">
                             <a href="{{ route('team-subscriptions.create') }}" 
                                class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                                 </svg>
-                                Gán gói dịch vụ
+                                Assign service package
                             </a>
                         </div>
                     </div>
@@ -259,7 +259,7 @@
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                 </svg>
-                Gán gói mới
+                Assign new package
             </a>
         </div>
     </div>

@@ -23,7 +23,7 @@ class BackupController extends Controller
     }
 
     /**
-     * Hiển thị trang quản lý backup
+     * Display backup management page
      */
     public function index(): View
     {
@@ -37,7 +37,7 @@ class BackupController extends Controller
     }
 
     /**
-     * Tạo backup mới
+     * Create new backup
      */
     public function create(): View
     {
@@ -48,7 +48,7 @@ class BackupController extends Controller
     }
 
     /**
-     * Lưu backup mới
+     * Save new backup
      */
     public function store(Request $request): RedirectResponse
     {
@@ -73,14 +73,14 @@ class BackupController extends Controller
             $backup = $this->backupService->createBackup($options);
 
             return redirect()->route('backups.index')
-                ->with('success', 'Backup đã được tạo thành công: ' . $backup->filename);
+                ->with('success', 'Backup created successfully: ' . $backup->filename);
         } catch (Exception $e) {
-            return back()->withErrors(['error' => 'Không thể tạo backup: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Unable to create backup: ' . $e->getMessage()]);
         }
     }
 
     /**
-     * Hiển thị chi tiết backup
+     * Display backup details
      */
     public function show(BackupLog $backup): View
     {
@@ -90,12 +90,12 @@ class BackupController extends Controller
     }
 
     /**
-     * Tải xuống file backup
+     * Download backup file
      */
     public function download(BackupLog $backup)
     {
         if (!$backup->fileExists()) {
-            return back()->withErrors(['error' => 'File backup không tồn tại']);
+            return back()->withErrors(['error' => 'Backup file does not exist']);
         }
 
         $filename = $backup->filename;
@@ -107,7 +107,7 @@ class BackupController extends Controller
     }
 
     /**
-     * Restore từ backup
+     * Restore from backup
      */
     public function restore(BackupLog $backup, Request $request): RedirectResponse
     {
@@ -117,25 +117,25 @@ class BackupController extends Controller
         ]);
 
         if (!$backup->isCompleted()) {
-            return back()->withErrors(['error' => 'Chỉ có thể restore từ backup đã hoàn thành']);
+            return back()->withErrors(['error' => 'Can only restore from completed backup']);
         }
 
         try {
             $options = [
-                'description' => $request->description ?? 'Restore từ backup: ' . $backup->filename,
+                'description' => $request->description ?? 'Restore from backup: ' . $backup->filename,
             ];
 
             $restoreLog = $this->backupService->restoreBackup($backup, $options);
 
             return redirect()->route('backups.index')
-                ->with('success', 'Restore đã hoàn thành thành công từ backup: ' . $backup->filename);
+                        ->with('success', 'Restore completed successfully from backup: ' . $backup->filename);
         } catch (Exception $e) {
-            return back()->withErrors(['error' => 'Không thể restore: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Unable to restore: ' . $e->getMessage()]);
         }
     }
 
     /**
-     * Xóa backup
+     * Delete backup
      */
     public function destroy(BackupLog $backup): RedirectResponse
     {
@@ -147,14 +147,14 @@ class BackupController extends Controller
             $backup->delete();
 
             return redirect()->route('backups.index')
-                ->with('success', 'Backup đã được xóa thành công');
+                ->with('success', 'Backup deleted successfully');
         } catch (Exception $e) {
-            return back()->withErrors(['error' => 'Không thể xóa backup: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Unable to delete backup: ' . $e->getMessage()]);
         }
     }
 
     /**
-     * Cleanup backup cũ
+     * Cleanup old backups
      */
     public function cleanup(Request $request): RedirectResponse
     {
@@ -166,33 +166,33 @@ class BackupController extends Controller
             $deletedCount = $this->backupService->cleanupOldBackups($request->days_to_keep);
 
             return redirect()->route('backups.index')
-                ->with('success', "Đã xóa {$deletedCount} backup cũ (giữ lại {$request->days_to_keep} ngày)");
+                ->with('success', "Deleted {$deletedCount} old backups (keeping {$request->days_to_keep} days)");
         } catch (Exception $e) {
-            return back()->withErrors(['error' => 'Không thể cleanup: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Unable to cleanup: ' . $e->getMessage()]);
         }
     }
 
     /**
-     * Tạo backup tự động
+     * Create automatic backup
      */
     public function autoBackup(): RedirectResponse
     {
         try {
             $backup = $this->backupService->createBackup([
-                'description' => 'Backup tự động hàng ngày',
+                'description' => 'Daily automatic backup',
                 'compression_type' => 'gzip',
                 'is_encrypted' => false,
             ]);
 
             return redirect()->route('backups.index')
-                ->with('success', 'Backup tự động đã được tạo: ' . $backup->filename);
+                ->with('success', 'Automatic backup created: ' . $backup->filename);
         } catch (Exception $e) {
-            return back()->withErrors(['error' => 'Không thể tạo backup tự động: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Unable to create automatic backup: ' . $e->getMessage()]);
         }
     }
 
     /**
-     * Kiểm tra trạng thái backup
+            * Check backup status
      */
     public function status(): View
     {
@@ -207,7 +207,7 @@ class BackupController extends Controller
     }
 
     /**
-     * Export danh sách backup
+     * Export backup list
      */
     public function export(Request $request)
     {

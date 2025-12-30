@@ -11,10 +11,10 @@
                 </div>
                 <h3 class="text-lg font-semibold text-white">User Management</h3>
             </div>
-            <p class="text-gray-400 mb-4">Quản lý người dùng và phân quyền</p>
+            <p class="text-gray-400 mb-4">Manage users and permissions</p>
             <div class="space-y-2">
-                <a href="{{ route('users.index') }}" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">Quản lý Users</a>
-                <a href="{{ route('roles.index') }}" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">Quản lý Roles</a>
+                <a href="{{ route('users.index') }}" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">Manage Users</a>
+                <a href="{{ route('roles.index') }}" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">Manage Roles</a>
             </div>
         </div>
     </div>
@@ -30,8 +30,8 @@
                 </div>
                 <h3 class="text-lg font-semibold text-white">Team Management</h3>
             </div>
-            <p class="text-gray-400 mb-4">Quản lý teams và tổ chức</p>
-            <a href="{{ route('teams.index') }}" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">Quản lý Teams</a>
+            <p class="text-gray-400 mb-4">Manage teams and organization</p>
+            <a href="{{ route('teams.index') }}" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">Manage Teams</a>
         </div>
     </div>
 
@@ -46,8 +46,8 @@
                 </div>
                 <h3 class="text-lg font-semibold text-white">Financial Reports</h3>
             </div>
-            <p class="text-gray-400 mb-4">Báo cáo tài chính và kế toán</p>
-            <a href="{{ route('financial.reports') }}" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">Xem Báo cáo</a>
+            <p class="text-gray-400 mb-4">Financial and accounting reports</p>
+            <a href="{{ route('financial.reports') }}" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">View Reports</a>
         </div>
     </div>
 
@@ -62,8 +62,8 @@
                 </div>
                 <h3 class="text-lg font-semibold text-white">Fulfillment</h3>
             </div>
-            <p class="text-gray-400 mb-4">Quản lý fulfillment và đơn hàng</p>
-            <a href="{{ route('fulfillment.index') }}" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">Quản lý Fulfillment</a>
+            <p class="text-gray-400 mb-4">Manage fulfillment and orders</p>
+            <a href="{{ route('fulfillment.index') }}" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">Manage Fulfillment</a>
         </div>
     </div>
 
@@ -78,8 +78,8 @@
                 </div>
                 <h3 class="text-lg font-semibold text-white">Sales</h3>
             </div>
-            <p class="text-gray-400 mb-4">Quản lý bán hàng và doanh thu</p>
-            <a href="{{ route('sales.index') }}" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">Quản lý Sales</a>
+            <p class="text-gray-400 mb-4">Manage sales and revenue</p>
+            <a href="{{ route('sales.index') }}" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">Manage Sales</a>
         </div>
     </div>
 
@@ -94,8 +94,8 @@
                 </div>
                 <h3 class="text-lg font-semibold text-white">Analytics</h3>
             </div>
-            <p class="text-gray-400 mb-4">Phân tích dữ liệu và báo cáo</p>
-            <a href="#" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">Xem Analytics</a>
+            <p class="text-gray-400 mb-4">Data analysis and reporting</p>
+            <a href="#" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">View Analytics</a>
         </div>
     </div>
 
@@ -113,8 +113,8 @@
                 </div>
                 <h3 class="text-lg font-semibold text-white">Product Templates</h3>
             </div>
-            <p class="text-gray-400 mb-4">Quản lý template sản phẩm</p>
-            <a href="{{ route('product-templates.index') }}" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">Quản lý Templates</a>
+            <p class="text-gray-400 mb-4">Manage product templates</p>
+            <a href="{{ route('product-templates.index') }}" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">Manage Templates</a>
         </div>
     </div>
 </div>

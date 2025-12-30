@@ -23,9 +23,30 @@ class TikTokImageUploadService
     {
         if ($integration) {
             $this->integration = $integration;
-            $this->appKey = config('tiktok-shop.app_key') ?? env('TIKTOK_SHOP_APP_KEY');
-            $this->appSecret = config('tiktok-shop.app_secret') ?? env('TIKTOK_SHOP_APP_SECRET');
+
+            // Ưu tiên lấy credentials theo market của integration
+            $this->appKey = $integration->getAppKey();
+            $this->appSecret = $integration->getAppSecret();
+
+            // Fallback cuối cùng nếu vẫn rỗng (tránh request không hợp lệ)
+            if (empty($this->appKey)) {
+                $this->appKey = config('tiktok-shop.app_key') ?? env('TIKTOK_SHOP_APP_KEY');
+            }
+
+            if (empty($this->appSecret)) {
+                $this->appSecret = config('tiktok-shop.app_secret') ?? env('TIKTOK_SHOP_APP_SECRET');
+            }
+
             $this->accessToken = $integration->access_token;
+
+            if (empty($this->appKey) || empty($this->appSecret)) {
+                Log::warning('TikTok credentials missing in TikTokImageUploadService', [
+                    'integration_id' => $integration->id,
+                    'market' => $integration->market,
+                    'resolved_app_key' => $this->appKey ? 'available' : 'missing',
+                    'resolved_app_secret' => $this->appSecret ? 'available' : 'missing'
+                ]);
+            }
         }
     }
 

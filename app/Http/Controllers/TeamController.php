@@ -16,6 +16,11 @@ class TeamController extends Controller
     {
         $this->authorize('view-teams');
 
+        // Team-admin is not allowed to manage/view team listing
+        if (TeamPermissionHelper::isTeamAdmin()) {
+            abort(403, 'Team admin is not allowed to manage teams.');
+        }
+
         $query = Team::with(['users']);
 
         // Apply team filtering for team-admin

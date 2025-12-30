@@ -1,18 +1,18 @@
 @extends('layouts.app')
 
-@section('title', 'Chỉnh sửa Sản phẩm')
+@section('title', 'Edit Product')
 
 @section('content')
 <div class="container mx-auto px-4 py-8">
     <div class="max-w-4xl mx-auto">
         <div class="flex items-center justify-between mb-6">
             <div>
-                <h1 class="text-3xl font-bold text-white">Chỉnh sửa Sản phẩm</h1>
+                <h1 class="text-3xl font-bold text-white">Edit Product</h1>
                 <p class="text-gray-400 mt-2">Team: {{ $team->name }}</p>
             </div>
             <a href="{{ route('products.index') }}" 
                class="bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg transition duration-200">
-                <i class="fas fa-arrow-left mr-2"></i>Quay lại
+                <i class="fas fa-arrow-left mr-2"></i>Back
             </a>
         </div>
 
@@ -26,11 +26,11 @@
                     <div class="space-y-6">
                         <div>
                             <label for="title" class="block text-sm font-medium text-gray-300 mb-2">
-                                Tên sản phẩm <span class="text-red-400">*</span>
+                                Product Name <span class="text-red-400">*</span>
                             </label>
                             <input type="text" id="title" name="title" value="{{ old('title', $product->title) }}" required
                                    class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-400 @error('title') border-red-500 @enderror"
-                                   placeholder="Nhập tên sản phẩm">
+                                   placeholder="Enter product name">
                             @error('title')
                                 <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                             @enderror
@@ -38,11 +38,12 @@
 
                         <div>
                             <label for="sku" class="block text-sm font-medium text-gray-300 mb-2">
-                                SKU <span class="text-red-400">*</span>
+                                SKU
                             </label>
                             <input type="text" id="sku" name="sku" value="{{ old('sku', $product->sku) }}" required
                                    class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-400 @error('sku') border-red-500 @enderror"
-                                   placeholder="Nhập mã SKU sản phẩm">
+                                   placeholder="Enter product SKU code">
+                            <p class="mt-1 text-sm text-gray-500">SKU can be duplicated between products</p>
                             @error('sku')
                                 <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                             @enderror
@@ -50,7 +51,7 @@
 
                         <div>
                             <label for="price" class="block text-sm font-medium text-gray-300 mb-2">
-                                Giá sản phẩm <span class="text-red-400">*</span>
+                                Product Price <span class="text-red-400">*</span>
                             </label>
                             <div class="relative">
                                 <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">$</span>
@@ -58,7 +59,7 @@
                                        class="w-full pl-8 pr-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-400 @error('price') border-red-500 @enderror"
                                        placeholder="0.00">
                             </div>
-                            <p class="mt-1 text-sm text-gray-400">Giá này sẽ được cộng với giá template</p>
+                            <p class="mt-1 text-sm text-gray-400">This price will be added to the template price</p>
                             @error('price')
                                 <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                             @enderror
@@ -70,10 +71,10 @@
                             </label>
                             <select id="product_template_id" name="product_template_id" required
                                     class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white @error('product_template_id') border-red-500 @enderror">
-                                <option value="">Chọn template</option>
+                                <option value="">Select template</option>
                                 @foreach($templates as $template)
                                     <option value="{{ $template->id }}" {{ old('product_template_id', $product->product_template_id) == $template->id ? 'selected' : '' }}>
-                                        {{ $template->name }} (Giá: ${{ number_format($template->base_price, 2) }})
+                                        {{ $template->name }} (Price: ${{ number_format($template->base_price, 2) }})
                                     </option>
                                 @endforeach
                             </select>
@@ -84,12 +85,12 @@
 
                         <div>
                             <label for="status" class="block text-sm font-medium text-gray-300 mb-2">
-                                Trạng thái <span class="text-red-400">*</span>
+                                Status <span class="text-red-400">*</span>
                             </label>
                             <select id="status" name="status" required
                                     class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white @error('status') border-red-500 @enderror">
-                                <option value="active" {{ old('status', $product->status) == 'active' ? 'selected' : '' }}>Hoạt động</option>
-                                <option value="inactive" {{ old('status', $product->status) == 'inactive' ? 'selected' : '' }}>Không hoạt động</option>
+                                <option value="active" {{ old('status', $product->status) == 'active' ? 'selected' : '' }}>Active</option>
+                                <option value="inactive" {{ old('status', $product->status) == 'inactive' ? 'selected' : '' }}>Inactive</option>
                             </select>
                             @error('status')
                                 <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
@@ -101,29 +102,29 @@
                     <div class="space-y-6">
                         <div>
                             <label for="product_images" class="block text-sm font-medium text-gray-300 mb-2">
-                                Ảnh sản phẩm <span class="text-gray-500">(có thể chọn nhiều ảnh)</span>
+                                Product Images <span class="text-gray-500">(can select multiple images)</span>
                             </label>
                             
                             <!-- Hiển thị ảnh hiện tại -->
                             @if($product->images->where('source', 'product')->count() > 0)
                                 <div class="mb-4">
-                                    <p class="text-sm text-gray-400 mb-2">Ảnh hiện tại:</p>
+                                    <p class="text-sm text-gray-400 mb-2">Current Images:</p>
                                     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                         @foreach($product->images->where('source', 'product') as $image)
                                             <div class="relative group">
                                                 <div class="relative aspect-square bg-gray-600 rounded-lg overflow-hidden">
                                                     <img src="{{ $image->url }}" 
-                                                         alt="Ảnh sản phẩm" 
+                                                         alt="Product Image" 
                                                          class="w-full h-full object-cover">
                                                     <div class="absolute top-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded">
-                                                        {{ $image->is_primary ? 'Ảnh chính' : 'Ảnh ' . ($loop->iteration) }}
+                                                        {{ $image->is_primary ? 'Primary Image' : 'Image ' . ($loop->iteration) }}
                                                     </div>
                                                 </div>
                                                 <p class="text-xs text-gray-400 mt-1 truncate">{{ $image->file_name }}</p>
                                             </div>
                                         @endforeach
                                     </div>
-                                    <p class="text-sm text-gray-500 mt-2">Chọn ảnh mới để thay thế tất cả ảnh hiện tại</p>
+                                    <p class="text-sm text-gray-500 mt-2">Select new images to replace all current images</p>
                                 </div>
                             @endif
                             
@@ -132,12 +133,12 @@
                                     <i class="fas fa-cloud-upload-alt text-3xl text-gray-500"></i>
                                     <div class="flex text-sm text-gray-400">
                                         <label for="product_images" class="relative cursor-pointer bg-gray-700 rounded-md font-medium text-blue-400 hover:text-blue-300 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
-                                            <span>Tải ảnh lên</span>
+                                            <span>Upload Images</span>
                                             <input id="product_images" name="product_images[]" type="file" class="sr-only" accept="image/*" multiple>
                                         </label>
-                                        <p class="pl-1">hoặc kéo thả</p>
+                                        <p class="pl-1">or drag and drop</p>
                                     </div>
-                                    <p class="text-xs text-gray-500">PNG, JPG, GIF tối đa 2MB mỗi ảnh</p>
+                                    <p class="text-xs text-gray-500">PNG, JPG, GIF max 2MB per image</p>
                                 </div>
                             </div>
                             
@@ -153,11 +154,11 @@
 
                         <div>
                             <label for="description" class="block text-sm font-medium text-gray-300 mb-2">
-                                Mô tả sản phẩm
+                                Product Description
                             </label>
                             <textarea id="description" name="description" rows="6"
                                       class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-400 @error('description') border-red-500 @enderror"
-                                      placeholder="Nhập mô tả chi tiết về sản phẩm...">{{ old('description', $product->description) }}</textarea>
+                                      placeholder="Enter detailed product description...">{{ old('description', $product->description) }}</textarea>
                             @error('description')
                                 <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                             @enderror
@@ -165,19 +166,19 @@
 
                         <!-- Price Preview -->
                         <div class="bg-gray-700 rounded-lg p-4 border border-gray-600">
-                            <h3 class="text-sm font-medium text-gray-300 mb-2">Xem trước giá</h3>
+                            <h3 class="text-sm font-medium text-gray-300 mb-2">Price Preview</h3>
                             <div class="space-y-2 text-sm">
                                 <div class="flex justify-between">
-                                    <span class="text-gray-400">Giá sản phẩm:</span>
+                                    <span class="text-gray-400">Product Price:</span>
                                     <span class="font-medium text-white" id="product-price">${{ number_format($product->price, 2) }}</span>
                                 </div>
                                 <div class="flex justify-between">
-                                    <span class="text-gray-400">Giá template:</span>
+                                    <span class="text-gray-400">Template Price:</span>
                                     <span class="font-medium text-white" id="template-price">$0.00</span>
                                 </div>
                                 <hr class="border-gray-600">
                                 <div class="flex justify-between">
-                                    <span class="text-white font-medium">Tổng giá:</span>
+                                    <span class="text-white font-medium">Total Price:</span>
                                     <span class="text-lg font-bold text-blue-400" id="total-price">${{ number_format($product->total_price, 2) }}</span>
                                 </div>
                             </div>
@@ -188,11 +189,11 @@
                 <div class="flex justify-end space-x-4 mt-8 pt-6 border-t border-gray-700">
                     <a href="{{ route('products.index') }}" 
                        class="bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-6 rounded-lg transition duration-200">
-                        Hủy
+                        Cancel
                     </a>
                     <button type="submit" 
                             class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition duration-200">
-                        <i class="fas fa-save mr-2"></i>Cập nhật sản phẩm
+                        <i class="fas fa-save mr-2"></i>Update Product
                     </button>
                 </div>
             </form>
@@ -289,7 +290,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             </button>
                         </div>
                         <div class="absolute top-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded">
-                            ${index === 0 ? 'Ảnh chính' : 'Ảnh ' + (index + 1)}
+                            ${index === 0 ? 'Primary Image' : 'Image ' + (index + 1)}
                         </div>
                     </div>
                     <p class="text-xs text-gray-400 mt-1 truncate">${file.name}</p>

@@ -7,8 +7,8 @@
         <div class="mb-8">
             <div class="flex justify-between items-center mb-6">
                 <div>
-                    <h1 class="text-3xl font-bold text-white mb-2">Quản lý Người dùng</h1>
-                    <p class="text-gray-400">Quản lý tài khoản người dùng trong hệ thống</p>
+                    <h1 class="text-3xl font-bold text-white mb-2">Manage Users</h1>
+                    <p class="text-gray-400">Manage user accounts in the system</p>
                 </div>
                 @can('create-users')
                 @unless(auth()->user()->hasRole('team-admin'))
@@ -16,7 +16,7 @@
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                     </svg>
-                    Thêm Người dùng
+                    Add User
                 </a>
                 @endunless
                 @endcan
@@ -28,12 +28,12 @@
             <form method="GET" action="{{ route('users.index') }}" class="flex flex-wrap gap-4">
                 <div class="flex-1 min-w-64">
                     <input type="text" name="search" value="{{ request('search') }}" 
-                           placeholder="Tìm kiếm theo tên hoặc email..." 
+                           placeholder="Search by name or email..." 
                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500">
                 </div>
                 <div class="flex gap-2">
                     <select name="role" class="bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
-                        <option value="">Tất cả vai trò</option>
+                        <option value="">All roles</option>
                         @foreach(\Spatie\Permission\Models\Role::all() as $role)
                             <option value="{{ $role->name }}" {{ request('role') == $role->name ? 'selected' : '' }}>
                                 {{ $role->name }}
@@ -41,7 +41,7 @@
                         @endforeach
                     </select>
                     <select name="type" class="bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
-                        <option value="">Tất cả loại</option>
+                        <option value="">All types</option>
                         <option value="system" {{ request('type') == 'system' ? 'selected' : '' }}>System User</option>
                         <option value="team" {{ request('type') == 'team' ? 'selected' : '' }}>Team User</option>
                     </select>
@@ -60,12 +60,13 @@
                 <table class="w-full">
                     <thead class="bg-gray-700">
                         <tr>
-                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Người dùng</th>
-                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Vai trò</th>
+                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">User</th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Role</th>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Team</th>
-                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Loại</th>
-                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Trạng thái</th>
-                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Thao tác</th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Type</th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">TikTok market</th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Actions
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-700">
@@ -90,30 +91,39 @@
                                         </span>
                                     @endforeach
                                 @else
-                                    <span class="text-gray-500 text-sm">Không có vai trò</span>
+                                    <span class="text-gray-500 text-sm">No role</span>
                                 @endif
                             </td>
                             <td class="px-6 py-4">
                                 @if($user->team)
                                     <span class="text-gray-300">{{ $user->team->name }}</span>
                                 @else
-                                    <span class="text-gray-500 text-sm">Không có team</span>
+                                    <span class="text-gray-500 text-sm">No team</span>
                                 @endif
                             </td>
                             <td class="px-6 py-4">
                                 @if($user->is_system_user)
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-500/20 text-purple-400">
-                                        System Level
+                                        System level
                                     </span>
                                 @else
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400">
-                                        Team Level
+                                        Team level
                                     </span>
                                 @endif
                             </td>
                             <td class="px-6 py-4">
+                                @if($user->getPrimaryTikTokMarket())
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-500/20 text-blue-400">
+                                        {{ $user->getPrimaryTikTokMarket() }}
+                                    </span>
+                                @else
+                                    <span class="text-gray-500 text-sm">Not assigned</span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400">
-                                    Hoạt động
+                                    Active
                                 </span>
                             </td>
                             <td class="px-6 py-4">
@@ -137,7 +147,7 @@
                                     @endcan
                                                                           @can('delete-users')
                                       @unless(auth()->user()->hasRole('team-admin'))
-                                      <form action="{{ route('users.destroy', $user) }}" method="POST" class="inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa người dùng này?')">
+                                      <form action="{{ route('users.destroy', $user) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this user?')">
                                           @csrf
                                           @method('DELETE')
                                           <button type="submit" class="text-red-400 hover:text-red-300 transition-colors duration-200">
@@ -153,13 +163,13 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="6" class="px-6 py-8 text-center text-gray-400">
+                            <td colspan="7" class="px-6 py-8 text-center text-gray-400">
                                 <div class="flex flex-col items-center">
                                     <svg class="w-12 h-12 mb-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
                                     </svg>
-                                    <p class="text-lg font-medium">Không có người dùng nào</p>
-                                    <p class="text-sm">Bắt đầu bằng cách thêm người dùng mới</p>
+                                        <p class="text-lg font-medium">No users found</p>
+                                    <p class="text-sm">Start by adding a new user</p>
                                 </div>
                             </td>
                         </tr>

@@ -31,17 +31,23 @@ class TeamTikTokShopController extends Controller
         $integrations = TikTokShopIntegration::where('team_id', $team->id)->with('shops.sellers.user')->get();
         $shops = collect();
 
-        // Get all shops from all integrations
+        // Get all shops from all integrations with integration relationship
         foreach ($integrations as $integration) {
-            $shops = $shops->merge($integration->shops);
+            $integrationShops = $integration->shops;
+            // Load integration relationship for each shop
+            foreach ($integrationShops as $shop) {
+                $shop->setRelation('integration', $integration);
+            }
+            $shops = $shops->merge($integrationShops);
         }
 
-        // Get team members with seller role for assignment
+        // Get team members with seller role for assignment (will be filtered per shop by market in view)
         $teamMembers = User::where('team_id', $team->id)
             ->where('is_system_user', false)
             ->whereHas('roles', function ($query) {
                 $query->where('name', 'seller');
             })
+            ->with('tiktokMarkets')
             ->get();
 
         return view('team.tiktok-shop.index', compact('integrations', 'team', 'shops', 'teamMembers'));
@@ -61,16 +67,23 @@ class TeamTikTokShopController extends Controller
      */
     public function storeIntegration(Request $request)
     {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'market' => 'required|in:US,UK',
+        ]);
+
         $team = Auth::user()->team;
 
         try {
             TikTokShopIntegration::create([
                 'team_id' => $team->id,
+                'name' => $request->name,
+                'market' => $request->market,
                 'status' => 'pending',
             ]);
 
             return redirect()->route('team.tiktok-shop.index')
-                ->with('success', 'Tạo tích hợp TikTok Shop thành công! Bây giờ bạn có thể kết nối.');
+                ->with('success', 'Tạo tích hợp TikTok Shop "' . $request->name . '" thành công! Bây giờ bạn có thể kết nối.');
         } catch (Exception $e) {
             Log::error('Create Integration Error: ' . $e->getMessage());
             return back()->withErrors(['error' => 'Có lỗi xảy ra: ' . $e->getMessage()]);
@@ -571,9 +584,22 @@ class TeamTikTokShopController extends Controller
         ]);
 
         // Check if user belongs to the same team
-        $user = User::find($request->user_id);
+        $user = User::with('tiktokMarkets')->find($request->user_id);
         if ($user->team_id !== Auth::user()->team_id) {
             return back()->with('error', 'Người dùng không thuộc team này.');
+        }
+
+        // Get shop's market from integration
+        $shopIntegration = $shop->integration;
+        if (!$shopIntegration) {
+            return back()->with('error', 'Không tìm thấy thông tin tích hợp của shop.');
+        }
+
+        $shopMarket = $shopIntegration->market;
+        
+        // Check if user has access to the shop's market
+        if (!$user->hasTikTokMarket($shopMarket)) {
+            return back()->with('error', 'Không thể phân quyền: User ' . $user->name . ' không có quyền truy cập thị trường ' . $shopMarket . '. Shop này thuộc thị trường ' . $shopMarket . ', nhưng user chỉ có quyền truy cập: ' . implode(', ', $user->getTikTokMarkets()) . '.');
         }
 
         try {
@@ -736,7 +762,7 @@ class TeamTikTokShopController extends Controller
                 'type' => 'customer_auth'
             ])),
             'redirect_uri' => route('public.customer-callback'),
-            'scope' => 'seller.authorization.info,seller.shop.info,seller.product.basic,seller.order.info,seller.fulfillment.basic,seller.logistics,seller.delivery.status.write,seller.finance.info,seller.product.delete,seller.product.write,seller.product.optimize',
+            'scope' => config('tiktok-shop.oauth.scope'),
         ];
 
         return 'https://auth.tiktok-shops.com/oauth/authorize?' . http_build_query($params);

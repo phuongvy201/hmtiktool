@@ -13,8 +13,8 @@
                         </svg>
                     </a>
                     <div>
-                        <h1 class="text-3xl font-bold text-white mb-2">Chi tiết Vai trò</h1>
-                        <p class="text-gray-400">Thông tin chi tiết về vai trò: {{ $role->name }}</p>
+                        <h1 class="text-3xl font-bold text-white mb-2">Role Details</h1>
+                        <p class="text-gray-400">Detailed information about role: {{ $role->name }}</p>
                     </div>
                 </div>
                 <div class="flex items-center space-x-3">
@@ -23,18 +23,18 @@
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                         </svg>
-                        Chỉnh sửa
+                        Edit
                     </a>
                     @endcan
                     @can('delete-roles')
-                    <form action="{{ route('roles.destroy', $role) }}" method="POST" class="inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa vai trò này?')">
+                    <form action="{{ route('roles.destroy', $role) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this role?')">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
-                            Xóa
+                            Delete
                         </button>
                     </form>
                     @endcan
@@ -54,27 +54,27 @@
                             </svg>
                         </div>
                         <h2 class="text-xl font-bold text-white">{{ $role->name }}</h2>
-                        <p class="text-gray-400">Vai trò hệ thống</p>
+                        <p class="text-gray-400">System role</p>
                     </div>
                     
                     <div class="space-y-4">
                         <div class="flex items-center justify-between">
-                            <span class="text-gray-400">Số quyền hạn:</span>
+                            <span class="text-gray-400">Permissions:</span>
                             <span class="text-white font-medium">{{ $role->permissions->count() }}</span>
                         </div>
                         
                         <div class="flex items-center justify-between">
-                            <span class="text-gray-400">Số người dùng:</span>
+                            <span class="text-gray-400">Users:</span>
                             <span class="text-white font-medium">{{ $role->users->count() }}</span>
                         </div>
                         
                         <div class="flex items-center justify-between">
-                            <span class="text-gray-400">Ngày tạo:</span>
+                            <span class="text-gray-400">Created at:</span>
                             <span class="text-gray-300">{{ $role->created_at->format('d/m/Y H:i') }}</span>
                         </div>
                         
                         <div class="flex items-center justify-between">
-                            <span class="text-gray-400">Cập nhật lần cuối:</span>
+                            <span class="text-gray-400">Last updated:</span>
                             <span class="text-gray-300">{{ $role->updated_at->format('d/m/Y H:i') }}</span>
                         </div>
                     </div>
@@ -89,7 +89,7 @@
                         <svg class="w-5 h-5 mr-2 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
-                        Quyền hạn được gán
+                        Assigned Permissions
                     </h3>
                     
                     @if($role->permissions->count() > 0)
@@ -110,7 +110,7 @@
                             <svg class="w-12 h-12 mx-auto text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
-                            <p class="text-gray-400">Vai trò này chưa có quyền hạn nào</p>
+                            <p class="text-gray-400">This role has no permissions</p>
                         </div>
                     @endif
                 </div>
@@ -121,7 +121,7 @@
                         <svg class="w-5 h-5 mr-2 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
                         </svg>
-                        Người dùng có vai trò này
+                        Users with this role
                     </h3>
                     
                     @if($role->users->count() > 0)
@@ -129,10 +129,10 @@
                             <table class="w-full">
                                 <thead class="bg-gray-700">
                                     <tr>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Người dùng</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">User</th>
                                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Email</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Loại</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Ngày tạo</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Type</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Created at</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-700">
@@ -169,7 +169,7 @@
                             <svg class="w-12 h-12 mx-auto text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
                             </svg>
-                            <p class="text-gray-400">Chưa có người dùng nào được gán vai trò này</p>
+                            <p class="text-gray-400">No users assigned to this role yet</p>
                         </div>
                     @endif
                 </div>
@@ -180,7 +180,7 @@
                         <svg class="w-5 h-5 mr-2 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
                         </svg>
-                        Phân loại quyền hạn
+                        Permission Categories
                     </h3>
                     
                     @php

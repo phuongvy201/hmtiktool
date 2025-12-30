@@ -53,7 +53,7 @@
                 </a>
                 <div class="flex-1">
                     <h1 class="text-3xl font-bold text-white mb-2">{{ $productTemplate->name }}</h1>
-                    <p class="text-gray-400">Chi tiết template sản phẩm</p>
+                    <p class="text-gray-400">Product template details</p>
                 </div>
                 <div class="flex space-x-3">
                     <a href="{{ route('product-templates.edit', $productTemplate) }}" 
@@ -61,7 +61,7 @@
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                         </svg>
-                        Chỉnh sửa
+                        Edit
                     </a>
                 </div>
             </div>
@@ -74,28 +74,28 @@
                     <svg class="w-5 h-5 mr-2 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                     </svg>
-                    Thông tin cơ bản
+                    Basic Information
                 </h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <p class="text-sm font-medium text-gray-400 mb-1">Tên sản phẩm</p>
+                        <p class="text-sm font-medium text-gray-400 mb-1">Product name</p>
                         <p class="text-lg text-white">{{ $productTemplate->name }}</p>
                     </div>
                     <div>
-                        <p class="text-sm font-medium text-gray-400 mb-1">Danh mục</p>
+                        <p class="text-sm font-medium text-gray-400 mb-1">Category</p>
                         <p class="text-lg text-white">{{ $productTemplate->category_name ?? $productTemplate->category_id }}</p>
                     </div>
                     <div>
-                        <p class="text-sm font-medium text-gray-400 mb-1">Giá cơ bản</p>
+                        <p class="text-sm font-medium text-gray-400 mb-1">Base price</p>
                         <p class="text-lg font-semibold text-green-400">{{ $productTemplate->base_price }}</p>
                     </div>
                     <div>
-                        <p class="text-sm font-medium text-gray-400 mb-1">Giá niêm yết</p>
+                        <p class="text-sm font-medium text-gray-400 mb-1">List price</p>
                         <p class="text-lg text-white">{{ $productTemplate->list_price ?? 'N/A' }}</p>
                     </div>
                     @if($productTemplate->description)
                         <div class="md:col-span-2">
-                            <p class="text-sm font-medium text-gray-400 mb-2">Mô tả</p>
+                            <p class="text-sm font-medium text-gray-400 mb-2">Description</p>
                             <div class="bg-gray-700 rounded-lg p-4 border border-gray-600">
                                 <div class="rich-content text-white leading-relaxed">
                                     {!! \App\Helpers\TextHelper::formatDescription($productTemplate->description) !!}
@@ -113,30 +113,30 @@
                     <svg class="w-5 h-5 mr-2 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
                     </svg>
-                    Kích thước & Trọng lượng
+                    Dimensions & Weight
                 </h3>
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                     @if($productTemplate->weight)
                         <div>
-                            <p class="text-sm font-medium text-gray-400 mb-1">Trọng lượng</p>
+                            <p class="text-sm font-medium text-gray-400 mb-1">Weight</p>
                             <p class="text-lg text-white">{{ $productTemplate->weight }} kg</p>
                         </div>
                     @endif
                     @if($productTemplate->height)
                         <div>
-                            <p class="text-sm font-medium text-gray-400 mb-1">Chiều cao</p>
+                            <p class="text-sm font-medium text-gray-400 mb-1">Height</p>
                             <p class="text-lg text-white">{{ $productTemplate->height }} cm</p>
                         </div>
                     @endif
                     @if($productTemplate->width)
                         <div>
-                            <p class="text-sm font-medium text-gray-400 mb-1">Chiều rộng</p>
+                            <p class="text-sm font-medium text-gray-400 mb-1">Width</p>
                             <p class="text-lg text-white">{{ $productTemplate->width }} cm</p>
                         </div>
                     @endif
                     @if($productTemplate->length)
                         <div>
-                            <p class="text-sm font-medium text-gray-400 mb-1">Chiều dài</p>
+                            <p class="text-sm font-medium text-gray-400 mb-1">Length</p>
                             <p class="text-lg text-white">{{ $productTemplate->length }} cm</p>
                         </div>
                     @endif
@@ -151,13 +151,13 @@
                     <svg class="w-5 h-5 mr-2 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                     </svg>
-                    Hình ảnh & Media
+                    Images & Media
                 </h3>
                 
                 <!-- Product Images -->
                 @if($productTemplate->images && count($productTemplate->images) > 0)
                 <div class="mb-6">
-                    <h4 class="text-md font-medium text-white mb-3">Hình ảnh sản phẩm</h4>
+                    <h4 class="text-md font-medium text-white mb-3">Product images</h4>
                     <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                         @foreach($productTemplate->images as $image)
                             <div class="relative group cursor-pointer" onclick="openImageModal('{{ $image }}')">
@@ -178,7 +178,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     @if($productTemplate->size_chart)
                     <div>
-                        <h4 class="text-md font-medium text-white mb-3">Bảng size</h4>
+                        <h4 class="text-md font-medium text-white mb-3">Size chart</h4>
                         <div class="relative group cursor-pointer" onclick="openImageModal('{{ $productTemplate->size_chart }}')">
                             <img src="{{ $productTemplate->size_chart }}" alt="Size chart" 
                                  class="w-full h-48 object-cover rounded-lg border border-gray-600 hover:border-blue-400 transition-colors">
@@ -193,11 +193,11 @@
 
                     @if($productTemplate->product_video)
                     <div>
-                        <h4 class="text-md font-medium text-white mb-3">Video sản phẩm</h4>
+                        <h4 class="text-md font-medium text-white mb-3">Product video</h4>
                         <div class="relative">
                             <video controls class="w-full h-48 rounded-lg border border-gray-600">
                                 <source src="{{ $productTemplate->product_video }}" type="video/mp4">
-                                Trình duyệt của bạn không hỗ trợ video.
+                                Your browser does not support video.
                             </video>
                         </div>
                     </div>
@@ -213,7 +213,7 @@
                     <svg class="w-5 h-5 mr-2 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
-                    Thuộc tính danh mục
+                    Category attributes
                 </h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     @foreach($productTemplate->categoryAttributes as $attribute)
@@ -221,23 +221,23 @@
                             <div class="flex items-center justify-between mb-2">
                                 <h4 class="font-medium text-white">{{ $attribute->attribute_name }}</h4>
                                 @if($attribute->is_required)
-                                    <span class="px-2 py-1 bg-red-600 text-red-100 text-xs rounded-full">Bắt buộc</span>
+                                    <span class="px-2 py-1 bg-red-600 text-red-100 text-xs rounded-full">Required</span>
                                 @else
-                                    <span class="px-2 py-1 bg-gray-600 text-gray-100 text-xs rounded-full">Tùy chọn</span>
+                                    <span class="px-2 py-1 bg-gray-600 text-gray-100 text-xs rounded-full">Optional</span>
                                 @endif
                             </div>
                             <div class="text-sm text-gray-300 mb-1">
-                                <span class="font-medium">Loại:</span> 
+                                <span class="font-medium">Type:</span> 
                                 @if($attribute->attribute_type === 'PRODUCT_PROPERTY')
-                                    <span class="text-blue-400">Thuộc tính sản phẩm</span>
+                                    <span class="text-blue-400">Product property</span>
                                 @elseif($attribute->attribute_type === 'SALES_PROPERTY')
-                                    <span class="text-purple-400">Thuộc tính bán hàng</span>
+                                    <span class="text-purple-400">Sales property</span>
                                 @else
                                     <span class="text-gray-400">{{ $attribute->attribute_type }}</span>
                                 @endif
                             </div>
                             <div class="text-sm text-gray-300">
-                                <span class="font-medium">Giá trị:</span> 
+                                <span class="font-medium">Value:</span> 
                                 @if($attribute->value_name)
                                     <span class="text-gray-400">{{ $attribute->value_name }}</span>
                                 @endif
@@ -255,7 +255,7 @@
                     <svg class="w-5 h-5 mr-2 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
                     </svg>
-                    Tùy chọn sản phẩm
+                    Product options
                 </h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     @foreach($productTemplate->options as $option)
@@ -286,12 +286,12 @@
                     <table class="min-w-full divide-y divide-gray-700">
                         <thead class="bg-gray-700">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Hình ảnh</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Image</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">SKU</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Combination</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Giá</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Giá niêm yết</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Số lượng</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Price</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">List price</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Quantity</th>
                             </tr>
                         </thead>
                         <tbody class="bg-gray-800 divide-y divide-gray-700">

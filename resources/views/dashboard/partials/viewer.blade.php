@@ -11,8 +11,8 @@
                 </div>
                 <h3 class="text-lg font-semibold text-white">Financial Reports</h3>
             </div>
-            <p class="text-gray-400 mb-4">Xem báo cáo tài chính</p>
-            <a href="{{ route('financial.reports') }}" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">Xem Báo cáo</a>
+            <p class="text-gray-400 mb-4">View financial reports</p>
+            <a href="{{ route('financial.reports') }}" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">View Reports</a>
         </div>
     </div>
 
@@ -27,8 +27,8 @@
                 </div>
                 <h3 class="text-lg font-semibold text-white">Fulfillment</h3>
             </div>
-            <p class="text-gray-400 mb-4">Xem thông tin fulfillment</p>
-            <a href="{{ route('fulfillment.index') }}" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">Xem Fulfillment</a>
+            <p class="text-gray-400 mb-4">View fulfillment information</p>
+            <a href="{{ route('fulfillment.index') }}" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">View Fulfillment</a>
         </div>
     </div>
 
@@ -43,8 +43,8 @@
                 </div>
                 <h3 class="text-lg font-semibold text-white">Sales</h3>
             </div>
-            <p class="text-gray-400 mb-4">Xem thông tin bán hàng</p>
-            <a href="{{ route('sales.index') }}" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">Xem Sales</a>
+            <p class="text-gray-400 mb-4">View sales information</p>
+            <a href="{{ route('sales.index') }}" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">View Sales</a>
         </div>
     </div>
 
@@ -59,8 +59,8 @@
                 </div>
                 <h3 class="text-lg font-semibold text-white">My Profile</h3>
             </div>
-            <p class="text-gray-400 mb-4">Quản lý thông tin cá nhân</p>
-            <a href="{{ route('profile.edit') }}" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">Chỉnh sửa Profile</a>
+            <p class="text-gray-400 mb-4">Manage personal information</p>
+            <a href="{{ route('profile.edit') }}" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">Edit Profile</a>
         </div>
     </div>
 
@@ -75,8 +75,8 @@
                 </div>
                 <h3 class="text-lg font-semibold text-white">Help & Support</h3>
             </div>
-            <p class="text-gray-400 mb-4">Hướng dẫn sử dụng và hỗ trợ</p>
-            <a href="#" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">Xem Hướng dẫn</a>
+            <p class="text-gray-400 mb-4">Guides and support</p>
+            <a href="#" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">View Guides</a>
         </div>
     </div>
 
@@ -91,8 +91,8 @@
                 </div>
                 <h3 class="text-lg font-semibold text-white">System Status</h3>
             </div>
-            <p class="text-gray-400 mb-4">Trạng thái hệ thống</p>
-            <a href="#" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">Kiểm tra Status</a>
+            <p class="text-gray-400 mb-4">System status</p>
+            <a href="#" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">Check Status</a>
         </div>
     </div>
 

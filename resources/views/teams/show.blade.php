@@ -13,8 +13,8 @@
                         </svg>
                     </a>
                     <div>
-                        <h1 class="text-3xl font-bold text-white mb-2">Chi tiết Team</h1>
-                        <p class="text-gray-400">Thông tin chi tiết về team: {{ $team->name }}</p>
+                        <h1 class="text-3xl font-bold text-white mb-2">Team Details</h1>
+                        <p class="text-gray-400">Detailed information about the team: {{ $team->name }}</p>
                     </div>
                 </div>
                 <div class="flex items-center space-x-3">
@@ -23,18 +23,18 @@
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                         </svg>
-                        Chỉnh sửa
+                        Edit
                     </a>
                     @endcan
                     @can('delete-teams')
-                    <form action="{{ route('teams.destroy', $team) }}" method="POST" class="inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa team này?')">
+                    <form action="{{ route('teams.destroy', $team) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this team?')">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
-                            Xóa
+                            Delete
                         </button>
                     </form>
                     @endcan
@@ -54,48 +54,48 @@
                             </svg>
                         </div>
                         <h2 class="text-xl font-bold text-white">{{ $team->name }}</h2>
-                        <p class="text-gray-400">Team trong hệ thống</p>
+                        <p class="text-gray-400">Team in the system</p>
                     </div>
                     
                     <div class="space-y-4">
                         <div class="flex items-center justify-between">
-                            <span class="text-gray-400">Số thành viên:</span>
+                            <span class="text-gray-400">Number of members:</span>
                             <span class="text-white font-medium">{{ $team->users->count() }}</span>
                         </div>
                         
                         <div class="flex items-center justify-between">
-                            <span class="text-gray-400">Trạng thái:</span>
+                            <span class="text-gray-400">Status:</span>
                             @if($team->status === 'active')
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400">
                                     <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
                                     </svg>
-                                    Hoạt động
+                                    Active
                                 </span>
                             @elseif($team->status === 'inactive')
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-500/20 text-gray-400">
                                     <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
                                     </svg>
-                                    Không hoạt động
+                                    Inactive
                                 </span>
                             @else
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-500/20 text-red-400">
                                     <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
                                     </svg>
-                                    Tạm ngưng
+                                    Suspended
                                 </span>
                             @endif
                         </div>
                         
                         <div class="flex items-center justify-between">
-                            <span class="text-gray-400">Ngày tạo:</span>
+                                <span class="text-gray-400">Created date:</span>
                             <span class="text-gray-300">{{ $team->created_at->format('d/m/Y H:i') }}</span>
                         </div>
                         
                         <div class="flex items-center justify-between">
-                            <span class="text-gray-400">Cập nhật lần cuối:</span>
+                            <span class="text-gray-400">Last updated:</span>
                             <span class="text-gray-300">{{ $team->updated_at->format('d/m/Y H:i') }}</span>
                         </div>
                     </div>
@@ -111,7 +111,7 @@
                         <svg class="w-5 h-5 mr-2 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
-                        Mô tả Team
+                        Team Description
                     </h3>
                     <p class="text-gray-300 leading-relaxed">{{ $team->description }}</p>
                 </div>
@@ -123,7 +123,7 @@
                         <svg class="w-5 h-5 mr-2 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
                         </svg>
-                        Thành viên Team
+                        Team Members
                     </h3>
                     
                     @if($team->users->count() > 0)
@@ -131,11 +131,11 @@
                             <table class="w-full">
                                 <thead class="bg-gray-700">
                                     <tr>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Thành viên</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Member</th>
                                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Email</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Vai trò</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Trạng thái</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Ngày tham gia</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Role</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Status</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Joined date</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-700">
@@ -165,7 +165,7 @@
                                                     @endif
                                                 </div>
                                             @else
-                                                <span class="text-gray-500 text-sm">Không có vai trò</span>
+                                                <span class="text-gray-500 text-sm">No role</span>
                                             @endif
                                         </td>
                                         <td class="px-4 py-3">
@@ -174,14 +174,14 @@
                                                     <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
                                                     </svg>
-                                                    Đã xác thực
+                                                    Verified
                                                 </span>
                                             @else
                                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-400">
                                                     <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                                         <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
                                                     </svg>
-                                                    Chưa xác thực
+                                                    Not verified
                                                 </span>
                                             @endif
                                         </td>
@@ -196,7 +196,7 @@
                             <svg class="w-12 h-12 mx-auto text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
                             </svg>
-                            <p class="text-gray-400">Team này chưa có thành viên nào</p>
+                            <p class="text-gray-400">This team has no members</p>
                         </div>
                     @endif
                 </div>
@@ -209,14 +209,14 @@
                                  <svg class="w-5 h-5 mr-2 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                                  </svg>
-                                 Gói Dịch vụ Team
+                                 Team Service Package
                              </h3>
                              <a href="{{ route('team-subscriptions.create') }}" 
                                 class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center">
                                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                                  </svg>
-                                 Gán gói mới
+                                 Assign new package
                              </a>
                          </div>
                          
@@ -238,8 +238,8 @@
                                          </div>
                                      </div>
                                      <div class="text-right">
-                                         <div class="text-white font-medium">{{ $currentSubscription->remaining_days }} ngày còn lại</div>
-                                         <div class="text-gray-400 text-sm">Hết hạn: {{ $currentSubscription->end_date->format('d/m/Y') }}</div>
+                                            <div class="text-white font-medium">{{ $currentSubscription->remaining_days }} days remaining</div>
+                                         <div class="text-gray-400 text-sm">Expired: {{ $currentSubscription->end_date->format('d/m/Y') }}</div>
                                      </div>
                                  </div>
                              </div>
@@ -248,14 +248,14 @@
                                  <svg class="w-12 h-12 mx-auto text-gray-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                                  </svg>
-                                 <h4 class="text-gray-300 font-medium mb-2">Chưa có gói dịch vụ</h4>
-                                 <p class="text-gray-400 text-sm mb-4">Team này chưa được gán gói dịch vụ nào</p>
+                                 <h4 class="text-gray-300 font-medium mb-2">No service package</h4>
+                                 <p class="text-gray-400 text-sm mb-4">This team has no service package assigned</p>
                                  <a href="{{ route('team-subscriptions.create') }}" 
                                     class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors duration-200">
                                      <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                                      </svg>
-                                     Gán gói dịch vụ
+                                     Assign service package
                                  </a>
                              </div>
                          @endif
@@ -263,7 +263,7 @@
                          <!-- Subscription History -->
                          @if($team->subscriptions->count() > 0)
                              <div class="mt-6">
-                                 <h4 class="text-md font-medium text-white mb-3">Lịch sử gói dịch vụ</h4>
+                                 <h4 class="text-md font-medium text-white mb-3">Service package history</h4>
                                  <div class="space-y-2">
                                      @foreach($team->subscriptions->take(3) as $subscription)
                                          <div class="flex items-center justify-between p-3 bg-gray-700/50 rounded-lg">
@@ -288,7 +288,7 @@
                                      <div class="mt-3 text-center">
                                          <a href="{{ route('team-subscriptions.team-subscriptions', $team) }}" 
                                             class="text-blue-400 hover:text-blue-300 text-sm">
-                                             Xem tất cả ({{ $team->subscriptions->count() }} gói)
+                                             View all ({{ $team->subscriptions->count() }} packages)
                                          </a>
                                      </div>
                                  @endif
@@ -303,7 +303,7 @@
                         <svg class="w-5 h-5 mr-2 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                         </svg>
-                        Thống kê Team
+                            Team Statistics
                     </h3>
                     
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -315,7 +315,7 @@
                                     </svg>
                                 </div>
                                 <div>
-                                    <p class="text-gray-400 text-sm">Tổng thành viên</p>
+                                    <p class="text-gray-400 text-sm">Total members</p>
                                     <p class="text-white font-semibold">{{ $team->users->count() }}</p>
                                 </div>
                             </div>
@@ -329,7 +329,7 @@
                                     </svg>
                                 </div>
                                 <div>
-                                    <p class="text-gray-400 text-sm">Đã xác thực</p>
+                                    <p class="text-gray-400 text-sm">Verified</p>
                                     <p class="text-white font-semibold">{{ $team->users->where('email_verified_at', '!=', null)->count() }}</p>
                                 </div>
                             </div>
@@ -343,7 +343,7 @@
                                     </svg>
                                 </div>
                                 <div>
-                                    <p class="text-gray-400 text-sm">Chưa xác thực</p>
+                                        <p class="text-gray-400 text-sm">Not verified</p>
                                     <p class="text-white font-semibold">{{ $team->users->where('email_verified_at', null)->count() }}</p>
                                 </div>
                             </div>

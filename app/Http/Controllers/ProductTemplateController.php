@@ -6,11 +6,14 @@ use App\Models\ProductTemplate;
 use App\Models\ProductTemplateOption;
 use App\Models\ProductTemplateOptionValue;
 use App\Models\ProductTemplateVariant;
+use App\Models\TikTokShopCategory;
 use App\Models\TikTokShopIntegration;
+use App\Models\UserTikTokMarket;
 use App\Policies\ProductTemplatePolicy;
 use App\Services\TikTokShopService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -34,7 +37,7 @@ class ProductTemplateController extends Controller
     {
         $user = Auth::user();
 
-        // Sử dụng Policy để lấy templates mà user có quyền xem
+        // Use Policy to get templates that user has permission to view
         $policy = new ProductTemplatePolicy();
         $templatesQuery = $policy->getViewableTemplates($user);
 
@@ -48,15 +51,86 @@ class ProductTemplateController extends Controller
 
     public function create()
     {
-        $categories = $this->getCategories();
+        // Don't load categories right away to avoid slow loading
+        // Categories sáº½ Ä‘Æ°á»£c load qua AJAX khi user search
+        $categories = [];
 
-        // Nếu có old category, lấy tên category để hiển thị
+        // If there is an old category, only load that category to get the name
         $oldCategoryName = '';
         if (old('category')) {
-            $oldCategoryName = $categories[old('category')] ?? '';
+            $allCategories = $this->getCategories();
+            $oldCategoryName = $allCategories[old('category')] ?? '';
         }
 
         return view('product-templates.create', compact('categories', 'oldCategoryName'));
+    }
+
+    /**
+     * API endpoint to search categories
+     */
+    public function searchCategories(Request $request)
+    {
+        $query = trim($request->input('q', ''));
+
+        if (mb_strlen($query) < 2) {
+            return response()->json(['categories' => []]);
+        }
+
+        $user = Auth::user();
+        $teamId = optional($user->team)->id ?? 'guest';
+
+        // Prioritize market from user_tiktok_markets
+        $userMarket = null;
+        if ($user) {
+            $userMarket = UserTikTokMarket::where('user_id', $user->id)->value('market')
+                ?? $user->getPrimaryTikTokMarket();
+        }
+
+        $market = $userMarket ? strtoupper(trim($userMarket)) : null;
+        $categoryVersion = $market === 'US' ? 'v2' : ($market ? 'v1' : null);
+
+        $cacheKey = implode(':', [
+            'product_template_category_search',
+            $teamId,
+            $market ?? 'all',
+            $categoryVersion ?? 'all',
+            md5(mb_strtolower($query)),
+        ]);
+
+        $categories = Cache::remember($cacheKey, now()->addMinutes(30), function () use ($query, $market, $categoryVersion) {
+            $builder = TikTokShopCategory::query()
+                ->leafCategories()
+                ->where('is_active', true)
+                ->where(function ($inner) use ($query) {
+                    $inner->where('category_name', 'LIKE', "%{$query}%")
+                        ->orWhere('category_id', 'LIKE', "%{$query}%");
+                })
+                ->orderBy('category_name')
+                ->limit(50);
+
+            if ($market) {
+                $builder->forMarket($market);
+            }
+
+            if ($categoryVersion) {
+                $builder->forVersion($categoryVersion);
+            }
+
+            return $builder->get()->mapWithKeys(function ($category) use ($market, $categoryVersion) {
+                $resolvedMarket = $market ?? $category->market;
+                $resolvedVersion = $categoryVersion ?? $category->category_version;
+
+                return [
+                    $category->category_id => $this->getCategoryHierarchyForMarket(
+                        $category->category_id,
+                        $resolvedMarket,
+                        $resolvedVersion
+                    ),
+                ];
+            })->toArray();
+        });
+
+        return response()->json(['categories' => $categories]);
     }
 
     public function store(Request $request)
@@ -355,7 +429,7 @@ class ProductTemplateController extends Controller
                 'team_id' => Auth::user()->team->id,
                 'name' => $request->name,
                 'description' => $request->description,
-                'category_id' => $request->category, // Sửa từ 'category' thành 'category_id'
+                    'category_id' => $request->category, // Changed 'category' to 'category_id'
                 'status' => 'published',
                 'base_price' => $request->base_price,
                 'list_price' => $request->list_price,
@@ -437,7 +511,7 @@ class ProductTemplateController extends Controller
                     $variant = $template->variants()->create([
                         'sku' => $this->generateSkuFromVariantData($template, $variantData),
                         'price' => $variantData['price'],
-                        'list_price' => $variantData['list_price'] ?? $variantData['price'],
+                        'list_price' => isset($variantData['list_price']) && $variantData['list_price'] !== '' ? $variantData['list_price'] : null,
                         'stock_quantity' => $variantData['quantity'],
                         'variant_data' => [
                             'image' => $variantImageUrl,
@@ -522,7 +596,7 @@ class ProductTemplateController extends Controller
                         try {
                             \App\Models\ProdTemplateCategoryAttribute::saveTemplateAttributes(
                                 $template->id,
-                                $request->category, // Giữ nguyên vì đây là category ID
+                                $request->category, // Giá»¯ nguyÃªn vÃ¬ Ä‘Ã¢y lÃ  category ID
                                 $attributes
                             );
                             Log::info('Category attributes saved successfully');
@@ -549,13 +623,13 @@ class ProductTemplateController extends Controller
             if (request()->ajax()) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Template sản phẩm đã được tạo thành công.',
+                    'message' => 'Product template created successfully.',
                     'redirect' => route('product-templates.index')
                 ]);
             }
 
             return redirect()->route('product-templates.index')
-                ->with('success', 'Template sản phẩm đã được tạo thành công.');
+                ->with('success', 'Product template created successfully.');
         } catch (\Exception $e) {
             DB::rollback();
             Log::error('=== PRODUCT TEMPLATE STORE ERROR ===');
@@ -567,11 +641,11 @@ class ProductTemplateController extends Controller
             if (request()->ajax()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Có lỗi xảy ra khi tạo template: ' . $e->getMessage()
+                    'message' => 'An error occurred while creating template: ' . $e->getMessage()
                 ], 500);
             }
 
-            return back()->withInput()->with('error', 'Có lỗi xảy ra khi tạo template: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'An error occurred while creating template: ' . $e->getMessage());
         }
     }
 
@@ -581,9 +655,9 @@ class ProductTemplateController extends Controller
     {
         $user = Auth::user();
 
-        // Kiểm tra quyền truy cập
+        // Kiá»ƒm tra quyá»n truy cáº­p
         if (!$user->hasRole('team-admin') && $productTemplate->user_id !== $user->id) {
-            abort(403, 'Bạn không có quyền truy cập template này.');
+            abort(403, 'You do not have permission to access this template.');
         }
 
         $productTemplate->load(['options.values', 'variants.optionValues.option', 'categoryAttributes']);
@@ -599,19 +673,20 @@ class ProductTemplateController extends Controller
     {
         $user = Auth::user();
 
-        // Kiểm tra quyền truy cập
+        // Kiá»ƒm tra quyá»n truy cáº­p
         if (!$user->hasRole('team-admin') && $productTemplate->user_id !== $user->id) {
-            abort(403, 'Bạn không có quyền chỉnh sửa template này.');
+            abort(403, 'You do not have permission to edit this template.');
         }
 
         $productTemplate->load(['options.values', 'variants.optionValues.option', 'categoryAttributes']);
-        $categories = $this->getCategories();
 
-        // Get old category name for display
-        $oldCategoryName = '';
-        if ($productTemplate->category) {
-            $oldCategoryName = $categories[$productTemplate->category] ?? '';
+        // Chỉ load tên category hiện tại để tránh phải load toàn bộ ~9k categories
+        $categories = [];
+        if ($productTemplate->category_id) {
+            $categories[$productTemplate->category_id] = $this->findCategoryNameCached($productTemplate->category_id);
         }
+
+        $oldCategoryName = $categories[$productTemplate->category_id] ?? '';
 
         return view('product-templates.edit', compact('productTemplate', 'categories', 'oldCategoryName'));
     }
@@ -623,9 +698,9 @@ class ProductTemplateController extends Controller
 
         $user = Auth::user();
 
-        // Kiểm tra quyền truy cập
+        // Kiá»ƒm tra quyá»n truy cáº­p
         if (!$user->hasRole('team-admin') && $productTemplate->user_id !== $user->id) {
-            abort(403, 'Bạn không có quyền cập nhật template này.');
+            abort(403, 'You do not have permission to update this template.');
         }
 
         $request->validate([
@@ -654,8 +729,44 @@ class ProductTemplateController extends Controller
             'variants.*.id' => 'nullable|exists:prod_template_variants,id',
             'variants.*.image_file' => 'nullable|file|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
             'attributes' => 'nullable|array',
-            'attributes.*' => 'nullable|string',
+            // Cho phép giá trị attribute là string hoặc array (multi-select)
+            'attributes.*' => 'nullable',
         ]);
+
+        // Merge attributes_json (hidden payload) into attributes for debugging missing saves
+        $attrJson = $request->input('attributes_json');
+        if ($attrJson) {
+            $decoded = json_decode($attrJson, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $attrArray = $request->input('attributes', []);
+                if (!is_array($attrArray)) {
+                    $attrArray = [];
+                }
+                Log::info('attributes_json received on update', ['raw' => $decoded, 'attributes_input_raw' => $attrArray]);
+                $mergedAttrs = $attrArray;
+                foreach ($decoded as $k => $v) {
+                    // If key already exists and both are arrays, merge; otherwise override with decoded
+                    if (isset($mergedAttrs[$k]) && is_array($mergedAttrs[$k]) && is_array($v)) {
+                        $mergedAttrs[$k] = array_values(array_unique(array_merge($mergedAttrs[$k], $v)));
+                    } else {
+                        $mergedAttrs[$k] = $v;
+                    }
+                }
+                Log::info('Attributes JSON merged into request attributes', [
+                    'attributes_json' => $decoded,
+                    'attributes_input' => $request->input('attributes', []),
+                    'attributes_merged' => $mergedAttrs,
+                ]);
+                $request->merge(['attributes' => $mergedAttrs]);
+            } else {
+                Log::warning('attributes_json decode failed', [
+                    'attributes_json_raw' => $attrJson,
+                    'json_error' => json_last_error_msg(),
+                ]);
+            }
+        } else {
+            Log::info('No attributes_json provided in request');
+        }
 
         DB::beginTransaction();
         try {
@@ -892,19 +1003,115 @@ class ProductTemplateController extends Controller
                 'product_video' => $productVideoUrl,
             ]);
 
-            // Update category attributes if provided
-            if ($request->has('attributes') && is_array($request->attributes)) {
-                $attributes = array_filter($request->attributes, function ($value) {
-                    return !empty($value);
-                });
+            // Update category attributes (required & optional)
+            $rawAttributes = $request->input('attributes', []);
+            if (!is_array($rawAttributes)) {
+                $rawAttributes = [];
+            }
 
-                if (!empty($attributes)) {
-                    \App\Models\ProdTemplateCategoryAttribute::saveTemplateAttributes(
-                        $productTemplate->id,
-                        $request->category,
-                        $attributes
-                    );
+            // Giữ lại giá trị không rỗng; hỗ trợ cả mảng (multi-select) lẫn chuỗi
+            $attributes = [];
+            foreach ($rawAttributes as $attrId => $value) {
+                if (is_array($value)) {
+                    $clean = array_values(array_filter($value, fn($v) => $v !== null && $v !== ''));
+                    if (!empty($clean)) {
+                        $attributes[$attrId] = $clean;
+                    }
+                } else {
+                    if ($value !== null && $value !== '') {
+                        $attributes[$attrId] = $value;
+                    }
                 }
+            }
+
+            Log::info('Category attributes (filtered) before save on update:', [
+                'template_id' => $productTemplate->id,
+                'category_id' => $request->category,
+                'attributes' => $attributes,
+            ]);
+
+            // Xóa các attribute cũ không còn trong request (để optional/sales property được cập nhật đúng)
+            $attrIds = array_keys($attributes);
+            \App\Models\ProdTemplateCategoryAttribute::where('product_template_id', $productTemplate->id)
+                ->where('category_id', $request->category)
+                ->when(!empty($attrIds), fn($q) => $q->whereNotIn('attribute_id', $attrIds))
+                ->delete();
+
+            if (!empty($attributes)) {
+                \App\Models\ProdTemplateCategoryAttribute::saveTemplateAttributes(
+                    $productTemplate->id,
+                    $request->category,
+                    $attributes
+                );
+                Log::info('Category attributes saved (update) successfully');
+            } else {
+                Log::info('No category attributes to save on update after filtering');
+            }
+
+            // Update option names / values / add new values
+            $optionEdits = $request->input('options_edit', []);
+            if (!empty($optionEdits) && is_array($optionEdits)) {
+                Log::info('Processing option edits', ['count' => count($optionEdits)]);
+                foreach ($optionEdits as $optionId => $data) {
+                    $option = $productTemplate->options()->where('id', $optionId)->first();
+                    if (!$option) {
+                        Log::warning('Option edit skipped - not found', ['option_id' => $optionId]);
+                        continue;
+                    }
+
+                    // Rename option
+                    if (!empty($data['name'])) {
+                        $option->update(['name' => $data['name']]);
+                        Log::info('Option renamed', ['option_id' => $optionId, 'name' => $data['name']]);
+                    }
+
+                    // Rename existing values
+                    if (isset($data['values']) && is_array($data['values'])) {
+                        foreach ($data['values'] as $valueId => $valueName) {
+                            $valueName = is_string($valueName) ? trim($valueName) : $valueName;
+                            if ($valueName === null || $valueName === '') {
+                                continue; // skip empty edits
+                            }
+                            $value = $option->values()->where('id', $valueId)->first();
+                            if ($value) {
+                                $value->update([
+                                    'value' => $valueName,
+                                    'label' => $valueName,
+                                ]);
+                                Log::info('Option value renamed', [
+                                    'option_id' => $optionId,
+                                    'value_id' => $valueId,
+                                    'value' => $valueName,
+                                ]);
+                            }
+                        }
+                    }
+
+                    // Add new values
+                    if (isset($data['new_values']) && is_array($data['new_values'])) {
+                        $sortOrder = ($option->values()->max('sort_order') ?? 0) + 1;
+                        foreach ($data['new_values'] as $newValue) {
+                            if (!is_string($newValue)) {
+                                continue;
+                            }
+                            $trimmed = trim($newValue);
+                            if ($trimmed === '') {
+                                continue;
+                            }
+                            $option->values()->create([
+                                'value' => $trimmed,
+                                'label' => $trimmed,
+                                'sort_order' => $sortOrder++,
+                            ]);
+                            Log::info('Option value added', [
+                                'option_id' => $optionId,
+                                'value' => $trimmed,
+                            ]);
+                        }
+                    }
+                }
+            } else {
+                Log::info('No option edits provided');
             }
 
             // Update variants if provided
@@ -927,9 +1134,12 @@ class ProductTemplateController extends Controller
                             $updateData['price'] = $variantData['price'];
                         }
 
-                        // Update list_price if provided
-                        if (isset($variantData['list_price'])) {
+                        // Update list_price if provided (only if not empty string)
+                        if (isset($variantData['list_price']) && $variantData['list_price'] !== '') {
                             $updateData['list_price'] = $variantData['list_price'];
+                        } elseif (isset($variantData['list_price']) && $variantData['list_price'] === '') {
+                            // If explicitly set to empty string, set to null
+                            $updateData['list_price'] = null;
                         }
 
                         // Update stock_quantity if provided
@@ -1001,7 +1211,7 @@ class ProductTemplateController extends Controller
             Log::info('ProductTemplate updated successfully');
 
             return redirect()->route('product-templates.index')
-                ->with('success', 'Template sản phẩm đã được cập nhật thành công.');
+                ->with('success', 'Product template updated successfully.');
         } catch (\Exception $e) {
             DB::rollback();
             Log::error('Error updating ProductTemplate:', [
@@ -1013,7 +1223,7 @@ class ProductTemplateController extends Controller
 
             return redirect()->back()
                 ->withInput()
-                ->withErrors(['error' => 'Có lỗi xảy ra khi cập nhật template: ' . $e->getMessage()]);
+                ->withErrors(['error' => 'An error occurred while updating template: ' . $e->getMessage()]);
         }
     }
 
@@ -1021,14 +1231,14 @@ class ProductTemplateController extends Controller
     {
         $user = Auth::user();
 
-        // Kiểm tra quyền truy cập
+        // Kiá»ƒm tra quyá»n truy cáº­p
         if (!$user->hasRole('team-admin') && $productTemplate->user_id !== $user->id) {
-            abort(403, 'Bạn không có quyền xóa template này.');
+            abort(403, 'You do not have permission to delete this template.');
         }
 
         $productTemplate->delete();
         return redirect()->route('product-templates.index')
-            ->with('success', 'Template sản phẩm đã được xóa thành công.');
+            ->with('success', 'Product template deleted successfully.');
     }
 
     public function updateVariants(Request $request, ProductTemplate $productTemplate)
@@ -1045,7 +1255,19 @@ class ProductTemplateController extends Controller
         foreach ($request->variants as $variantData) {
             $variant = $productTemplate->variants()->find($variantData['id']);
             if ($variant) {
-                $variant->update($variantData);
+                $updateData = $variantData;
+
+                // Xá»­ lÃ½ list_price: chá»‰ update náº¿u Ä‘Æ°á»£c cung cáº¥p vÃ  khÃ´ng rá»—ng
+                if (isset($variantData['list_price'])) {
+                    if ($variantData['list_price'] === '' || $variantData['list_price'] === null) {
+                        $updateData['list_price'] = null;
+                    }
+                } else {
+                    // Náº¿u khÃ´ng cÃ³ trong request, khÃ´ng update list_price
+                    unset($updateData['list_price']);
+                }
+
+                $variant->update($updateData);
             }
         }
 
@@ -1061,12 +1283,17 @@ class ProductTemplateController extends Controller
             'list_price' => 'nullable|numeric|min:0',
         ]);
 
+        $updateData = ['price' => $request->price];
+
+        // Chá»‰ set list_price náº¿u Ä‘Æ°á»£c cung cáº¥p vÃ  khÃ´ng rá»—ng, khÃ´ng tá»± Ä‘á»™ng láº¥y tá»« price
+        if ($request->filled('list_price') && $request->list_price !== '') {
+            $updateData['list_price'] = $request->list_price;
+        }
+        // Náº¿u khÃ´ng cÃ³ list_price, khÃ´ng update list_price (giá»¯ nguyÃªn giÃ¡ trá»‹ hiá»‡n táº¡i)
+
         $productTemplate->variants()
             ->whereIn('id', $request->variant_ids)
-            ->update([
-                'price' => $request->price,
-                'list_price' => $request->list_price ?? $request->price,
-            ]);
+            ->update($updateData);
 
         return response()->json(['success' => true]);
     }
@@ -1079,9 +1306,9 @@ class ProductTemplateController extends Controller
 
         $variant = $productTemplate->variants()->find($request->variant_id);
         if ($variant) {
-            // Xóa pivot records trước
+            // XÃ³a pivot records trÆ°á»›c
             DB::table('prod_variant_options')->where('prod_template_variant_id', $variant->id)->delete();
-            // Xóa variant
+            // XÃ³a variant
             $variant->delete();
             return response()->json(['success' => true]);
         }
@@ -1189,37 +1416,75 @@ class ProductTemplateController extends Controller
 
             Log::info('Getting categories for team', ['team_id' => $teamId]);
 
-            // Try to get TikTok Shop integration for the team
-            $integration = TikTokShopIntegration::where('team_id', $teamId)->first();
+            // Lấy market ưu tiên từ bảng user_tiktok_markets
+            $userMarket = UserTikTokMarket::where('user_id', $user->id)->value('market')
+                ?? $user->getPrimaryTikTokMarket();
 
-            if ($integration) {
-                Log::info('Found TikTok Shop integration', [
-                    'team_id' => $teamId,
-                    'has_access_token' => !empty($integration->access_token),
-                    'token_expires_at' => $integration->access_token_expires_at
+            if ($userMarket) {
+                $market = strtoupper(trim($userMarket));
+                $categoryVersion = $market === 'US' ? 'v2' : 'v1';
+
+                Log::info('Market from user tiktokMarkets', [
+                    'user_id' => $user->id,
+                    'market' => $market,
+                    'category_version' => $categoryVersion
                 ]);
 
-                if ($integration->access_token) {
-                    Log::info('Attempting to get categories from TikTok Shop API');
+                // Lấy integration phù hợp với market của user
+                $integration = TikTokShopIntegration::where('team_id', $teamId)
+                    ->forMarket($market)
+                    ->first();
 
-                    // Use TikTok Shop API to get categories with hierarchy
-                    $categories = $this->tikTokShopService->getCachedCategoriesWithHierarchy();
+                if ($integration && $integration->access_token) {
+                    Log::info('Found TikTok Shop integration', [
+                        'team_id' => $teamId,
+                        'market' => $market,
+                        'category_version' => $categoryVersion,
+                        'has_access_token' => true,
+                        'token_expires_at' => $integration->access_token_expires_at
+                    ]);
+
+                    $categoryModels = TikTokShopCategory::leafCategories()
+                        ->forMarket($market)
+                        ->forVersion($categoryVersion)
+                        ->where('is_active', true)
+                        ->orderBy('category_name')
+                        ->get();
+
+                    $categories = [];
+                    foreach ($categoryModels as $category) {
+                        $hierarchy = $this->getCategoryHierarchyForMarket($category->category_id, $market, $categoryVersion);
+                        $categories[$category->category_id] = $hierarchy;
+                    }
 
                     Log::info('Categories retrieved', [
-                        'source' => 'TikTok Shop API with hierarchy',
+                        'source' => 'Database with market and version filter',
+                        'market' => $market,
+                        'category_version' => $categoryVersion,
                         'count' => count($categories),
                         'sample_categories' => array_slice($categories, 0, 5, true)
                     ]);
 
                     return $categories;
-                } else {
-                    Log::warning('TikTok Shop integration found but no access token available');
                 }
+
+                Log::warning('TikTok Shop integration missing or no access token', [
+                    'team_id' => $teamId,
+                    'market' => $market
+                ]);
+            }
+
+            // Fallback: Lấy integration đầu tiên nếu không có market
+            $integration = TikTokShopIntegration::where('team_id', $teamId)->first();
+            if ($integration) {
+                Log::info('Using fallback integration', [
+                    'team_id' => $teamId,
+                    'integration_market' => $integration->market
+                ]);
             } else {
                 Log::info('No TikTok Shop integration found for team', ['team_id' => $teamId]);
             }
 
-            // If no integration or no access token, return default categories
             Log::info('Using default categories');
             $defaultCategories = $this->tikTokShopService->getCachedCategoriesWithHierarchy();
 
@@ -1231,7 +1496,6 @@ class ProductTemplateController extends Controller
 
             return $defaultCategories;
         } catch (\Exception $e) {
-            // Log error and return default categories
             Log::error('Error getting categories: ' . $e->getMessage(), [
                 'team_id' => $user->team->id ?? 'unknown',
                 'exception' => $e->getMessage(),
@@ -1243,6 +1507,62 @@ class ProductTemplateController extends Controller
             Log::info('Using default categories due to error');
             return $defaultCategories;
         }
+    }
+
+    /**
+     * Láº¥y category hierarchy vá»›i filter theo market vÃ  category_version
+     */
+    private function getCategoryHierarchyForMarket($categoryId, $market, $categoryVersion): string
+    {
+        $category = \App\Models\TikTokShopCategory::where('category_id', $categoryId)
+            ->where('market', $market)
+            ->where('category_version', $categoryVersion)
+            ->first();
+
+        if (!$category) {
+            return 'Unknown Category';
+        }
+
+        $hierarchy = [$category->category_name];
+        $currentCategory = $category;
+
+        while ($currentCategory->parent_category_id && $currentCategory->parent_category_id !== '0') {
+            // Láº¥y parent vá»›i cÃ¹ng market vÃ  category_version
+            $parent = \App\Models\TikTokShopCategory::where('category_id', $currentCategory->parent_category_id)
+                ->where('market', $market)
+                ->where('category_version', $categoryVersion)
+                ->first();
+
+            if ($parent) {
+                array_unshift($hierarchy, $parent->category_name);
+                $currentCategory = $parent;
+            } else {
+                break;
+            }
+        }
+
+        return implode(' -> ', $hierarchy);
+    }
+
+    /**
+     * Lấy tên category/hierarchy theo ID, cache để tránh load toàn bộ danh sách
+     */
+    private function findCategoryNameCached(string $categoryId): string
+    {
+        return Cache::remember("product_template_category_name:{$categoryId}", now()->addMinutes(30), function () use ($categoryId) {
+            // Thử lấy từ DB TikTokShopCategory bất kỳ market/version gần nhất
+            $cat = \App\Models\TikTokShopCategory::where('category_id', $categoryId)
+                ->orderByDesc('updated_at')
+                ->first();
+
+            if ($cat) {
+                return $this->getCategoryHierarchyForMarket($categoryId, $cat->market, $cat->category_version);
+            }
+
+            // Fallback: tìm trong cache hierarchy tổng
+            $allCached = $this->tikTokShopService->getCachedCategoriesWithHierarchy();
+            return $allCached[$categoryId] ?? $categoryId;
+        });
     }
 
     /**
@@ -1259,7 +1579,7 @@ class ProductTemplateController extends Controller
 
             DB::beginTransaction();
 
-            // 1. Tạo bản sao của template chính
+            // 1. Táº¡o báº£n sao cá»§a template chÃ­nh
             $newTemplate = $productTemplate->replicate();
             $newTemplate->name = $productTemplate->name . ' (Copy)';
             $newTemplate->user_id = Auth::user()->id;
@@ -1270,7 +1590,7 @@ class ProductTemplateController extends Controller
 
             Log::info('New template created', ['new_id' => $newTemplate->id]);
 
-            // 2. Sao chép tất cả options và values với mapping
+            // 2. Sao chÃ©p táº¥t cáº£ options vÃ  values vá»›i mapping
             $optionMapping = []; // Map old option ID -> new option ID
             $valueMapping = [];  // Map old value ID -> new value ID
             foreach ($productTemplate->options as $option) {
@@ -1285,7 +1605,7 @@ class ProductTemplateController extends Controller
                     'name' => $option->name
                 ]);
 
-                // Sao chép tất cả option values
+                // Sao chÃ©p táº¥t cáº£ option values
                 foreach ($option->values as $value) {
                     $newValue = $value->replicate();
                     $newValue->prod_template_option_id = $newOption->id;
@@ -1300,7 +1620,7 @@ class ProductTemplateController extends Controller
                 }
             }
 
-            // 3. Sao chép tất cả variants và relationships
+            // 3. Sao chÃ©p táº¥t cáº£ variants vÃ  relationships
             foreach ($productTemplate->variants as $variant) {
                 $newVariant = $variant->replicate();
                 $newVariant->product_template_id = $newTemplate->id;
@@ -1313,10 +1633,10 @@ class ProductTemplateController extends Controller
                     'price' => $variant->price
                 ]);
 
-                // Sao chép relationships variant -> option values sử dụng mapping
+                // Sao chÃ©p relationships variant -> option values sá»­ dá»¥ng mapping
                 foreach ($variant->optionValues as $optionValue) {
                     if (isset($valueMapping[$optionValue->id])) {
-                        // Tìm option ID tương ứng với option value
+                        // TÃ¬m option ID tÆ°Æ¡ng á»©ng vá»›i option value
                         $newOptionValue = ProductTemplateOptionValue::find($valueMapping[$optionValue->id]);
                         if ($newOptionValue) {
                             DB::table('prod_variant_options')->insert([
@@ -1334,7 +1654,7 @@ class ProductTemplateController extends Controller
                 }
             }
 
-            // 4. Sao chép category attributes
+            // 4. Sao chÃ©p category attributes
             foreach ($productTemplate->categoryAttributes as $attribute) {
                 $newAttribute = $attribute->replicate();
                 $newAttribute->product_template_id = $newTemplate->id;
@@ -1359,7 +1679,7 @@ class ProductTemplateController extends Controller
             ]);
 
             return redirect()->route('product-templates.index')
-                ->with('success', 'Template đã được copy thành công! ID mới: #' . $newTemplate->id .
+                ->with('success', 'Template copied successfully! New ID: #' . $newTemplate->id .
                     ' (Options: ' . $newTemplate->options->count() .
                     ', Variants: ' . $newTemplate->variants->count() . ')');
         } catch (\Exception $e) {
@@ -1373,7 +1693,7 @@ class ProductTemplateController extends Controller
             ]);
 
             return redirect()->route('product-templates.index')
-                ->with('error', 'Có lỗi xảy ra khi copy template: ' . $e->getMessage());
+                ->with('error', 'An error occurred while copying template: ' . $e->getMessage());
         }
     }
 
@@ -1387,12 +1707,31 @@ class ProductTemplateController extends Controller
                 ->get()
                 ->keyBy('attribute_id')
                 ->map(function ($attr) {
+                    // Decode possible JSON fields to arrays for frontend selection
+                    $value = $attr->value;
+                    $valueId = $attr->value_id;
+                    $valueName = $attr->value_name;
+
+                    $decodeIfJson = function ($input) {
+                        if (is_string($input)) {
+                            $decoded = json_decode($input, true);
+                            if (json_last_error() === JSON_ERROR_NONE) {
+                                return $decoded;
+                            }
+                        }
+                        return $input;
+                    };
+
+                    $value = $decodeIfJson($value);
+                    $valueId = $decodeIfJson($valueId);
+                    $valueName = $decodeIfJson($valueName);
+
                     return [
                         'attribute_id' => $attr->attribute_id,
                         'attribute_name' => $attr->attribute_name,
-                        'value' => $attr->value,
-                        'value_id' => $attr->value_id,
-                        'value_name' => $attr->value_name,
+                        'value' => $value,
+                        'value_id' => $valueId,
+                        'value_name' => $valueName,
                         'is_required' => $attr->is_required,
                     ];
                 });

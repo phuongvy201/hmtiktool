@@ -11,8 +11,8 @@
                 </div>
                 <h3 class="text-lg font-semibold text-white">My Profile</h3>
             </div>
-            <p class="text-gray-400 mb-4">Quản lý thông tin cá nhân</p>
-            <a href="{{ route('profile.edit') }}" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">Chỉnh sửa Profile</a>
+            <p class="text-gray-400 mb-4">Manage personal information</p>
+            <a href="{{ route('profile.edit') }}" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">Edit Profile</a>
         </div>
     </div>
 
@@ -27,8 +27,8 @@
                 </div>
                 <h3 class="text-lg font-semibold text-white">Help & Support</h3>
             </div>
-            <p class="text-gray-400 mb-4">Hướng dẫn sử dụng và hỗ trợ</p>
-            <a href="#" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">Xem Hướng dẫn</a>
+            <p class="text-gray-400 mb-4">Guides and support</p>
+            <a href="#" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">View Guides</a>
         </div>
     </div>
 
@@ -43,8 +43,8 @@
                 </div>
                 <h3 class="text-lg font-semibold text-white">Contact Admin</h3>
             </div>
-            <p class="text-gray-400 mb-4">Liên hệ quản trị viên</p>
-            <a href="#" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">Liên hệ</a>
+            <p class="text-gray-400 mb-4">Contact administrators</p>
+            <a href="#" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">Contact</a>
         </div>
     </div>
 
@@ -111,14 +111,14 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
             </svg>
         </div>
-        <h3 class="text-xl font-semibold text-white mb-2">Chào mừng bạn đến với HMTik!</h3>
-        <p class="text-gray-400 mb-4">Tài khoản của bạn chưa được phân quyền. Vui lòng liên hệ quản trị viên để được cấp quyền truy cập.</p>
+        <h3 class="text-xl font-semibold text-white mb-2">Welcome to HMTik!</h3>
+        <p class="text-gray-400 mb-4">Your account has not been assigned permissions. Please contact an administrator to get access.</p>
         <div class="flex justify-center space-x-4">
             <a href="{{ route('profile.edit') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors duration-200">
-                Cập nhật Profile
+                Update Profile
             </a>
             <a href="#" class="bg-gray-600 hover:bg-gray-500 text-white px-6 py-2 rounded-lg transition-colors duration-200">
-                Liên hệ Admin
+                Contact Admin
             </a>
         </div>
     </div>

@@ -69,9 +69,9 @@
         <div class="px-6 py-4 border-b border-gray-700">
             <h2 class="text-2xl font-bold text-white flex items-center">
                 <i class="fas fa-chart-line mr-3 text-green-400"></i>
-                TikTok Finance - Thanh toán
+                TikTok Finance - Payment
             </h2>
-            <p class="text-gray-400 mt-1">Quản lý và theo dõi thanh toán từ TikTok Shop</p>
+            <p class="text-gray-400 mt-1">Manage and track payments from TikTok Shop</p>
         </div>
 
         <!-- Filters Section -->
@@ -80,29 +80,29 @@
                 <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
                     <!-- Date Range Filter -->
                     <div class="lg:col-span-2">
-                        <label class="block text-sm font-medium text-gray-300 mb-2">Khoảng thời gian:</label>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Time range:</label>
                         
                         <!-- Quick Date Buttons -->
                         <div class="flex flex-wrap gap-2 mb-3">
                             <button type="button" onclick="setQuickDate('today')" 
                                     class="px-3 py-1 text-xs bg-gray-700 text-gray-300 rounded-full hover:bg-gray-600 transition-colors">
-                                Hôm nay
+                                Today
                             </button>
                             <button type="button" onclick="setQuickDate('yesterday')" 
                                     class="px-3 py-1 text-xs bg-gray-700 text-gray-300 rounded-full hover:bg-gray-600 transition-colors">
-                                Hôm qua
+                                Yesterday
                             </button>
                             <button type="button" onclick="setQuickDate('week')" 
                                     class="px-3 py-1 text-xs bg-gray-700 text-gray-300 rounded-full hover:bg-gray-600 transition-colors">
-                                7 ngày
+                                7 days
                             </button>
                             <button type="button" onclick="setQuickDate('month')" 
                                     class="px-3 py-1 text-xs bg-gray-700 text-gray-300 rounded-full hover:bg-gray-600 transition-colors">
-                                Tháng này
+                                This month
                             </button>
                             <button type="button" onclick="setQuickDate('lastMonth')" 
                                     class="px-3 py-1 text-xs bg-gray-700 text-gray-300 rounded-full hover:bg-gray-600 transition-colors">
-                                Tháng trước
+                                Last month
                             </button>
                         </div>
                         
@@ -117,7 +117,7 @@
                                 </div>
                             </div>
                             <div class="flex items-center justify-center text-gray-400 text-sm">
-                                <span>đến</span>
+                                <span>to</span>
                             </div>
                             <div class="relative flex-1">
                                 <input type="date" id="dateTo" name="date_to" 
@@ -134,14 +134,14 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-300 mb-2">Shop:</label>
                         <select name="shop_id" class="block w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm bg-gray-800 text-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            <option value="">-- Chọn shop --</option>
+                            <option value="">-- Select shop --</option>
                             @foreach($shops as $shop)
                                 <option value="{{ $shop->id }}" {{ request('shop_id') == $shop->id ? 'selected' : '' }}>
                                     {{ $shop->shop_name }}
                                     @if($shop->integration && $shop->integration->status === 'active')
-                                        <span class="text-green-400">(Hoạt động)</span>
+                                        <span class="text-green-400">(Active)</span>
                                     @else
-                                        <span class="text-red-400">(Không hoạt động)</span>
+                                        <span class="text-red-400">(Inactive)</span>
                                     @endif
                                 </option>
                             @endforeach
@@ -151,7 +151,7 @@
                     <!-- Actions -->
                     <div class="flex flex-col justify-end space-y-2">
                         <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-200">
-                            <i class="fas fa-search mr-2"></i>Tìm kiếm
+                                <i class="fas fa-search mr-2"></i>Search
                         </button>
                         @if(request('shop_id'))
                         <a href="{{ route('tiktok.finance.export', request()->all()) }}" 
@@ -171,7 +171,7 @@
                 <div class="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg p-4">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-blue-200 text-sm font-medium">Tổng Amount</p>
+                            <p class="text-blue-200 text-sm font-medium">Total Amount</p>
                             <p class="text-white text-2xl font-bold">${{ number_format($totalAmount, 2) }}</p>
                         </div>
                         <div class="p-3 bg-blue-500/20 rounded-full">
@@ -183,7 +183,7 @@
                 <div class="bg-gradient-to-r from-orange-600 to-orange-700 rounded-lg p-4">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-orange-200 text-sm font-medium">Tổng Reserve</p>
+                            <p class="text-orange-200 text-sm font-medium">Total Reserve</p>
                             <p class="text-white text-2xl font-bold">${{ number_format($totalReserve, 2) }}</p>
                         </div>
                         <div class="p-3 bg-orange-500/20 rounded-full">
@@ -195,7 +195,7 @@
                 <div class="bg-gradient-to-r from-green-600 to-green-700 rounded-lg p-4">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-green-200 text-sm font-medium">Tổng Settle</p>
+                            <p class="text-green-200 text-sm font-medium">Total Settle</p>
                             <p class="text-white text-2xl font-bold">${{ number_format($totalSettle, 2) }}</p>
                         </div>
                         <div class="p-3 bg-green-500/20 rounded-full">
@@ -330,9 +330,9 @@
                     <div class="mb-4">
                         <i class="fas fa-chart-line text-4xl sm:text-6xl text-gray-600"></i>
                     </div>
-                    <h3 class="text-base sm:text-lg font-medium text-gray-200 mb-2">Chưa có dữ liệu thanh toán</h3>
+                        <h3 class="text-base sm:text-lg font-medium text-gray-200 mb-2">No payment data</h3>
                     <p class="text-sm sm:text-base text-gray-400 mb-4 sm:mb-6 px-4">
-                        Vui lòng chọn shop và khoảng thời gian để xem dữ liệu thanh toán.
+                        Please select a shop and time range to view payment data.
                     </p>
                 </div>
             @endif

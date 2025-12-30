@@ -2,12 +2,13 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Team;
 use App\Models\TikTokShopCategory;
 use App\Models\TikTokShopIntegration;
 use App\Services\TikTokShopService;
 use Illuminate\Console\Command;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Artisan;
 
 class SyncTikTokCategories extends Command
 {
@@ -18,7 +19,9 @@ class SyncTikTokCategories extends Command
      */
     protected $signature = 'tiktok:sync-categories 
                             {--force : Force sync even if not needed}
-                            {--hours=24 : Hours threshold for sync check}';
+                            {--hours=24 : Hours threshold for sync check}
+                            {--market= : Market filter (e.g. US, UK)}
+                            {--category-version= : Category version override (v1, v2)}';
 
     /**
      * The console command description.
@@ -34,49 +37,93 @@ class SyncTikTokCategories extends Command
     {
         $force = $this->option('force');
         $hours = (int) $this->option('hours');
+        $marketFilter = strtoupper((string) $this->option('market'));
+        $categoryVersionFilter = $this->option('category-version') ? strtolower($this->option('category-version')) : null;
 
-        $this->info('Starting TikTok Shop categories sync for system...');
+        $this->info('Starting TikTok Shop categories sync for UK (v1) and US (v2)...');
 
-        // Lấy integration đầu tiên để làm mẫu (categories chung cho toàn hệ thống)
-        $integration = TikTokShopIntegration::first();
+        if ($marketFilter) {
+            $this->line("  • Market filter: {$marketFilter}");
+        }
 
-        if (!$integration) {
-            $this->warn('No TikTok Shop integration found. Please set up integration first.');
+        if ($categoryVersionFilter) {
+            $this->line("  • Category version override: {$categoryVersionFilter}");
+        }
+
+        $markets = $marketFilter ? [$marketFilter] : ['UK', 'US'];
+
+        // Lấy integrations theo market filter
+        $integrations = TikTokShopIntegration::query()
+            ->whereIn('additional_data->market', $markets)
+            ->get();
+
+        if ($integrations->isEmpty()) {
+            $this->warn('No UK or US TikTok Shop integration found. Please set up integrations first.');
             return 0;
         }
 
-        try {
-            $result = $this->syncSystemCategories($integration, $force, $hours);
+        $totalSynced = 0;
+        $totalSkipped = 0;
+        $totalErrors = 0;
 
-            if ($result) {
-                $this->info("✅ Successfully synced categories for system");
-                return 0;
-            } else {
-                $this->warn("⚠️  Skipped sync (not needed). Use --force to override.");
-                return 0;
+        foreach ($integrations as $integration) {
+            $market = $integration->market;
+            $integrationCategoryVersion = strtolower($integration->getCategoryVersion());
+            $targetCategoryVersion = $categoryVersionFilter ?: $integrationCategoryVersion;
+
+            if ($categoryVersionFilter && $integrationCategoryVersion !== $categoryVersionFilter) {
+                $this->warn("⚠️  Skipped {$market} because integration version ({$integrationCategoryVersion}) does not match override ({$categoryVersionFilter})");
+                $totalSkipped++;
+                continue;
             }
-        } catch (\Exception $e) {
-            $this->error("❌ Error syncing categories: " . $e->getMessage());
-            Log::error('TikTok categories sync error', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            return 1;
+
+            $this->info("Processing {$market} market ({$targetCategoryVersion})...");
+
+            try {
+                $result = $this->syncSystemCategories($integration, $force, $hours, $targetCategoryVersion);
+
+                if ($result) {
+                    $this->info("✅ Successfully synced categories for {$market} ({$targetCategoryVersion})");
+                    $totalSynced++;
+                } else {
+                    $this->warn("⚠️  Skipped sync for {$market} ({$targetCategoryVersion}) - not needed. Use --force to override.");
+                    $totalSkipped++;
+                }
+            } catch (\Exception $e) {
+                $totalErrors++;
+                $this->error("❌ Error syncing categories for {$market} ({$targetCategoryVersion}): " . $e->getMessage());
+                Log::error('TikTok categories sync error', [
+                    'market' => $market,
+                    'category_version' => $targetCategoryVersion,
+                    'integration_id' => $integration->id,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+            }
         }
+
+        $this->newLine();
+        $this->info("Sync Summary:");
+        $this->info("  ✅ Successfully synced: {$totalSynced} markets");
+        $this->info("  ⏭️  Skipped: {$totalSkipped} markets");
+        $this->info("  ❌ Errors: {$totalErrors} markets");
+
+        return $totalErrors > 0 ? 1 : 0;
     }
 
     /**
-     * Sync categories cho toàn hệ thống
+     * Sync categories cho một market cụ thể
      */
-    private function syncSystemCategories(TikTokShopIntegration $integration, bool $force, int $hours): bool
+    private function syncSystemCategories(TikTokShopIntegration $integration, bool $force, int $hours, ?string $categoryVersionOverride = null): bool
     {
-        // Kiểm tra xem có cần sync không
-        if (!$force && !TikTokShopCategory::needsSystemSync($hours)) {
-            $this->warn("Categories were synced recently. Use --force to override.");
+        $market = strtoupper($integration->market ?? 'US');
+        $categoryVersion = $categoryVersionOverride ?: $integration->getCategoryVersion();
+
+        if (!$force && !$this->needsMarketSync($market, $categoryVersion, $hours)) {
+            $this->warn("Categories for {$market} ({$categoryVersion}) were synced recently. Use --force to override.");
             return false;
         }
 
-        // Gọi API để lấy categories
         $service = new TikTokShopService();
         $result = $service->getCategories($integration);
 
@@ -87,57 +134,50 @@ class SyncTikTokCategories extends Command
         $categories = $result['data'];
         $rawCategories = $result['raw_data'] ?? [];
 
-        $this->info("Retrieved " . count($categories) . " categories from TikTok Shop API");
+        $this->info("Retrieved " . count($categories) . " categories from TikTok Shop API for {$market} ({$categoryVersion})");
 
-        // Log chi tiết categories nhận được
         Log::info('SyncTikTokCategories: Categories retrieved from API', [
+            'market' => $market,
+            'category_version' => $categoryVersion,
             'formatted_count' => count($categories),
             'raw_count' => count($rawCategories),
             'formatted_sample' => array_slice($categories, 0, 5, true),
             'raw_sample' => array_slice($rawCategories, 0, 3)
         ]);
 
-        // Xóa tất cả categories cũ (categories chung cho toàn hệ thống)
-        $deletedCount = TikTokShopCategory::count();
-        TikTokShopCategory::truncate();
-        $this->info("Cleared {$deletedCount} old categories");
+        $timestamp = now();
+        $timestampIso = $timestamp->toISOString();
+        $records = [];
 
-        Log::info('SyncTikTokCategories: Cleared old categories', [
-            'deleted_count' => $deletedCount
-        ]);
-
-        // Lưu categories mới
-        $savedCount = 0;
-        $now = now();
-
-        // Kiểm tra xem có raw_data từ API không (cấu trúc chi tiết hơn)
         if (!empty($rawCategories)) {
-            // Sử dụng raw data nếu có để có thông tin chi tiết hơn
             Log::info('SyncTikTokCategories: Using raw data from API', [
                 'raw_categories_count' => count($rawCategories),
                 'processing_method' => 'raw_data'
             ]);
 
             foreach ($rawCategories as $index => $category) {
-                $categoryId = $category['id'] ?? '';
-                // TikTok Shop API sử dụng 'local_name' thay vì 'name'
-                $categoryName = $category['local_name'] ?? $category['name'] ?? '';
+                $categoryId = (string) ($category['id'] ?? '');
+                $categoryName = trim($category['local_name'] ?? $category['name'] ?? '');
                 $parentId = $category['parent_id'] ?? null;
-                $level = $category['level'] ?? 1;
-                $isLeaf = $category['is_leaf'] ?? true;
+                if ($parentId === '') {
+                    $parentId = null;
+                }
+                $level = isset($category['level']) ? (int) $category['level'] : 1;
+                $isLeaf = array_key_exists('is_leaf', $category) ? (bool) $category['is_leaf'] : true;
 
-                if (empty($categoryId) || empty($categoryName)) {
+                if ($categoryId === '' || $categoryName === '') {
                     Log::warning('SyncTikTokCategories: Skipping invalid category', [
                         'index' => $index,
+                        'market' => $market,
+                        'category_version' => $categoryVersion,
                         'category_data' => $category
                     ]);
                     continue;
                 }
 
-                // Log mỗi 100 categories để tránh spam log
-                if ($savedCount % 100 === 0) {
+                if (count($records) % 100 === 0) {
                     Log::info('SyncTikTokCategories: Processing progress', [
-                        'processed_count' => $savedCount,
+                        'processed_count' => count($records),
                         'current_category' => [
                             'id' => $categoryId,
                             'name' => $categoryName,
@@ -148,36 +188,36 @@ class SyncTikTokCategories extends Command
                     ]);
                 }
 
-                TikTokShopCategory::create([
+                $records[] = [
+                    'market' => $market,
+                    'category_version' => $categoryVersion,
                     'category_id' => $categoryId,
                     'category_name' => $categoryName,
                     'parent_category_id' => $parentId,
                     'level' => $level,
                     'is_leaf' => $isLeaf,
+                    'is_active' => true,
                     'category_data' => [
                         'original_data' => $category,
-                        'parsed_at' => now()->toISOString()
+                        'parsed_at' => $timestampIso
                     ],
-                    'last_synced_at' => $now,
-                ]);
-
-                $savedCount++;
+                    'last_synced_at' => $timestamp,
+                    'created_at' => $timestamp,
+                    'updated_at' => $timestamp,
+                ];
             }
         } else {
-            // Fallback: sử dụng format đơn giản
             Log::info('SyncTikTokCategories: Using formatted data (fallback)', [
                 'formatted_categories_count' => count($categories),
                 'processing_method' => 'formatted_data'
             ]);
 
             foreach ($categories as $categoryId => $categoryName) {
-                // Parse category structure từ TikTok API response
                 $categoryData = $this->parseCategoryData($categoryId, $categoryName);
 
-                // Log mỗi 100 categories để tránh spam log
-                if ($savedCount % 100 === 0) {
+                if (count($records) % 100 === 0) {
                     Log::info('SyncTikTokCategories: Processing progress (formatted)', [
-                        'processed_count' => $savedCount,
+                        'processed_count' => count($records),
                         'current_category' => [
                             'id' => $categoryId,
                             'name' => $categoryName,
@@ -186,43 +226,151 @@ class SyncTikTokCategories extends Command
                     ]);
                 }
 
-                TikTokShopCategory::create([
+                $records[] = [
+                    'market' => $market,
+                    'category_version' => $categoryVersion,
                     'category_id' => $categoryData['category_id'],
                     'category_name' => $categoryData['category_name'],
                     'parent_category_id' => $categoryData['parent_category_id'],
                     'level' => $categoryData['level'],
                     'is_leaf' => $categoryData['is_leaf'],
+                    'is_active' => true,
                     'category_data' => $categoryData['metadata'],
-                    'last_synced_at' => $now,
-                ]);
-
-                $savedCount++;
+                    'last_synced_at' => $timestamp,
+                    'created_at' => $timestamp,
+                    'updated_at' => $timestamp,
+                ];
             }
         }
 
+        if (empty($records)) {
+            $this->warn("No categories returned from API for {$market} ({$categoryVersion}). Skipping persistence.");
+            return false;
+        }
+
+        $incomingIds = array_column($records, 'category_id');
+
+        $inactiveCount = 0;
+        if (empty($incomingIds)) {
+            $inactiveCount = TikTokShopCategory::where('market', $market)
+                ->where('category_version', $categoryVersion)
+                ->update([
+                    'is_active' => false,
+                    'last_synced_at' => $timestamp,
+                    'updated_at' => $timestamp,
+                ]);
+        } else {
+            $inactiveCount = TikTokShopCategory::where('market', $market)
+                ->where('category_version', $categoryVersion)
+                ->whereNotIn('category_id', $incomingIds)
+                ->update([
+                    'is_active' => false,
+                    'last_synced_at' => $timestamp,
+                    'updated_at' => $timestamp,
+                ]);
+        }
+
+        if ($inactiveCount > 0) {
+            $this->info("Marked {$inactiveCount} stale categories as inactive for {$market} ({$categoryVersion})");
+        }
+
+        TikTokShopCategory::upsert(
+            $records,
+            ['category_id', 'market'],
+            [
+                'category_name',
+                'parent_category_id',
+                'level',
+                'is_leaf',
+                'is_active',
+                'category_version',
+                'category_data',
+                'last_synced_at',
+                'updated_at',
+            ]
+        );
+
+        $savedCount = count($records);
         $this->info("Saved {$savedCount} categories to database");
 
-        // Log thành công với thống kê chi tiết
-        $leafCount = TikTokShopCategory::where('is_leaf', true)->count();
-        $rootCount = TikTokShopCategory::where('level', 1)->count();
-        $maxLevel = TikTokShopCategory::max('level');
+        $this->logCategorySyncSummary($market, $categoryVersion, $timestamp, $savedCount, $inactiveCount);
 
-        Log::info('TikTok categories synced successfully for system', [
+        $this->triggerAttributeSync($market, $categoryVersion, $force, $hours);
+
+        return true;
+    }
+
+    private function logCategorySyncSummary(string $market, string $categoryVersion, Carbon $timestamp, int $savedCount, int $inactiveCount): void
+    {
+        $leafCount = TikTokShopCategory::where('market', $market)
+            ->where('category_version', $categoryVersion)
+            ->where('is_leaf', true)
+            ->count();
+
+        $rootCount = TikTokShopCategory::where('market', $market)
+            ->where('category_version', $categoryVersion)
+            ->where('level', 1)
+            ->count();
+
+        $maxLevel = TikTokShopCategory::where('market', $market)
+            ->where('category_version', $categoryVersion)
+            ->max('level');
+
+        Log::info('TikTok categories synced successfully', [
+            'market' => $market,
+            'category_version' => $categoryVersion,
             'total_categories' => $savedCount,
+            'inactive_categories_marked' => $inactiveCount,
             'leaf_categories' => $leafCount,
             'root_categories' => $rootCount,
             'max_level' => $maxLevel,
-            'synced_at' => $now->toISOString(),
-            'processing_time' => now()->diffInSeconds($now) . ' seconds'
+            'synced_at' => $timestamp->toISOString(),
         ]);
 
-        // Log sample categories để kiểm tra
-        $sampleCategories = TikTokShopCategory::take(10)->get(['category_id', 'category_name', 'level', 'is_leaf']);
+        $sampleCategories = TikTokShopCategory::where('market', $market)
+            ->where('category_version', $categoryVersion)
+            ->take(10)
+            ->get(['category_id', 'category_name', 'level', 'is_leaf']);
+
         Log::info('Sample categories saved to database', [
+            'market' => $market,
+            'category_version' => $categoryVersion,
             'sample_categories' => $sampleCategories->toArray()
         ]);
+    }
 
-        return true;
+    private function triggerAttributeSync(string $market, string $categoryVersion, bool $force, int $hours): void
+    {
+        $locale = $market === 'UK' ? 'en-GB' : 'en-US';
+
+        $options = [
+            '--hours' => (string) $hours,
+            '--locale' => $locale,
+            '--market' => $market,
+            '--category-version' => $categoryVersion,
+        ];
+
+        if ($force) {
+            $options['--force'] = true;
+        }
+
+        try {
+            $this->info("Triggering attribute sync for {$market} ({$categoryVersion})...");
+            Artisan::call('tiktok:sync-category-attributes', $options);
+
+            $output = trim(Artisan::output());
+            if (!empty($output)) {
+                $this->line($output);
+            }
+        } catch (\Exception $e) {
+            $this->error("❌ Failed to trigger attribute sync for {$market} ({$categoryVersion}): " . $e->getMessage());
+
+            Log::error('TikTok categories attribute sync trigger error', [
+                'market' => $market,
+                'category_version' => $categoryVersion,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**
@@ -282,5 +430,22 @@ class SyncTikTokCategories extends Command
         }
 
         return $parsedData;
+    }
+
+    /**
+     * Kiểm tra xem có cần sync categories cho market cụ thể không
+     */
+    private function needsMarketSync(string $market, string $categoryVersion, int $hours): bool
+    {
+        $lastSync = TikTokShopCategory::where('market', strtoupper($market))
+            ->where('category_version', strtolower($categoryVersion))
+            ->orderBy('last_synced_at', 'desc')
+            ->value('last_synced_at');
+
+        if (!$lastSync) {
+            return true;
+        }
+
+        return $lastSync->diffInHours(now()) >= $hours;
     }
 }

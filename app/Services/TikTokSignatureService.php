@@ -99,9 +99,10 @@ class TikTokSignatureService
      * @param string $timestamp
      * @param array $bodyParams
      * @param string|null $shopCipher
+     * @param string|null $categoryVersion Category version (v1 hoặc v2)
      * @return string
      */
-    public static function generateProductUploadSignature(string $appKey, string $appSecret, string $timestamp, array $bodyParams = [], ?string $shopCipher = null): string
+    public static function generateProductUploadSignature(string $appKey, string $appSecret, string $timestamp, array $bodyParams = [], ?string $shopCipher = null, ?string $categoryVersion = null): string
     {
         $apiPath = '/product/' . self::API_VERSION . '/products';
         $queryParams = [
@@ -112,6 +113,11 @@ class TikTokSignatureService
         // Thêm shop_cipher vào signature generation nếu có
         if ($shopCipher) {
             $queryParams['shop_cipher'] = $shopCipher;
+        }
+
+        // Thêm category_version vào signature generation nếu có
+        if ($categoryVersion) {
+            $queryParams['category_version'] = $categoryVersion;
         }
 
         return self::generateSignature($appKey, $appSecret, $apiPath, $queryParams, $bodyParams, 'application/json');

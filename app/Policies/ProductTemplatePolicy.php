@@ -15,12 +15,12 @@ class ProductTemplatePolicy
      */
     public function viewAny(User $user): bool
     {
-        // System Admin: Không có quyền xem template của các team
+        // System Admin: cÃƒÂ³ quyÃ¡Â»Ân xem tÃ¡ÂºÂ¥t cÃ¡ÂºÂ£ template
         if ($user->hasRole('system-admin')) {
-            return false;
+            return true;
         }
 
-        // Team Admin & Seller: Có quyền xem template của team mình
+        // Team Admin & Seller: CÃƒÂ³ quyÃ¡Â»Ân xem template cÃ¡Â»Â§a team mÃƒÂ¬nh
         return true;
     }
 
@@ -39,13 +39,13 @@ class ProductTemplatePolicy
             'user_roles' => $user->roles->pluck('name')->toArray()
         ]);
 
-        // System Admin: Có quyền xem tất cả templates
+        // System Admin: CÃƒÂ³ quyÃ¡Â»Ân xem tÃ¡ÂºÂ¥t cÃ¡ÂºÂ£ templates
         if ($user->hasRole('system-admin')) {
             \Illuminate\Support\Facades\Log::info('User is system-admin, allowing access');
             return true;
         }
 
-        // Kiểm tra user có thuộc team của template không
+        // KiÃ¡Â»Æ’m tra user cÃƒÂ³ thuÃ¡Â»â„¢c team cÃ¡Â»Â§a template khÃƒÂ´ng
         if ($user->team_id !== $productTemplate->team_id) {
             \Illuminate\Support\Facades\Log::info('Team mismatch, denying access', [
                 'user_team_id' => $user->team_id,
@@ -54,13 +54,13 @@ class ProductTemplatePolicy
             return false;
         }
 
-        // Team Admin: Có quyền xem tất cả template trong team
+        // Team Admin: CÃƒÂ³ quyÃ¡Â»Ân xem tÃ¡ÂºÂ¥t cÃ¡ÂºÂ£ template trong team
         if ($user->hasRole('team-admin')) {
             \Illuminate\Support\Facades\Log::info('User is team-admin, allowing access');
             return true;
         }
 
-        // Seller: Chỉ xem được template do chính mình tạo
+        // Seller: ChÃ¡Â»â€° xem Ã„â€˜Ã†Â°Ã¡Â»Â£c template do chÃƒÂ­nh mÃƒÂ¬nh tÃ¡ÂºÂ¡o
         $isOwner = $user->id === $productTemplate->user_id;
         \Illuminate\Support\Facades\Log::info('Checking if user is owner', [
             'user_id' => $user->id,
@@ -76,12 +76,12 @@ class ProductTemplatePolicy
      */
     public function create(User $user): bool
     {
-        // System Admin: Có quyền tạo template
+        // System Admin: CÃƒÂ³ quyÃ¡Â»Ân tÃ¡ÂºÂ¡o template
         if ($user->hasRole('system-admin')) {
             return true;
         }
 
-        // Team Admin & Seller: Có quyền tạo template trong team mình
+        // Team Admin & Seller: CÃƒÂ³ quyÃ¡Â»Ân tÃ¡ÂºÂ¡o template trong team mÃƒÂ¬nh
         return true;
     }
 
@@ -90,22 +90,22 @@ class ProductTemplatePolicy
      */
     public function update(User $user, ProductTemplate $productTemplate): bool
     {
-        // System Admin: Có quyền chỉnh sửa tất cả templates
+        // System Admin: CÃƒÂ³ quyÃ¡Â»Ân chÃ¡Â»â€°nh sÃ¡Â»Â­a tÃ¡ÂºÂ¥t cÃ¡ÂºÂ£ templates
         if ($user->hasRole('system-admin')) {
             return true;
         }
 
-        // Kiểm tra user có thuộc team của template không
+        // KiÃ¡Â»Æ’m tra user cÃƒÂ³ thuÃ¡Â»â„¢c team cÃ¡Â»Â§a template khÃƒÂ´ng
         if ($user->team_id !== $productTemplate->team_id) {
             return false;
         }
 
-        // Team Admin: Có quyền chỉnh sửa tất cả template trong team
+        // Team Admin: CÃƒÂ³ quyÃ¡Â»Ân chÃ¡Â»â€°nh sÃ¡Â»Â­a tÃ¡ÂºÂ¥t cÃ¡ÂºÂ£ template trong team
         if ($user->hasRole('team-admin')) {
             return true;
         }
 
-        // Seller: Chỉ chỉnh sửa được template do chính mình tạo
+        // Seller: ChÃ¡Â»â€° chÃ¡Â»â€°nh sÃ¡Â»Â­a Ã„â€˜Ã†Â°Ã¡Â»Â£c template do chÃƒÂ­nh mÃƒÂ¬nh tÃ¡ÂºÂ¡o
         return $user->id === $productTemplate->user_id;
     }
 
@@ -114,22 +114,22 @@ class ProductTemplatePolicy
      */
     public function delete(User $user, ProductTemplate $productTemplate): bool
     {
-        // System Admin: Có quyền xóa tất cả templates
+        // System Admin: CÃƒÂ³ quyÃ¡Â»Ân xÃƒÂ³a tÃ¡ÂºÂ¥t cÃ¡ÂºÂ£ templates
         if ($user->hasRole('system-admin')) {
             return true;
         }
 
-        // Kiểm tra user có thuộc team của template không
+        // KiÃ¡Â»Æ’m tra user cÃƒÂ³ thuÃ¡Â»â„¢c team cÃ¡Â»Â§a template khÃƒÂ´ng
         if ($user->team_id !== $productTemplate->team_id) {
             return false;
         }
 
-        // Team Admin: Có quyền xóa tất cả template trong team
+        // Team Admin: CÃƒÂ³ quyÃ¡Â»Ân xÃƒÂ³a tÃ¡ÂºÂ¥t cÃ¡ÂºÂ£ template trong team
         if ($user->hasRole('team-admin')) {
             return true;
         }
 
-        // Seller: Chỉ xóa được template do chính mình tạo
+        // Seller: ChÃ¡Â»â€° xÃƒÂ³a Ã„â€˜Ã†Â°Ã¡Â»Â£c template do chÃƒÂ­nh mÃƒÂ¬nh tÃ¡ÂºÂ¡o
         return $user->id === $productTemplate->user_id;
     }
 
@@ -138,22 +138,22 @@ class ProductTemplatePolicy
      */
     public function restore(User $user, ProductTemplate $productTemplate): bool
     {
-        // System Admin: Không có quyền restore template
+        // System Admin: KhÃƒÂ´ng cÃƒÂ³ quyÃ¡Â»Ân restore template
         if ($user->hasRole('system-admin')) {
             return false;
         }
 
-        // Kiểm tra user có thuộc team của template không
+        // KiÃ¡Â»Æ’m tra user cÃƒÂ³ thuÃ¡Â»â„¢c team cÃ¡Â»Â§a template khÃƒÂ´ng
         if ($user->team_id !== $productTemplate->team_id) {
             return false;
         }
 
-        // Team Admin: Có quyền restore tất cả template trong team
+        // Team Admin: CÃƒÂ³ quyÃ¡Â»Ân restore tÃ¡ÂºÂ¥t cÃ¡ÂºÂ£ template trong team
         if ($user->hasRole('team-admin')) {
             return true;
         }
 
-        // Seller: Chỉ restore được template do chính mình tạo
+        // Seller: ChÃ¡Â»â€° restore Ã„â€˜Ã†Â°Ã¡Â»Â£c template do chÃƒÂ­nh mÃƒÂ¬nh tÃ¡ÂºÂ¡o
         return $user->id === $productTemplate->user_id;
     }
 
@@ -162,22 +162,22 @@ class ProductTemplatePolicy
      */
     public function forceDelete(User $user, ProductTemplate $productTemplate): bool
     {
-        // System Admin: Không có quyền force delete template
+        // System Admin: KhÃƒÂ´ng cÃƒÂ³ quyÃ¡Â»Ân force delete template
         if ($user->hasRole('system-admin')) {
             return false;
         }
 
-        // Kiểm tra user có thuộc team của template không
+        // KiÃ¡Â»Æ’m tra user cÃƒÂ³ thuÃ¡Â»â„¢c team cÃ¡Â»Â§a template khÃƒÂ´ng
         if ($user->team_id !== $productTemplate->team_id) {
             return false;
         }
 
-        // Team Admin: Có quyền force delete tất cả template trong team
+        // Team Admin: CÃƒÂ³ quyÃ¡Â»Ân force delete tÃ¡ÂºÂ¥t cÃ¡ÂºÂ£ template trong team
         if ($user->hasRole('team-admin')) {
             return true;
         }
 
-        // Seller: Chỉ force delete được template do chính mình tạo
+        // Seller: ChÃ¡Â»â€° force delete Ã„â€˜Ã†Â°Ã¡Â»Â£c template do chÃƒÂ­nh mÃƒÂ¬nh tÃ¡ÂºÂ¡o
         return $user->id === $productTemplate->user_id;
     }
 
@@ -186,18 +186,21 @@ class ProductTemplatePolicy
      */
     public function getViewableTemplates(User $user)
     {
-        // System Admin: Không có quyền xem template nào
+        // System Admin: xem tÃ¡ÂºÂ¥t cÃ¡ÂºÂ£ template trong hÃ¡Â»â€¡ thÃ¡Â»â€˜ng
         if ($user->hasRole('system-admin')) {
-            return collect();
+            return ProductTemplate::query();
         }
 
-        // Team Admin: Xem tất cả template trong team
+        // Team Admin: Xem tÃ¡ÂºÂ¥t cÃ¡ÂºÂ£ template trong team
         if ($user->hasRole('team-admin')) {
             return ProductTemplate::where('team_id', $user->team_id);
         }
 
-        // Seller: Chỉ xem template do chính mình tạo
+        // Seller: ChÃ¡Â»â€° xem template do chÃƒÂ­nh mÃƒÂ¬nh tÃ¡ÂºÂ¡o
         return ProductTemplate::where('team_id', $user->team_id)
             ->where('user_id', $user->id);
     }
 }
+
+
+

@@ -5,7 +5,7 @@
     'accept' => 'image/*',
     'folder' => 'product-images',
     'existingImages' => [],
-    'label' => 'Hình ảnh sản phẩm'
+    'label' => 'Product Images'
 ])
 
 <div class="image-uploader-component" data-name="{{ $name }}" data-multiple="{{ $multiple ? 'true' : 'false' }}" data-max-files="{{ $maxFiles }}" data-folder="{{ $folder }}">
@@ -16,12 +16,12 @@
         <div class="flex gap-2">
             <input type="text" 
                    class="url-input flex-1 bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500" 
-                   placeholder="Dán URL hình ảnh hoặc nhiều URL (mỗi URL một dòng)">
+                   placeholder="Paste image URL(s), one per line">
             <button type="button" class="add-url-btn px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors">
                 <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                 </svg>
-                Thêm URL
+                Add URL
             </button>
         </div>
         <button type="button" class="format-urls-btn mt-2 px-3 py-1 bg-purple-600 hover:bg-purple-500 text-white text-sm rounded transition-colors">
@@ -40,10 +40,10 @@
             <svg class="w-12 h-12 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
             </svg>
-            <p class="text-gray-300 mb-2">Kéo thả file vào đây hoặc click để chọn</p>
-            <p class="text-gray-400 text-sm">Hỗ trợ: JPG, PNG, GIF, WebP (tối đa 5MB mỗi file)</p>
+            <p class="text-gray-300 mb-2">Drag & drop files here or click to select</p>
+            <p class="text-gray-400 text-sm">Supported: JPG, PNG, GIF, WebP (max 5MB each)</p>
             @if($multiple)
-                <p class="text-gray-400 text-sm">Tối đa {{ $maxFiles }} file</p>
+                <p class="text-gray-400 text-sm">Up to {{ $maxFiles }} files</p>
             @endif
         </div>
 
@@ -51,7 +51,7 @@
             <div class="progress-bar bg-gray-600 rounded-full h-2 mb-2">
                 <div class="progress-fill bg-blue-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
             </div>
-            <p class="text-gray-300 text-sm">Đang upload...</p>
+            <p class="text-gray-300 text-sm">Uploading...</p>
         </div>
     </div>
 
@@ -255,12 +255,12 @@ class ImageUploader {
         
         // Check file count limit
         if (!this.multiple && fileArray.length > 1) {
-            this.showError(['Chỉ được chọn 1 file']);
+            this.showError(['Only one file is allowed']);
             return;
         }
         
         if (this.images.length + fileArray.length > this.maxFiles) {
-            this.showError([`Tối đa ${this.maxFiles} hình ảnh`]);
+            this.showError([`Maximum ${this.maxFiles} images`]);
             return;
         }
         
@@ -290,18 +290,18 @@ class ImageUploader {
     
     validateFile(file) {
         if (!this.config) {
-            return { valid: false, error: 'Cấu hình chưa được tải' };
+            return { valid: false, error: 'Upload configuration not loaded' };
         }
         
         // Check file size
         if (file.size > this.config.max_file_size) {
-            return { valid: false, error: 'Kích thước file quá lớn (tối đa 5MB)' };
+            return { valid: false, error: 'File too large (max 5MB)' };
         }
         
         // Check file type
         const extension = file.name.split('.').pop().toLowerCase();
         if (!this.config.allowed_extensions.includes(extension)) {
-            return { valid: false, error: 'Định dạng file không được hỗ trợ' };
+            return { valid: false, error: 'File type not supported' };
         }
         
         return { valid: true };
@@ -352,7 +352,7 @@ class ImageUploader {
             }
         } catch (error) {
             this.removeImage(this.images.indexOf(imageObj));
-            this.showError(['Lỗi kết nối khi upload file']);
+            this.showError(['Connection error during upload']);
         }
     }
     
@@ -373,13 +373,13 @@ class ImageUploader {
     async addUrlImage(url) {
         // Check if URL already exists
         if (this.images.some(img => img.url === url)) {
-            this.showError(['URL này đã tồn tại']);
+            this.showError(['This URL already exists']);
             return;
         }
         
         // Check file count limit
         if (this.images.length >= this.maxFiles) {
-            this.showError([`Tối đa ${this.maxFiles} hình ảnh`]);
+            this.showError([`Maximum ${this.maxFiles} images`]);
             return;
         }
         
@@ -415,11 +415,11 @@ class ImageUploader {
                 this.hideError();
             } else {
                 this.removeImage(this.images.indexOf(imageObj));
-                this.showError([data.error || 'URL không hợp lệ']);
+                this.showError([data.error || 'Invalid URL']);
             }
         } catch (error) {
             this.removeImage(this.images.indexOf(imageObj));
-            this.showError(['Lỗi khi kiểm tra URL']);
+            this.showError(['Error validating URL']);
         }
     }
     

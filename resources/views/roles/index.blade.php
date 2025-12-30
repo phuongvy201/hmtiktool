@@ -7,8 +7,8 @@
         <div class="mb-8">
             <div class="flex justify-between items-center mb-6">
                 <div>
-                    <h1 class="text-3xl font-bold text-white mb-2">Quản lý Vai trò</h1>
-                    <p class="text-gray-400">Quản lý vai trò và phân quyền trong hệ thống</p>
+                    <h1 class="text-3xl font-bold text-white mb-2">Role Management</h1>
+                    <p class="text-gray-400">Manage roles and permissions in the system</p>
                 </div>
                 @can('create-roles')
                 @unless(auth()->user()->hasRole('team-admin'))
@@ -16,7 +16,7 @@
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                     </svg>
-                    Thêm Vai trò
+                    Add Role
                 </a>
                 @endunless
                 @endcan
@@ -28,23 +28,23 @@
             <form method="GET" action="{{ route('roles.index') }}" class="flex flex-wrap gap-4">
                 <div class="flex-1 min-w-64">
                     <input type="text" name="search" value="{{ request('search') }}" 
-                           placeholder="Tìm kiếm theo tên vai trò..." 
+                           placeholder="Search by role name..." 
                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500">
                 </div>
                 <div class="flex gap-2">
                     <select name="permission_count" class="bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
-                        <option value="">Tất cả số quyền</option>
-                        <option value="0" {{ request('permission_count') == '0' ? 'selected' : '' }}>Không có quyền</option>
-                        <option value="1-5" {{ request('permission_count') == '1-5' ? 'selected' : '' }}>1-5 quyền</option>
-                        <option value="6-10" {{ request('permission_count') == '6-10' ? 'selected' : '' }}>6-10 quyền</option>
-                        <option value="10+" {{ request('permission_count') == '10+' ? 'selected' : '' }}>10+ quyền</option>
+                        <option value="">All permissions</option>
+                        <option value="0" {{ request('permission_count') == '0' ? 'selected' : '' }}>No permissions</option>
+                        <option value="1-5" {{ request('permission_count') == '1-5' ? 'selected' : '' }}>1-5 permissions</option>
+                        <option value="6-10" {{ request('permission_count') == '6-10' ? 'selected' : '' }}>6-10 permissions</option>
+                        <option value="10+" {{ request('permission_count') == '10+' ? 'selected' : '' }}>10+ permissions</option>
                     </select>
                     <select name="user_count" class="bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
-                        <option value="">Tất cả số người dùng</option>
-                        <option value="0" {{ request('user_count') == '0' ? 'selected' : '' }}>Không có người dùng</option>
-                        <option value="1-5" {{ request('user_count') == '1-5' ? 'selected' : '' }}>1-5 người dùng</option>
-                        <option value="6-10" {{ request('user_count') == '6-10' ? 'selected' : '' }}>6-10 người dùng</option>
-                        <option value="10+" {{ request('user_count') == '10+' ? 'selected' : '' }}>10+ người dùng</option>
+                        <option value="">All users</option>
+                        <option value="0" {{ request('user_count') == '0' ? 'selected' : '' }}>No users</option>
+                        <option value="1-5" {{ request('user_count') == '1-5' ? 'selected' : '' }}>1-5 users</option>
+                        <option value="6-10" {{ request('user_count') == '6-10' ? 'selected' : '' }}>6-10 users</option>
+                        <option value="10+" {{ request('user_count') == '10+' ? 'selected' : '' }}>10+ users</option>
                     </select>
                     <button type="submit" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -81,11 +81,11 @@
                 <table class="w-full">
                     <thead class="bg-gray-700">
                         <tr>
-                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Vai trò</th>
-                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Quyền hạn</th>
-                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Số người dùng</th>
-                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Ngày tạo</th>
-                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Thao tác</th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Role</th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Permissions</th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Users</th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Created at</th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-700">
@@ -100,7 +100,7 @@
                                     </div>
                                     <div>
                                         <div class="text-white font-medium">{{ $role->name }}</div>
-                                        <div class="text-gray-400 text-sm">{{ $role->permissions->count() }} quyền hạn</div>
+                                        <div class="text-gray-400 text-sm">{{ $role->permissions->count() }} permissions</div>
                                     </div>
                                 </div>
                             </td>
@@ -119,12 +119,12 @@
                                         @endif
                                     </div>
                                 @else
-                                    <span class="text-gray-500 text-sm">Không có quyền hạn</span>
+                                    <span class="text-gray-500 text-sm">No permissions</span>
                                 @endif
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex items-center">
-                                    <span class="text-gray-300 mr-2">{{ $role->users->count() }} người dùng</span>
+                                    <span class="text-gray-300 mr-2">{{ $role->users->count() }} users</span>
                                     @if($role->users->count() > 0)
                                         <div class="flex -space-x-2">
                                             @foreach($role->users->take(3) as $user)
@@ -147,7 +147,7 @@
                             <td class="px-6 py-4">
                                 <div class="flex items-center space-x-2">
                                     @can('view-roles')
-                                    <a href="{{ route('roles.show', $role) }}" class="text-blue-400 hover:text-blue-300 transition-colors duration-200" title="Xem chi tiết">
+                                    <a href="{{ route('roles.show', $role) }}" class="text-blue-400 hover:text-blue-300 transition-colors duration-200" title="View details">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
@@ -156,7 +156,7 @@
                                     @endcan
                                     @can('edit-roles')
                                     @unless(auth()->user()->hasRole('team-admin'))
-                                    <a href="{{ route('roles.edit', $role) }}" class="text-yellow-400 hover:text-yellow-300 transition-colors duration-200" title="Chỉnh sửa">
+                                    <a href="{{ route('roles.edit', $role) }}" class="text-yellow-400 hover:text-yellow-300 transition-colors duration-200" title="Edit">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                         </svg>
@@ -165,10 +165,10 @@
                                     @endcan
                                     @can('delete-roles')
                                     @unless(auth()->user()->hasRole('team-admin'))
-                                    <form action="{{ route('roles.destroy', $role) }}" method="POST" class="inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa vai trò này?')">
+                                    <form action="{{ route('roles.destroy', $role) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this role?')">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="text-red-400 hover:text-red-300 transition-colors duration-200" title="Xóa">
+                                        <button type="submit" class="text-red-400 hover:text-red-300 transition-colors duration-200" title="Delete">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                             </svg>
@@ -186,8 +186,8 @@
                                     <svg class="w-12 h-12 mb-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
                                     </svg>
-                                    <p class="text-lg font-medium">Không có vai trò nào</p>
-                                    <p class="text-sm">Bắt đầu bằng cách tạo vai trò mới</p>
+                                    <p class="text-lg font-medium">No roles found</p>
+                                    <p class="text-sm">Start by creating a new role</p>
                                 </div>
                             </td>
                         </tr>

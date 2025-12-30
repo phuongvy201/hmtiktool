@@ -13,8 +13,8 @@
                         </svg>
                     </a>
                     <div>
-                        <h1 class="text-3xl font-bold text-white mb-2">Chi tiết Gói Dịch vụ Team</h1>
-                        <p class="text-gray-400">Thông tin chi tiết về gói dịch vụ của team</p>
+                        <h1 class="text-3xl font-bold text-white mb-2">Team Service Package Details</h1>
+                        <p class="text-gray-400">Detailed information about this team subscription</p>
                     </div>
                 </div>
                 <div class="flex items-center space-x-3">
@@ -23,16 +23,16 @@
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                         </svg>
-                        Chỉnh sửa
+                        Edit
                     </a>
-                    <form action="{{ route('team-subscriptions.destroy', $teamSubscription) }}" method="POST" class="inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa gói dịch vụ này?')">
+                    <form action="{{ route('team-subscriptions.destroy', $teamSubscription) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this subscription?')">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
-                            Xóa
+                            Delete
                         </button>
                     </form>
                 </div>
@@ -48,7 +48,7 @@
                         <svg class="w-5 h-5 mr-2 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                         </svg>
-                        Thông tin Team
+                        Team Information
                     </h3>
                     
                     <div class="space-y-4">
@@ -60,20 +60,20 @@
                             </div>
                             <div>
                                 <h4 class="text-white font-semibold">{{ $teamSubscription->team->name }}</h4>
-                                <p class="text-gray-400 text-sm">{{ $teamSubscription->team->description ?: 'Không có mô tả' }}</p>
+                                <p class="text-gray-400 text-sm">{{ $teamSubscription->team->description ?: 'No description' }}</p>
                             </div>
                         </div>
                         
                         <div class="space-y-3">
                             <div class="flex items-center justify-between">
-                                <span class="text-gray-400">Số thành viên:</span>
+                                <span class="text-gray-400">Members:</span>
                                 <span class="text-white font-medium">{{ $teamSubscription->team->users->count() }}</span>
                             </div>
                             
                             <div class="flex items-center justify-between">
-                                <span class="text-gray-400">Trạng thái team:</span>
+                                <span class="text-gray-400">Team status:</span>
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $teamSubscription->team->status === 'active' ? 'bg-green-600 text-green-100' : 'bg-red-600 text-red-100' }}">
-                                    {{ $teamSubscription->team->status === 'active' ? 'Hoạt động' : 'Không hoạt động' }}
+                                    {{ $teamSubscription->team->status === 'active' ? 'Active' : 'Inactive' }}
                                 </span>
                             </div>
                         </div>
@@ -89,50 +89,50 @@
                         <svg class="w-5 h-5 mr-2 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                         </svg>
-                        Thông tin Gói Dịch vụ
+                        Service Package Information
                     </h3>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="space-y-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-400 mb-1">Tên gói</label>
+                                <label class="block text-sm font-medium text-gray-400 mb-1">Package name</label>
                                 <p class="text-white font-semibold">{{ $teamSubscription->servicePackage->name }}</p>
                             </div>
                             
                             <div>
-                                <label class="block text-sm font-medium text-gray-400 mb-1">Mô tả</label>
-                                <p class="text-gray-300">{{ $teamSubscription->servicePackage->description ?: 'Không có mô tả' }}</p>
+                                <label class="block text-sm font-medium text-gray-400 mb-1">Description</label>
+                                <p class="text-gray-300">{{ $teamSubscription->servicePackage->description ?: 'No description' }}</p>
                             </div>
                             
                             <div>
-                                <label class="block text-sm font-medium text-gray-400 mb-1">Giá gói</label>
+                                <label class="block text-sm font-medium text-gray-400 mb-1">Package price</label>
                                 <p class="text-white font-semibold text-lg">{{ $teamSubscription->servicePackage->formatted_price }}</p>
                             </div>
                             
                             <div>
-                                <label class="block text-sm font-medium text-gray-400 mb-1">Thời hạn gói</label>
-                                <p class="text-gray-300">{{ $teamSubscription->servicePackage->duration_days }} ngày</p>
+                                <label class="block text-sm font-medium text-gray-400 mb-1">Package duration</label>
+                                <p class="text-gray-300">{{ $teamSubscription->servicePackage->duration_days }} days</p>
                             </div>
                         </div>
                         
                         <div class="space-y-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-400 mb-1">Giới hạn người dùng</label>
+                                <label class="block text-sm font-medium text-gray-400 mb-1">User limit</label>
                                 <p class="text-white">{{ $teamSubscription->servicePackage->max_users }} users</p>
                             </div>
                             
                             <div>
-                                <label class="block text-sm font-medium text-gray-400 mb-1">Giới hạn dự án</label>
+                                <label class="block text-sm font-medium text-gray-400 mb-1">Project limit</label>
                                 <p class="text-white">{{ $teamSubscription->servicePackage->max_projects }} projects</p>
                             </div>
                             
                             <div>
-                                <label class="block text-sm font-medium text-gray-400 mb-1">Giới hạn lưu trữ</label>
+                                <label class="block text-sm font-medium text-gray-400 mb-1">Storage limit</label>
                                 <p class="text-white">{{ $teamSubscription->servicePackage->max_storage_gb }}GB</p>
                             </div>
                             
                             <div>
-                                <label class="block text-sm font-medium text-gray-400 mb-1">Tính năng</label>
+                                <label class="block text-sm font-medium text-gray-400 mb-1">Features</label>
                                 <div class="flex flex-wrap gap-1">
                                     @if($teamSubscription->servicePackage->features)
                                         @foreach($teamSubscription->servicePackage->features as $feature)
@@ -141,7 +141,7 @@
                                             </span>
                                         @endforeach
                                     @else
-                                        <span class="text-gray-500 text-sm">Không có tính năng đặc biệt</span>
+                                        <span class="text-gray-500 text-sm">No special features</span>
                                     @endif
                                 </div>
                             </div>
@@ -155,54 +155,54 @@
                         <svg class="w-5 h-5 mr-2 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
-                        Chi tiết Đăng ký
+                        Subscription Details
                     </h3>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="space-y-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-400 mb-1">Trạng thái</label>
+                                <label class="block text-sm font-medium text-gray-400 mb-1">Status</label>
                                 <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {{ $teamSubscription->status_badge_class }}">
                                     {{ $teamSubscription->status_text }}
                                 </span>
                             </div>
                             
                             <div>
-                                <label class="block text-sm font-medium text-gray-400 mb-1">Ngày bắt đầu</label>
+                                <label class="block text-sm font-medium text-gray-400 mb-1">Start date</label>
                                 <p class="text-white">{{ $teamSubscription->start_date->format('d/m/Y') }}</p>
                             </div>
                             
                             <div>
-                                <label class="block text-sm font-medium text-gray-400 mb-1">Ngày kết thúc</label>
+                                <label class="block text-sm font-medium text-gray-400 mb-1">End date</label>
                                 <p class="text-white">{{ $teamSubscription->end_date->format('d/m/Y') }}</p>
                             </div>
                             
                             <div>
-                                <label class="block text-sm font-medium text-gray-400 mb-1">Số ngày còn lại</label>
-                                <p class="text-white font-semibold">{{ $teamSubscription->remaining_days }} ngày</p>
+                                <label class="block text-sm font-medium text-gray-400 mb-1">Remaining days</label>
+                                <p class="text-white font-semibold">{{ $teamSubscription->remaining_days }} days</p>
                             </div>
                         </div>
                         
                         <div class="space-y-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-400 mb-1">Số tiền thanh toán</label>
+                                <label class="block text-sm font-medium text-gray-400 mb-1">Paid amount</label>
                                 <p class="text-white font-semibold">{{ $teamSubscription->formatted_paid_amount }}</p>
                             </div>
                             
                             <div>
-                                <label class="block text-sm font-medium text-gray-400 mb-1">Phương thức thanh toán</label>
-                                <p class="text-white">{{ $teamSubscription->payment_method ?: 'Chưa xác định' }}</p>
+                                <label class="block text-sm font-medium text-gray-400 mb-1">Payment method</label>
+                                <p class="text-white">{{ $teamSubscription->payment_method ?: 'Not specified' }}</p>
                             </div>
                             
                             <div>
-                                <label class="block text-sm font-medium text-gray-400 mb-1">Mã giao dịch</label>
-                                <p class="text-white">{{ $teamSubscription->transaction_id ?: 'Chưa có' }}</p>
+                                <label class="block text-sm font-medium text-gray-400 mb-1">Transaction ID</label>
+                                <p class="text-white">{{ $teamSubscription->transaction_id ?: 'Not available' }}</p>
                             </div>
                             
                             <div>
-                                <label class="block text-sm font-medium text-gray-400 mb-1">Tự động gia hạn</label>
+                                <label class="block text-sm font-medium text-gray-400 mb-1">Auto renew</label>
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $teamSubscription->auto_renew ? 'bg-green-600 text-green-100' : 'bg-gray-600 text-gray-100' }}">
-                                    {{ $teamSubscription->auto_renew ? 'Có' : 'Không' }}
+                                    {{ $teamSubscription->auto_renew ? 'Yes' : 'No' }}
                                 </span>
                             </div>
                         </div>
@@ -210,7 +210,7 @@
                     
                     @if($teamSubscription->notes)
                         <div class="mt-6 pt-6 border-t border-gray-700">
-                            <label class="block text-sm font-medium text-gray-400 mb-2">Ghi chú</label>
+                            <label class="block text-sm font-medium text-gray-400 mb-2">Notes</label>
                             <div class="bg-gray-700 rounded-lg p-4">
                                 <p class="text-gray-300">{{ $teamSubscription->notes }}</p>
                             </div>
@@ -224,34 +224,34 @@
                         <svg class="w-5 h-5 mr-2 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                         </svg>
-                        Thông tin Gán
+                        Assignment Information
                     </h3>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label class="block text-sm font-medium text-gray-400 mb-1">Người gán</label>
+                            <label class="block text-sm font-medium text-gray-400 mb-1">Assigned by</label>
                             <div class="flex items-center">
                                 <div class="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center mr-3">
                                     <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                                     </svg>
                                 </div>
-                                <span class="text-white">{{ $teamSubscription->assignedBy ? $teamSubscription->assignedBy->name : 'Hệ thống' }}</span>
+                                <span class="text-white">{{ $teamSubscription->assignedBy ? $teamSubscription->assignedBy->name : 'System' }}</span>
                             </div>
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-400 mb-1">Ngày gán</label>
+                            <label class="block text-sm font-medium text-gray-400 mb-1">Assigned at</label>
                             <p class="text-white">{{ $teamSubscription->created_at->format('d/m/Y H:i') }}</p>
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-400 mb-1">Cập nhật lần cuối</label>
+                            <label class="block text-sm font-medium text-gray-400 mb-1">Last updated</label>
                             <p class="text-white">{{ $teamSubscription->updated_at->format('d/m/Y H:i') }}</p>
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-400 mb-1">ID gói dịch vụ</label>
+                            <label class="block text-sm font-medium text-gray-400 mb-1">Subscription ID</label>
                             <p class="text-white font-mono text-sm">{{ $teamSubscription->id }}</p>
                         </div>
                     </div>

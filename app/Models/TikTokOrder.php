@@ -86,14 +86,14 @@ class TikTokOrder extends Model
     public function getStatusText(): string
     {
         return match ($this->order_status) {
-            'UNPAID' => 'Chưa thanh toán',
-            'AWAITING_SHIPMENT' => 'Chờ giao hàng',
-            'AWAITING_COLLECTION' => 'Chờ lấy hàng',
-            'IN_TRANSIT' => 'Đang vận chuyển',
-            'DELIVERED' => 'Đã giao',
-            'CANCELLED' => 'Đã hủy',
-            'REFUNDED' => 'Đã hoàn tiền',
-            default => $this->order_status ?: 'Không xác định'
+            'UNPAID' => 'Unpaid',
+            'AWAITING_SHIPMENT' => 'Awaiting shipment',
+            'AWAITING_COLLECTION' => 'Awaiting pickup',
+            'IN_TRANSIT' => 'In transit',
+            'DELIVERED' => 'Delivered',
+            'CANCELLED' => 'Cancelled',
+            'REFUNDED' => 'Refunded',
+            default => $this->order_status ?: 'Unknown'
         };
     }
 
@@ -185,15 +185,15 @@ class TikTokOrder extends Model
     public function getStatusInVietnameseAttribute(): string
     {
         return match ($this->order_status) {
-            'UNPAID' => 'Chưa thanh toán',
-            'ON_HOLD' => 'Tạm giữ',
-            'AWAITING_SHIPMENT' => 'Chờ vận chuyển',
-            'PARTIALLY_SHIPPING' => 'Vận chuyển một phần',
-            'AWAITING_COLLECTION' => 'Chờ thu thập',
-            'IN_TRANSIT' => 'Đang vận chuyển',
-            'DELIVERED' => 'Đã giao hàng',
-            'COMPLETED' => 'Hoàn thành',
-            'CANCELLED' => 'Đã hủy',
+            'UNPAID' => 'Unpaid',
+            'ON_HOLD' => 'On Hold',
+            'AWAITING_SHIPMENT' => 'Awaiting Shipment',
+            'PARTIALLY_SHIPPING' => 'Partially Shipped',
+            'AWAITING_COLLECTION' => 'Awaiting Collection',
+            'IN_TRANSIT' => 'In Transit',
+            'DELIVERED' => 'Delivered',
+            'COMPLETED' => 'Completed',
+            'CANCELLED' => 'Cancelled',
             default => $this->order_status
         };
     }
@@ -274,5 +274,83 @@ class TikTokOrder extends Model
             'sync_error' => $error,
             'last_synced_at' => now()
         ]);
+    }
+
+    /**
+     * Lấy SLA date từ order_data (ưu tiên các field từ TikTok API)
+     */
+    public function getSlaDate(): ?\Carbon\Carbon
+    {
+        $orderData = $this->order_data ?? [];
+
+        // Ưu tiên các field từ TikTok API
+        $slaTime = null;
+        if (isset($orderData['rts_sla_time'])) {
+            $slaTime = $orderData['rts_sla_time'];
+        } elseif (isset($orderData['tts_sla_time'])) {
+            $slaTime = $orderData['tts_sla_time'];
+        } elseif (isset($orderData['collection_due_time'])) {
+            $slaTime = $orderData['collection_due_time'];
+        } elseif (isset($orderData['cancel_order_sla_time'])) {
+            $slaTime = $orderData['cancel_order_sla_time'];
+        }
+
+        if ($slaTime) {
+            // Nếu là timestamp (số), convert sang datetime
+            if (is_numeric($slaTime)) {
+                return \Carbon\Carbon::createFromTimestamp($slaTime);
+            }
+            // Nếu là string, parse nó
+            try {
+                return \Carbon\Carbon::parse($slaTime);
+            } catch (\Exception $e) {
+                return null;
+            }
+        }
+
+        // Fallback: tính từ create_time + 3 ngày nếu không có dữ liệu từ API
+        if ($this->create_time) {
+            return $this->create_time->copy()->addDays(3);
+        }
+
+        return null;
+    }
+
+    /**
+     * Lấy Auto Cancel date từ order_data (ưu tiên các field từ TikTok API)
+     */
+    public function getAutoCancelDate(): ?\Carbon\Carbon
+    {
+        $orderData = $this->order_data ?? [];
+
+        // Ưu tiên các field từ TikTok API
+        $cancelTime = null;
+        if (isset($orderData['cancel_order_sla_time'])) {
+            $cancelTime = $orderData['cancel_order_sla_time'];
+        } elseif (isset($orderData['collection_due_time'])) {
+            $cancelTime = $orderData['collection_due_time'];
+        } elseif (isset($orderData['cancel_time'])) {
+            $cancelTime = $orderData['cancel_time'];
+        }
+
+        if ($cancelTime) {
+            // Nếu là timestamp (số), convert sang datetime
+            if (is_numeric($cancelTime)) {
+                return \Carbon\Carbon::createFromTimestamp($cancelTime);
+            }
+            // Nếu là string, parse nó
+            try {
+                return \Carbon\Carbon::parse($cancelTime);
+            } catch (\Exception $e) {
+                return null;
+            }
+        }
+
+        // Fallback: tính từ create_time + 10 ngày nếu không có dữ liệu từ API
+        if ($this->create_time) {
+            return $this->create_time->copy()->addDays(10);
+        }
+
+        return null;
     }
 }

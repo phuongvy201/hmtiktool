@@ -12,8 +12,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
                         </svg>
                     </div>
-                    <h1 class="text-2xl font-bold text-white mb-2">Gửi lại Email Xác thực</h1>
-                    <p class="text-gray-400">Link xác thực đã hết hạn? Gửi lại email mới</p>
+                    <h1 class="text-2xl font-bold text-white mb-2">Resend Verification Email</h1>
+                    <p class="text-gray-400">Verification link expired? Send a new one</p>
                 </div>
 
                 <!-- Success/Error Messages -->
@@ -43,7 +43,7 @@
                         <label for="email" class="block text-sm font-medium text-gray-300 mb-2">Email</label>
                         <input type="email" id="email" name="email" value="{{ old('email') }}" required
                                class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 @error('email') border-red-500 @enderror"
-                               placeholder="Nhập email của bạn">
+                               placeholder="Enter your email">
                         @error('email')
                             <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                         @enderror
@@ -54,7 +54,7 @@
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
-                        Gửi lại Email Xác thực
+                        Resend Verification Email
                     </button>
                 </form>
 
@@ -62,7 +62,7 @@
                 <div class="mt-6 text-center">
                     <p class="text-gray-400 text-sm">
                         <a href="{{ route('verification.notice') }}" class="text-blue-400 hover:text-blue-300 transition-colors duration-200">
-                            ← Quay lại trang xác thực
+                            ← Back to verification page
                         </a>
                     </p>
                 </div>
@@ -74,11 +74,11 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                         <div>
-                            <h3 class="text-yellow-400 font-medium mb-1">Lưu ý</h3>
+                            <h3 class="text-yellow-400 font-medium mb-1">Notes</h3>
                             <ul class="text-sm text-gray-300 space-y-1">
-                                <li>• Bạn chỉ có thể gửi lại email sau 5 phút</li>
-                                <li>• Link xác thực mới sẽ có hiệu lực trong 60 phút</li>
-                                <li>• Kiểm tra cả thư mục spam nếu không thấy email</li>
+                                <li>• You can resend after 5 minutes</li>
+                                <li>• New verification link is valid for 60 minutes</li>
+                                <li>• Check the spam folder if you do not see the email</li>
                             </ul>
                         </div>
                     </div>

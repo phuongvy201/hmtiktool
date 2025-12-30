@@ -12,8 +12,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                         </svg>
                     </div>
-                    <h1 class="text-2xl font-bold text-white mb-2">Xác thực Email</h1>
-                    <p class="text-gray-400">Nhập email của bạn để nhận link xác thực</p>
+                    <h1 class="text-2xl font-bold text-white mb-2">Verify Email</h1>
+                    <p class="text-gray-400">Enter your email to receive a verification link</p>
                 </div>
 
                 <!-- Success/Error Messages -->
@@ -43,7 +43,7 @@
                         <label for="email" class="block text-sm font-medium text-gray-300 mb-2">Email</label>
                         <input type="email" id="email" name="email" value="{{ old('email') }}" required
                                class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 @error('email') border-red-500 @enderror"
-                               placeholder="Nhập email của bạn">
+                               placeholder="Enter your email">
                         @error('email')
                             <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                         @enderror
@@ -54,16 +54,16 @@
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                         </svg>
-                        Gửi Email Xác thực
+                        Send Verification Email
                     </button>
                 </form>
 
                 <!-- Links -->
                 <div class="mt-6 text-center">
                     <p class="text-gray-400 text-sm">
-                        Đã có tài khoản? 
+                        Already have an account? 
                         <a href="{{ route('login') }}" class="text-blue-400 hover:text-blue-300 transition-colors duration-200">
-                            Đăng nhập
+                            Log in
                         </a>
                     </p>
                 </div>
@@ -75,11 +75,11 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                         <div>
-                            <h3 class="text-blue-400 font-medium mb-1">Lưu ý</h3>
+                            <h3 class="text-blue-400 font-medium mb-1">Notes</h3>
                             <ul class="text-sm text-gray-300 space-y-1">
-                                <li>• Email xác thực sẽ được gửi đến hộp thư của bạn</li>
-                                <li>• Link xác thực có hiệu lực trong 60 phút</li>
-                                <li>• Kiểm tra cả thư mục spam nếu không thấy email</li>
+                                <li>• A verification email will be sent to your inbox</li>
+                                <li>• The verification link is valid for 60 minutes</li>
+                                <li>• Check your spam folder if you do not see the email</li>
                             </ul>
                         </div>
                     </div>

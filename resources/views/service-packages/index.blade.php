@@ -12,8 +12,8 @@
                     </svg>
                 </a>
                 <div>
-                    <h1 class="text-3xl font-bold text-white mb-2">Quản lý Gói Dịch vụ</h1>
-                    <p class="text-gray-400">Quản lý các gói dịch vụ và tính năng</p>
+                    <h1 class="text-3xl font-bold text-white mb-2">Service Package Management</h1>
+                    <p class="text-gray-400">Manage service packages and features</p>
                 </div>
             </div>
         </div>
@@ -24,32 +24,32 @@
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <!-- Search -->
                     <div>
-                        <label for="search" class="block text-sm font-medium text-gray-300 mb-1">Tìm kiếm</label>
+                        <label for="search" class="block text-sm font-medium text-gray-300 mb-1">Search</label>
                         <input type="text" 
                                name="search" 
                                id="search" 
                                value="{{ request('search') }}"
-                               placeholder="Tên gói, mô tả..."
+                               placeholder="Package name, description..."
                                class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500">
                     </div>
 
                     <!-- Status Filter -->
                     <div>
-                        <label for="status" class="block text-sm font-medium text-gray-300 mb-1">Trạng thái</label>
+                        <label for="status" class="block text-sm font-medium text-gray-300 mb-1">Status</label>
                         <select name="status" id="status" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
-                            <option value="">Tất cả</option>
-                            <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Đang hoạt động</option>
-                            <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Không hoạt động</option>
+                            <option value="">All</option>
+                            <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
+                            <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
                         </select>
                     </div>
 
                     <!-- Featured Filter -->
                     <div>
-                        <label for="featured" class="block text-sm font-medium text-gray-300 mb-1">Nổi bật</label>
+                        <label for="featured" class="block text-sm font-medium text-gray-300 mb-1">Featured</label>
                         <select name="featured" id="featured" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
-                            <option value="">Tất cả</option>
-                            <option value="1" {{ request('featured') === '1' ? 'selected' : '' }}>Có</option>
-                            <option value="0" {{ request('featured') === '0' ? 'selected' : '' }}>Không</option>
+                            <option value="">All</option>
+                            <option value="1" {{ request('featured') === '1' ? 'selected' : '' }}>Yes</option>
+                            <option value="0" {{ request('featured') === '0' ? 'selected' : '' }}>No</option>
                         </select>
                     </div>
 
@@ -59,7 +59,7 @@
                             <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                             </svg>
-                            Tìm kiếm
+                            Search
                         </button>
                     </div>
                 </div>
@@ -75,22 +75,22 @@
                             <thead class="bg-gray-700">
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                        Gói dịch vụ
+                                        Service package
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                        Giá
+                                        Price
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                        Giới hạn
+                                        Limits
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                        Trạng thái
+                                        Status
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                        Người dùng
+                                        Users
                                     </th>
                                     <th class="px-6 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                        Thao tác
+                                        Actions
                                     </th>
                                 </tr>
                             </thead>
@@ -111,7 +111,7 @@
                                                         {{ $package->name }}
                                                         @if($package->is_featured)
                                                             <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-600 text-yellow-100">
-                                                                Nổi bật
+                                                                Featured
                                                             </span>
                                                         @endif
                                                     </div>
@@ -126,7 +126,7 @@
                                                 {{ $package->formatted_price }}
                                             </div>
                                             <div class="text-sm text-gray-400">
-                                                {{ $package->duration_days }} ngày
+                                                {{ $package->duration_days }} days
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
@@ -138,7 +138,7 @@
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $package->is_active ? 'bg-green-600 text-green-100' : 'bg-red-600 text-red-100' }}">
-                                                {{ $package->is_active ? 'Hoạt động' : 'Không hoạt động' }}
+                                                {{ $package->is_active ? 'Active' : 'Inactive' }}
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
@@ -146,7 +146,7 @@
                                                 <div class="text-lg font-semibold text-blue-400">
                                                     {{ $package->activeSubscriptions()->count() }}
                                                 </div>
-                                                <div class="text-xs text-gray-400">đang sử dụng</div>
+                                                <div class="text-xs text-gray-400">active subscriptions</div>
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -175,7 +175,7 @@
                                                         @method('PATCH')
                                                         <button type="submit" 
                                                                 class="text-{{ $package->is_active ? 'red' : 'green' }}-400 hover:text-{{ $package->is_active ? 'red' : 'green' }}-300 transition-colors duration-200"
-                                                                title="{{ $package->is_active ? 'Vô hiệu hóa' : 'Kích hoạt' }}">
+                                                                title="{{ $package->is_active ? 'Deactivate' : 'Activate' }}">
                                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M{{ $package->is_active ? '18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728' : '9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' }}"></path>
                                                             </svg>
@@ -188,7 +188,7 @@
                                                         @method('PATCH')
                                                         <button type="submit" 
                                                                 class="text-{{ $package->is_featured ? 'gray' : 'yellow' }}-400 hover:text-{{ $package->is_featured ? 'gray' : 'yellow' }}-300 transition-colors duration-200"
-                                                                title="{{ $package->is_featured ? 'Bỏ nổi bật' : 'Đánh dấu nổi bật' }}">
+                                                                title="{{ $package->is_featured ? 'Unfeature' : 'Mark as featured' }}">
                                                             <svg class="w-4 h-4" fill="{{ $package->is_featured ? 'currentColor' : 'none' }}" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
                                                             </svg>
@@ -197,7 +197,7 @@
                                                 @endcan
 
                                                 @can('delete-service-packages')
-                                                    <form action="{{ route('service-packages.destroy', $package) }}" method="POST" class="inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa gói dịch vụ này?')">
+                                                    <form action="{{ route('service-packages.destroy', $package) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this package?')">
                                                         @csrf
                                                         @method('DELETE')
                                                         <button type="submit" class="text-red-400 hover:text-red-300 transition-colors duration-200">
@@ -224,8 +224,8 @@
                         <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                         </svg>
-                        <h3 class="mt-2 text-sm font-medium text-gray-300">Chưa có gói dịch vụ</h3>
-                        <p class="mt-1 text-sm text-gray-400">Bắt đầu tạo gói dịch vụ đầu tiên.</p>
+                        <h3 class="mt-2 text-sm font-medium text-gray-300">No service packages yet</h3>
+                        <p class="mt-1 text-sm text-gray-400">Start by creating the first package.</p>
                         @can('create-service-packages')
                             <div class="mt-6">
                                 <a href="{{ route('service-packages.create') }}" 
@@ -233,7 +233,7 @@
                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                                     </svg>
-                                    Tạo gói dịch vụ
+                                    Create package
                                 </a>
                             </div>
                         @endcan
@@ -250,7 +250,7 @@
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                     </svg>
-                    Tạo gói mới
+                    Create new package
                 </a>
             </div>
         @endcan

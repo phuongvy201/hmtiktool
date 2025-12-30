@@ -5,10 +5,10 @@
     <div class="container mx-auto px-4 py-8">
         <!-- Header Section -->
         <div class="mb-8">
-            <h1 class="text-4xl font-bold text-white mb-2">Vai trò Team</h1>
+            <h1 class="text-4xl font-bold text-white mb-2">Roles Team</h1>
             <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
                 <h2 class="text-xl font-semibold text-white mb-2">{{ $team->name }}</h2>
-                <p class="text-gray-400">Xem các vai trò được sử dụng trong team của bạn</p>
+                <p class="text-gray-400">View the roles used in your team</p>
             </div>
         </div>
 
@@ -18,7 +18,7 @@
             <div class="bg-gray-800 rounded-xl border border-gray-700 p-6">
                 <h3 class="text-lg font-semibold text-white mb-4 flex items-center">
                     <i class="fas fa-shield-alt mr-2 text-blue-400"></i>
-                    Tổng quan Vai trò
+                    Overview of Roles
                 </h3>
                 <div class="space-y-3">
                     @forelse($teamRoles as $role)
@@ -30,7 +30,7 @@
                             <div>
                                 <h4 class="font-medium text-white">{{ ucfirst($role->name) }}</h4>
                                 <p class="text-xs text-gray-400">
-                                    {{ $teamMembers->filter(fn($member) => $member->hasRole($role->name))->count() }} thành viên
+                                    {{ $teamMembers->filter(fn($member) => $member->hasRole($role->name))->count() }} members
                                 </p>
                             </div>
                         </div>
@@ -41,7 +41,7 @@
                     @empty
                     <div class="text-center py-8">
                         <i class="fas fa-info-circle text-gray-400 text-4xl mb-4"></i>
-                        <p class="text-gray-400">Chưa có vai trò nào được gán trong team</p>
+                        <p class="text-gray-400">No roles assigned in the team</p>
                     </div>
                     @endforelse
                 </div>
@@ -51,7 +51,7 @@
             <div class="bg-gray-800 rounded-xl border border-gray-700 p-6">
                 <h3 class="text-lg font-semibold text-white mb-4 flex items-center">
                     <i class="fas fa-users mr-2 text-green-400"></i>
-                    Thành viên theo Vai trò
+                    Members by Role
                 </h3>
                 <div class="space-y-3">
                     @forelse($teamRoles as $role)
@@ -72,14 +72,14 @@
                                 <span class="text-xs text-gray-400">{{ $member->email }}</span>
                             </div>
                             @empty
-                            <p class="text-xs text-gray-400">Không có thành viên nào</p>
+                            <p class="text-xs text-gray-400">No members</p>
                             @endforelse
                         </div>
                     </div>
                     @empty
                     <div class="text-center py-8">
                         <i class="fas fa-user-slash text-gray-400 text-4xl mb-4"></i>
-                        <p class="text-gray-400">Chưa có thành viên nào trong team</p>
+                        <p class="text-gray-400">No members in the team</p>
                     </div>
                     @endforelse
                 </div>
@@ -90,7 +90,7 @@
         <div class="bg-gray-800 rounded-xl border border-gray-700 p-6 mb-8">
             <h3 class="text-lg font-semibold text-white mb-4 flex items-center">
                 <i class="fas fa-key mr-2 text-yellow-400"></i>
-                Quyền hạn của Team
+                Permissions of Team
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 @php
@@ -109,7 +109,7 @@
                 @empty
                 <div class="col-span-full text-center py-8">
                     <i class="fas fa-lock text-gray-400 text-4xl mb-4"></i>
-                    <p class="text-gray-400">Không có quyền hạn nào được gán</p>
+                        <p class="text-gray-400">No permissions assigned</p>
                 </div>
                 @endforelse
             </div>
@@ -119,12 +119,12 @@
         <div class="flex justify-between items-center">
             <a href="{{ route('team-admin.dashboard') }}" class="bg-gray-700 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition-colors duration-200 flex items-center">
                 <i class="fas fa-arrow-left mr-2"></i>
-                Quay lại Dashboard
+                    Back to Dashboard
             </a>
             
             <a href="{{ route('team-admin.users.index') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors duration-200 flex items-center">
                 <i class="fas fa-users mr-2"></i>
-                Quản lý Thành viên
+                Manage Members
             </a>
         </div>
     </div>

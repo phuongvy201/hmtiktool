@@ -113,8 +113,8 @@
 <div id="loadingOverlay" class="loading-overlay" style="display: none;">
     <div class="text-center">
         <div class="loading-spinner mb-4"></div>
-        <div class="text-white text-lg font-medium">Đang tải dữ liệu analytics...</div>
-        <div class="text-gray-300 text-sm mt-2">Vui lòng chờ trong giây lát</div>
+        <div class="text-white text-lg font-medium">Loading analytics data...</div>
+        <div class="text-gray-300 text-sm mt-2">Please wait for a moment</div>
     </div>
 </div>
 
@@ -132,7 +132,7 @@
                     </h1>
                     <p class="text-blue-100 mt-2 flex items-center text-lg">
                         <i class="fas fa-calendar-alt mr-2"></i>
-                        Last 7 Days (GMT+7) - Excluding Canceled Orders
+                        Last 7 Days (GMT+7) - Excluding canceled orders
                     </p>
                 </div>
                 <div class="hidden md:block">
@@ -181,7 +181,7 @@
                             <i class="fas fa-store text-purple-400"></i>
                         </div>
                         <div class="ml-3">
-                            <div class="text-sm text-gray-400">Active Shops</div>
+                            <div class="text-sm text-gray-400">Active shops</div>
                             <div class="text-xl font-bold text-white">{{ count($analytics) }}</div>
                         </div>
                     </div>
@@ -193,7 +193,7 @@
                             <i class="fas fa-chart-line text-orange-400"></i>
                         </div>
                         <div class="ml-3">
-                            <div class="text-sm text-gray-400">Avg Daily Orders</div>
+                            <div class="text-sm text-gray-400">Avg daily orders</div>
                             <div class="text-xl font-bold text-white">{{ round(collect($dailyOrders)->avg('orders'), 1) }}</div>
                         </div>
                     </div>
@@ -206,11 +206,11 @@
             <div class="flex items-center justify-between mb-6">
                 <h3 class="text-xl font-bold text-white flex items-center">
                     <i class="fas fa-calendar-week mr-3 text-blue-400"></i>
-                    Daily Orders Breakdown
+                    Daily orders breakdown
                 </h3>
                 <div class="text-sm text-gray-400">
                     <i class="fas fa-info-circle mr-1"></i>
-                    Hover for details
+                        Hover for details
                 </div>
             </div>
             

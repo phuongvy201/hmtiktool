@@ -1,4 +1,4 @@
-@props(['name' => 'images', 'multiple' => true, 'maxFiles' => 10, 'existingImages' => [], 'label' => 'Hình ảnh'])
+@props(['name' => 'images', 'multiple' => true, 'maxFiles' => 10, 'existingImages' => [], 'label' => 'Images'])
 
 <div class="image-upload-manager" data-name="{{ $name }}" data-multiple="{{ $multiple ? 'true' : 'false' }}" data-max-files="{{ $maxFiles }}">
     <label class="block text-sm font-medium text-gray-300 mb-2">{{ $label }}</label>
@@ -12,8 +12,8 @@
                 <svg class="w-12 h-12 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                 </svg>
-                <p class="text-gray-300 mb-2">Kéo thả file vào đây hoặc click để chọn</p>
-                <p class="text-gray-400 text-sm">Hỗ trợ: JPG, PNG, GIF, WebP (tối đa {{ $maxFiles }} file)</p>
+                <p class="text-gray-300 mb-2">Drag & drop files here or click to choose</p>
+                <p class="text-gray-400 text-sm">Supported: JPG, PNG, GIF, WebP (up to {{ $maxFiles }} files)</p>
             </div>
             
             <input type="file" 
@@ -26,7 +26,7 @@
             <div id="{{ $name }}_upload_progress" class="hidden mt-4">
                 <div class="bg-gray-700 rounded-lg p-4">
                     <div class="flex items-center justify-between mb-2">
-                        <span class="text-white text-sm">Đang upload...</span>
+                        <span class="text-white text-sm">Uploading...</span>
                         <span id="{{ $name }}_progress_text" class="text-blue-400 text-sm">0%</span>
                     </div>
                     <div class="w-full bg-gray-600 rounded-full h-2">
@@ -38,10 +38,11 @@
     </div>
     
     <!-- Image Preview Grid -->
-    <div class="image-preview-grid grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4" id="{{ $name }}_preview_grid">
+    <div class="text-xs text-gray-400 mt-1">Tip: drag images to reorder</div>
+    <div class="image-preview-grid grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-2" id="{{ $name }}_preview_grid">
         <!-- Existing images -->
         @foreach($existingImages as $index => $image)
-            <div class="image-preview-item relative group">
+            <div class="image-preview-item relative group" draggable="true">
                 <img src="{{ $image }}" alt="Image {{ $index + 1 }}" class="w-full h-32 object-cover rounded-lg border border-gray-600">
                 <button type="button" class="absolute top-2 right-2 bg-red-600 hover:bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" 
                         onclick="removeImage('{{ $name }}', this)">
@@ -59,8 +60,8 @@
         <svg class="w-16 h-16 mx-auto mb-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
         </svg>
-        <p>Chưa có hình ảnh nào</p>
-        <p class="text-sm">Kéo thả file hoặc click vào vùng upload để thêm hình ảnh</p>
+        <p>No images yet</p>
+        <p class="text-sm">Drag & drop files or click the upload area to add images</p>
     </div>
 </div>
 
@@ -99,6 +100,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // Enable drag & drop reordering on all managers
+    document.querySelectorAll('.image-upload-manager').forEach(manager => {
+        const name = manager.dataset.name;
+        initImageDragAndDrop(name);
+    });
 });
 
 // Handle file selection (store temporarily, not upload yet)
@@ -107,7 +114,7 @@ function handleFileUpload(name, files) {
     const currentImages = document.querySelectorAll(`#${name}_preview_grid .image-preview-item`).length;
     
     if (currentImages + files.length > maxFiles) {
-        showNotification(`Chỉ có thể thêm tối đa ${maxFiles} hình ảnh!`, 'error');
+        showNotification(`You can add up to ${maxFiles} images only!`, 'error');
         return;
     }
     
@@ -118,13 +125,13 @@ function handleFileUpload(name, files) {
     Array.from(files).forEach(file => {
         // Check file type
         if (!file.type.startsWith('image/')) {
-            invalidFiles.push(`${file.name}: Không phải file hình ảnh`);
+            invalidFiles.push(`${file.name}: Not an image file`);
             return;
         }
         
         // Check file size (max 10MB)
         if (file.size > 10 * 1024 * 1024) {
-            invalidFiles.push(`${file.name}: Kích thước quá lớn (>10MB)`);
+            invalidFiles.push(`${file.name}: File too large (>10MB)`);
             return;
         }
         
@@ -132,7 +139,7 @@ function handleFileUpload(name, files) {
     });
     
     if (invalidFiles.length > 0) {
-        showNotification(`File không hợp lệ: ${invalidFiles.join(', ')}`, 'error');
+        showNotification(`Invalid files: ${invalidFiles.join(', ')}`, 'error');
     }
     
     if (validFiles.length > 0) {
@@ -141,7 +148,7 @@ function handleFileUpload(name, files) {
             addFileToPreview(name, file);
         });
         
-        showNotification(`Đã chọn ${validFiles.length} hình ảnh. Sẽ upload khi submit form.`, 'success');
+        showNotification(`Selected ${validFiles.length} image(s). They will upload on form submit.`, 'success');
     }
 }
 
@@ -158,7 +165,7 @@ function addFileToPreview(name, file) {
     imageDiv.innerHTML = `
         <img src="${tempUrl}" alt="Selected image" class="w-full h-32 object-cover rounded-lg border border-gray-600">
         <div class="absolute top-2 left-2 bg-blue-600 text-white text-xs px-2 py-1 rounded">
-            Sẽ upload
+            Will upload
         </div>
         <button type="button" class="absolute top-2 right-2 bg-red-600 hover:bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" 
                 onclick="removeImage('${name}', this)">
@@ -183,6 +190,7 @@ function addFileToPreview(name, file) {
     imageDiv.appendChild(fileInput);
     previewGrid.appendChild(imageDiv);
     noImagesMsg.classList.add('hidden');
+    initImageDragAndDrop(name);
     
     console.log('Added file to preview:', {
         name: file.name,
@@ -202,7 +210,7 @@ function addImageToPreview(name, url) {
     imageDiv.className = 'image-preview-item relative group';
     imageDiv.innerHTML = `
         <img src="${url}" alt="Uploaded image" class="w-full h-32 object-cover rounded-lg border border-gray-600" 
-             onerror="this.parentElement.remove(); showNotification('Không thể tải hình ảnh: ${url}', 'error');">
+             onerror="this.parentElement.remove(); showNotification('Cannot load image: ${url}', 'error');">
         <button type="button" class="absolute top-2 right-2 bg-red-600 hover:bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" 
                 onclick="removeImage('${name}', this)">
             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -214,6 +222,7 @@ function addImageToPreview(name, url) {
     
     previewGrid.appendChild(imageDiv);
     noImagesMsg.classList.add('hidden');
+    initImageDragAndDrop(name);
 }
 
 // Remove image from preview
@@ -234,7 +243,56 @@ function removeImage(name, button) {
         document.getElementById(`${name}_no_images`).classList.remove('hidden');
     }
     
-    showNotification('Đã xóa hình ảnh!', 'info');
+    showNotification('Image removed!', 'info');
+}
+
+// Drag & drop reorder
+let draggedItem = null;
+
+function initImageDragAndDrop(name) {
+    const grid = document.getElementById(`${name}_preview_grid`);
+    if (!grid) return;
+
+    grid.querySelectorAll('.image-preview-item').forEach(item => {
+        if (!item.getAttribute('draggable')) {
+            item.setAttribute('draggable', 'true');
+        }
+
+        item.addEventListener('dragstart', (e) => {
+            draggedItem = item;
+            item.classList.add('ring-2', 'ring-blue-400');
+            e.dataTransfer.effectAllowed = 'move';
+        });
+
+        item.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            item.classList.add('ring-2', 'ring-blue-300');
+        });
+
+        item.addEventListener('dragleave', () => {
+            item.classList.remove('ring-2', 'ring-blue-300');
+        });
+
+        item.addEventListener('drop', (e) => {
+            e.preventDefault();
+            item.classList.remove('ring-2', 'ring-blue-300');
+            if (draggedItem && draggedItem !== item) {
+                const rect = item.getBoundingClientRect();
+                const isAfter = (e.clientY - rect.top) > rect.height / 2;
+                if (isAfter) {
+                    item.after(draggedItem);
+                } else {
+                    item.before(draggedItem);
+                }
+            }
+        });
+
+        item.addEventListener('dragend', () => {
+            item.classList.remove('ring-2', 'ring-blue-400', 'ring-blue-300');
+            draggedItem = null;
+        });
+    });
 }
 
 // Show notification function (reuse from main form)

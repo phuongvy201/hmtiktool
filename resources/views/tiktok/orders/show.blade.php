@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Chi tiết đơn hàng #' . $order->order_id)
+@section('title', 'Order details #' . $order->order_id)
 
 @section('content')
 <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
@@ -9,13 +9,13 @@
         <div class="flex-1">
             <nav class="flex" aria-label="Breadcrumb">
                 <ol class="flex items-center space-x-2 sm:space-x-4">
-                    <li>
-                        <a href="{{ route('tiktok.orders.index') }}" class="text-blue-400 hover:text-blue-300 text-sm sm:text-base">Đơn hàng TikTok</a>
+                    <li>        
+                        <a href="{{ route('tiktok.orders.index') }}" class="text-blue-400 hover:text-blue-300 text-sm sm:text-base">TikTok Orders</a>
                     </li>
                     <li>
                         <div class="flex items-center">
                             <i class="fas fa-chevron-right text-gray-500 mx-1 sm:mx-2 text-xs"></i>
-                            <span class="text-gray-400 text-sm sm:text-base">Chi tiết đơn hàng</span>
+                            <span class="text-gray-400 text-sm sm:text-base">Order details</span>       
                         </div>
                     </li>
                 </ol>
@@ -23,7 +23,7 @@
             <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-white mt-2 flex flex-col sm:flex-row sm:items-center gap-2">
                 <span class="flex items-center">
                     <i class="fas fa-shopping-cart mr-2 sm:mr-3 text-blue-400"></i>
-                    <span class="hidden sm:inline">Đơn hàng #</span>
+                    <span class="hidden sm:inline">Order #</span>
                     <span class="break-all">{{ $order->order_id }}</span>
                 </span>
             </h1>
@@ -31,8 +31,8 @@
         <div class="flex-shrink-0">
             <a href="{{ route('tiktok.orders.index') }}" class="inline-flex items-center px-3 sm:px-4 py-2 border border-gray-600 text-xs sm:text-sm font-medium rounded-md text-gray-300 bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-gray-800">
                 <i class="fas fa-arrow-left mr-1 sm:mr-2"></i>
-                <span class="hidden sm:inline">Quay lại</span>
-                <span class="sm:hidden">Quay lại</span>
+                <span class="hidden sm:inline">Back</span>  
+                <span class="sm:hidden">Back</span>
             </a>
         </div>
     </div>
@@ -44,8 +44,8 @@
                 <div class="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-700">
                     <h3 class="text-base sm:text-lg font-medium text-white flex items-center">
                         <i class="fas fa-info-circle mr-2 text-blue-400"></i>
-                        Thông tin đơn hàng
-                    </h3>
+                        Order Information
+                    </h3>   
                 </div>
                 <div class="px-3 sm:px-6 py-3 sm:py-4">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
@@ -71,7 +71,7 @@
                                 </dd>
                             </div>
                             <div>
-                                <dt class="text-xs sm:text-sm font-medium text-gray-400">Trạng thái</dt>
+                                <dt class="text-xs sm:text-sm font-medium text-gray-400">Status</dt>
                                 <dd class="mt-2">
                                     <span class="inline-flex items-center px-4 py-3 rounded-full text-base font-medium {{ $order->getStatusClasses() }}">
                                         <i class="{{ $order->getStatusIcon() }} mr-3 text-lg"></i>
@@ -93,13 +93,13 @@
                                 </dd>
                             </div>
                             <div>
-                                <dt class="text-xs sm:text-sm font-medium text-gray-400">Ngày tạo</dt>
+                                <dt class="text-xs sm:text-sm font-medium text-gray-400">Created date</dt>
                                 <dd class="mt-1 text-sm text-gray-200">
                                     {{ $order->create_time ? $order->create_time->format('d/m/Y H:i:s') : 'N/A' }}
                                 </dd>
                             </div>
                             <div>
-                                <dt class="text-xs sm:text-sm font-medium text-gray-400">Cập nhật cuối</dt>
+                                <dt class="text-xs sm:text-sm font-medium text-gray-400">Last updated</dt>
                                 <dd class="mt-1 text-sm text-gray-200">
                                     {{ $order->update_time ? $order->update_time->format('d/m/Y H:i:s') : 'N/A' }}
                                 </dd>
@@ -107,7 +107,7 @@
                         </div>
                         <div class="space-y-3 sm:space-y-4">
                             <div>
-                                <dt class="text-xs sm:text-sm font-medium text-gray-400">Người mua</dt>
+                                <dt class="text-xs sm:text-sm font-medium text-gray-400">Buyer</dt>
                                 <dd class="mt-1 flex items-center">
                                     <span class="text-sm text-gray-200">{{ $order->buyer_username ?: 'N/A' }}</span>
                                     @if($order->buyer_username)
@@ -129,23 +129,23 @@
                                 </dd>
                             </div>
                             <div>
-                                <dt class="text-xs sm:text-sm font-medium text-gray-400">Phương thức vận chuyển</dt>
+                                <dt class="text-xs sm:text-sm font-medium text-gray-400">Shipping method</dt>
                                 <dd class="mt-1 text-sm text-gray-200">{{ $order->shipping_type ?: 'N/A' }}</dd>
                             </div>
                             <div>
-                                <dt class="text-xs sm:text-sm font-medium text-gray-400">Kho</dt>
+                                <dt class="text-xs sm:text-sm font-medium text-gray-400">Warehouse</dt>
                                 <dd class="mt-1 text-sm text-gray-200">{{ $order->warehouse_name ?: $order->warehouse_id ?: 'N/A' }}</dd>
                             </div>
                             <div>
                                 <dt class="text-xs sm:text-sm font-medium text-gray-400">Sync Status</dt>
                                 <dd class="mt-1">
                                     <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {{ $order->sync_status === 'synced' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
-                                        {{ $order->sync_status === 'synced' ? 'Đã đồng bộ' : 'Chưa đồng bộ' }}
+                                        {{ $order->sync_status === 'synced' ? 'Synced' : 'Not synced' }}
                                     </span>
                                 </dd>
                             </div>
                             <div>
-                                <dt class="text-xs sm:text-sm font-medium text-gray-400">Lần sync cuối</dt>
+                                <dt class="text-xs sm:text-sm font-medium text-gray-400">Last sync</dt>
                                 <dd class="mt-1 text-sm text-gray-200">
                                     {{ $order->last_synced_at ? $order->last_synced_at->format('d/m/Y H:i:s') : 'N/A' }}
                                 </dd>
@@ -161,7 +161,7 @@
                     <div class="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-700">
                         <h3 class="text-base sm:text-lg font-medium text-white flex items-center">
                             <i class="fas fa-box mr-2 text-blue-400"></i>
-                            Sản phẩm trong đơn hàng
+                                    Products in order
                         </h3>
                     </div>
                     <div class="overflow-hidden">
@@ -170,11 +170,11 @@
                             <table class="min-w-full divide-y divide-gray-700">
                                 <thead class="bg-gray-900">
                                     <tr>
-                                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Sản phẩm</th>
+                                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Product</th>
                                         <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">SKU</th>
-                                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Giá gốc</th>
-                                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Giá bán</th>
-                                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Trạng thái</th>
+                                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Original price</th>
+                                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Sale price</th>
+                                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Status</th>
                                     </tr>
                                 </thead>
                                 <tbody class="bg-gray-800 divide-y divide-gray-700">
@@ -212,7 +212,8 @@
                                             </td>
                                             <td class="px-3 sm:px-6 py-4 whitespace-nowrap">
                                                 @php
-                                                    $statusColor = match($item['package_status']) {
+                                                    $packageStatus = $item['package_status'] ?? 'UNKNOWN';
+                                                    $statusColor = match($packageStatus) {
                                                         'TO_FULFILL' => 'yellow',
                                                         'PROCESSING' => 'blue',
                                                         default => 'green'
@@ -220,7 +221,7 @@
                                                 @endphp
                                                 <span class="inline-flex items-center px-3 py-2 rounded-full text-sm font-medium bg-{{ $statusColor }}-700 text-{{ $statusColor }}-200">
                                                     <i class="fas fa-box mr-2"></i>
-                                                    {{ $item['display_status'] ?? $item['package_status'] ?? 'N/A' }}
+                                                    {{ $item['display_status'] ?? $packageStatus ?? 'N/A' }}
                                                 </span>
                                             </td>
                                         </tr>
@@ -248,7 +249,8 @@
                                                         {{ $item['seller_sku'] ?? 'N/A' }}
                                                     </span>
                                                     @php
-                                                        $statusColor = match($item['package_status']) {
+                                                        $packageStatus = $item['package_status'] ?? 'UNKNOWN';
+                                                        $statusColor = match($packageStatus) {
                                                             'TO_FULFILL' => 'yellow',
                                                             'PROCESSING' => 'blue',
                                                             default => 'green'
@@ -256,7 +258,7 @@
                                                     @endphp
                                                     <span class="inline-flex items-center px-3 py-2 rounded-full text-sm font-medium bg-{{ $statusColor }}-700 text-{{ $statusColor }}-200">
                                                         <i class="fas fa-box mr-2"></i>
-                                                        {{ $item['display_status'] ?? $item['package_status'] ?? 'N/A' }}
+                                                        {{ $item['display_status'] ?? $packageStatus ?? 'N/A' }}
                                                     </span>
                                                 </div>
                                                 <div class="flex justify-between items-center mt-2">
@@ -284,31 +286,31 @@
                     <div class="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-700">
                         <h3 class="text-base sm:text-lg font-medium text-white flex items-center">
                             <i class="fas fa-credit-card mr-2 text-blue-400"></i>
-                            Thông tin thanh toán
+                            Payment Information
                         </h3>
                     </div>
                     <div class="px-3 sm:px-6 py-3 sm:py-4">
                         @php $payment = $order->order_data['payment']; @endphp
                         <div class="space-y-2 sm:space-y-3">
                             <div class="flex justify-between">
-                                <span class="text-xs sm:text-sm text-gray-400">Tổng giá sản phẩm:</span>
+                                <span class="text-xs sm:text-sm text-gray-400">Total product price:</span>
                                 <span class="text-xs sm:text-sm font-medium text-gray-200">{{ number_format($payment['sub_total'] ?? 0, 2) }} {{ $payment['currency'] ?? 'GBP' }}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-xs sm:text-sm text-gray-400">Phí vận chuyển:</span>
+                                <span class="text-xs sm:text-sm text-gray-400">Shipping fee:</span>
                                 <span class="text-xs sm:text-sm font-medium text-gray-200">{{ number_format($payment['shipping_fee'] ?? 0, 2) }} {{ $payment['currency'] ?? 'GBP' }}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-xs sm:text-sm text-gray-400">Giảm giá platform:</span>
+                                <span class="text-xs sm:text-sm text-gray-400">Platform discount:</span>
                                 <span class="text-xs sm:text-sm font-medium text-green-400">-{{ number_format($payment['platform_discount'] ?? 0, 2) }} {{ $payment['currency'] ?? 'GBP' }}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-xs sm:text-sm text-gray-400">Giảm giá seller:</span>
+                                <span class="text-xs sm:text-sm text-gray-400">Seller discount:</span>
                                 <span class="text-xs sm:text-sm font-medium text-green-400">-{{ number_format($payment['seller_discount'] ?? 0, 2) }} {{ $payment['currency'] ?? 'GBP' }}</span>
                             </div>
                             <div class="border-t border-gray-700 pt-2 sm:pt-3">
                                 <div class="flex justify-between">
-                                    <span class="text-sm sm:text-base font-medium text-gray-200">Tổng cộng:</span>
+                                    <span class="text-sm sm:text-base font-medium text-gray-200">Total:</span>
                                     <span class="text-sm sm:text-base font-bold text-blue-400">{{ number_format($payment['total_amount'] ?? 0, 2) }} {{ $payment['currency'] ?? 'GBP' }}</span>
                                 </div>
                             </div>
@@ -323,14 +325,14 @@
                     <div class="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-700">
                         <h3 class="text-base sm:text-lg font-medium text-white flex items-center">
                             <i class="fas fa-truck mr-2 text-blue-400"></i>
-                            Thông tin giao hàng
+                            Shipping Information
                         </h3>
                     </div>
                     <div class="px-3 sm:px-6 py-3 sm:py-4">
                         @php $address = $order->order_data['recipient_address']; @endphp
                         <div class="space-y-2 sm:space-y-3">
                             <div>
-                                <dt class="text-xs sm:text-sm font-medium text-gray-400">Người nhận</dt>
+                                <dt class="text-xs sm:text-sm font-medium text-gray-400">Recipient</dt>
                                 <dd class="mt-1 flex items-center">
                                     <span class="text-sm text-gray-200">{{ $address['name'] ?? 'N/A' }}</span>
                                     @if($address['name'] ?? false)
@@ -341,7 +343,7 @@
                                 </dd>
                             </div>
                             <div>
-                                <dt class="text-xs sm:text-sm font-medium text-gray-400">Số điện thoại</dt>
+                                                <dt class="text-xs sm:text-sm font-medium text-gray-400">Phone
                                 <dd class="mt-1 flex items-center">
                                     <span class="text-sm text-gray-200">{{ $address['phone_number'] ?? 'N/A' }}</span>
                                     @if($address['phone_number'] ?? false)
@@ -352,7 +354,7 @@
                                 </dd>
                             </div>
                             <div>
-                                <dt class="text-xs sm:text-sm font-medium text-gray-400">Địa chỉ</dt>
+                                <dt class="text-xs sm:text-sm font-medium text-gray-400">Address</dt>
                                 <dd class="mt-1 flex items-start">
                                     <span class="text-sm text-gray-200 break-words flex-1">{{ $address['full_address'] ?? 'N/A' }}</span>
                                     @if($address['full_address'] ?? false)
@@ -364,7 +366,7 @@
                             </div>
                             @if(isset($address['postal_code']) && $address['postal_code'])
                                 <div>
-                                    <dt class="text-xs sm:text-sm font-medium text-gray-400">Mã bưu điện</dt>
+                                    <dt class="text-xs sm:text-sm font-medium text-gray-400">Postal code</dt>
                                     <dd class="mt-1 flex items-center">
                                         <span class="text-sm text-gray-200">{{ $address['postal_code'] }}</span>
                                         <button onclick="copyToClipboard('{{ $address['postal_code'] }}')" class="ml-2 p-1 text-blue-400 hover:text-blue-300 focus:outline-none" title="Copy Postal Code">
@@ -375,7 +377,7 @@
                             @endif
                             @if(isset($order->order_data['shipping_provider']))
                                 <div>
-                                    <dt class="text-xs sm:text-sm font-medium text-gray-400">Đơn vị vận chuyển</dt>
+                                    <dt class="text-xs sm:text-sm font-medium text-gray-400">Shipping provider</dt>
                                     <dd class="mt-1 text-sm text-gray-200">{{ $order->order_data['shipping_provider'] }}</dd>
                                 </div>
                             @endif
@@ -389,13 +391,13 @@
                 <div class="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-700">
                     <h3 class="text-base sm:text-lg font-medium text-white flex items-center">
                         <i class="fas fa-code mr-2 text-blue-400"></i>
-                        Dữ liệu thô
+                        Raw data
                     </h3>
                 </div>
                 <div class="px-3 sm:px-6 py-3 sm:py-4">
                     <button class="inline-flex items-center px-2 sm:px-3 py-2 border border-gray-600 text-xs sm:text-sm font-medium rounded-md text-gray-300 bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-gray-800 mb-3 w-full sm:w-auto" type="button" onclick="toggleRawData()">
                         <i class="fas fa-eye mr-1 sm:mr-2"></i>
-                        <span id="rawDataToggleText">Xem dữ liệu thô</span>
+                        <span id="rawDataToggleText">View raw data</span>
                     </button>
                     <div class="hidden" id="rawData">
                         <pre class="bg-gray-900 p-2 sm:p-4 rounded-lg text-xs overflow-auto max-h-64 sm:max-h-96 border border-gray-700 text-gray-300"><code>{{ json_encode($order->order_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</code></pre>
@@ -415,10 +417,10 @@ function toggleRawData() {
     
     if (rawData.classList.contains('hidden')) {
         rawData.classList.remove('hidden');
-        toggleText.textContent = 'Ẩn dữ liệu thô';
+        toggleText.textContent = 'Hide raw data';
     } else {
         rawData.classList.add('hidden');
-        toggleText.textContent = 'Xem dữ liệu thô';
+        toggleText.textContent = 'View raw data';
     }
 }
 
@@ -439,20 +441,20 @@ function copyToClipboard(text) {
         document.execCommand('copy');
         
         // Show success feedback
-        showCopyNotification('Đã copy: ' + text);
+        showCopyNotification('Copied: ' + text);
     } catch (err) {
         console.error('Failed to copy text: ', err);
         
         // Fallback for modern browsers
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(text).then(() => {
-                showCopyNotification('Đã copy: ' + text);
+                showCopyNotification('Copied: ' + text);
             }).catch(err => {
                 console.error('Failed to copy text: ', err);
-                showCopyNotification('Lỗi khi copy', 'error');
+                showCopyNotification('Error copying', 'error');
             });
         } else {
-            showCopyNotification('Lỗi khi copy', 'error');
+                    showCopyNotification('Error copying', 'error');
         }
     }
     

@@ -7,11 +7,11 @@
         <div class="mb-8">
             <div class="flex justify-between items-center mb-6">
                 <div>
-                    <h1 class="text-3xl font-bold text-white mb-2">Link Authorization cho Khách hàng</h1>
-                    <p class="text-gray-400">Tạo link để khách hàng lấy authorization code từ TikTok Shop</p>
+                    <h1 class="text-3xl font-bold text-white mb-2">Link Authorization for Customer</h1>
+                    <p class="text-gray-400">Create a link for customers to get authorization code from TikTok Shop</p>
                 </div>
                 <a href="{{ route('team.tiktok-shop.index') }}" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200">
-                    Quay lại
+                    Back
                 </a>
             </div>
         </div>
@@ -24,13 +24,13 @@
             </h3>
             
             <div class="bg-green-500/10 border border-green-500/20 rounded-lg p-4 mb-6">
-                <h4 class="text-sm font-medium text-green-400 mb-2">Hướng dẫn sử dụng:</h4>
+                <h4 class="text-sm font-medium text-green-400 mb-2">Usage guide:</h4>
                 <ol class="text-sm text-gray-300 space-y-1 list-decimal list-inside">
-                    <li>Copy link bên dưới và gửi cho khách hàng</li>
-                    <li>Khách hàng click vào link và đăng nhập TikTok Shop</li>
-                    <li>Khách hàng đồng ý cấp quyền cho ứng dụng</li>
-                    <li>Khách hàng sẽ thấy authorization code để copy</li>
-                    <li>Khách hàng gửi authorization code cho bạn</li>
+                    <li>Copy link below and send to customers</li>
+                    <li>Customers click on the link and login to TikTok Shop</li>
+                    <li>Customers agree to grant permission to the application</li>
+                    <li>Customers will see authorization code to copy</li>
+                    <li>Customers send authorization code to you</li>
                 </ol>
             </div>
 
@@ -51,7 +51,7 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Token xác thực:</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Authentication token:</label>
                     <div class="flex items-center space-x-2">
                         <input type="text" 
                                value="{{ $authToken }}" 
@@ -67,12 +67,12 @@
             </div>
 
             <div class="mt-6 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
-                <h4 class="text-sm font-medium text-yellow-400 mb-2">Lưu ý quan trọng:</h4>
+                <h4 class="text-sm font-medium text-yellow-400 mb-2">Important notes:</h4>
                 <ul class="text-sm text-gray-300 space-y-1 list-disc list-inside">
-                    <li>Link này có thời hạn 1 giờ, sau đó cần tạo link mới</li>
-                    <li>Mỗi link chỉ có thể sử dụng 1 lần</li>
-                    <li>Khách hàng cần có tài khoản TikTok Shop hợp lệ</li>
-                    <li>Authorization code chỉ có hiệu lực trong thời gian ngắn</li>
+                    <li>This link has a 1 hour expiration, after which a new link needs to be created</li>
+                    <li>Each link can only be used once</li>
+                    <li>Customers need to have a valid TikTok Shop account</li>
+                    <li>Authorization code is only valid for a short period</li>
                 </ul>
             </div>
         </div>
@@ -84,7 +84,7 @@
                 Test Link
             </h3>
             
-            <p class="text-gray-400 mb-4">Click vào link bên dưới để test quá trình authorization:</p>
+            <p class="text-gray-400 mb-4">Click on the link below to test the authorization process:</p>
             
             <div class="text-center">
                 <a href="{{ $authUrl }}" 
@@ -122,7 +122,7 @@ function copyToClipboard(elementId) {
         
     } catch (err) {
         console.error('Failed to copy: ', err);
-        alert('Không thể copy. Vui lòng copy thủ công.');
+        alert('Cannot
     }
 }
 </script>

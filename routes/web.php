@@ -28,15 +28,21 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('/contact', function () {
+    return view('contact');
+})->name('contact');
+
 // Public customer callback route (không cần authentication)
 Route::get('/public/customer-callback', [TeamTikTokShopController::class, 'customerCallback'])->name('public.customer-callback');
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth'])->name('dashboard');
 
-// Email Verification Routes
+// Email Verification Routes (custom implementation)
 Route::get('/email/verify', [EmailVerificationController::class, 'showVerificationForm'])->name('verification.notice');
 Route::post('/email/verify', [EmailVerificationController::class, 'sendVerificationEmail'])->name('verification.send');
-Route::get('/email/verify/{id}/{token}', [EmailVerificationController::class, 'verify'])->name('verification.verify');
+Route::get('/email/verify/{id}/{token}', [EmailVerificationController::class, 'verify'])
+    ->middleware(['signed', 'throttle:6,1'])
+    ->name('email.verification.verify');
 Route::get('/email/resend', [EmailVerificationController::class, 'showResendForm'])->name('verification.resend.form');
 Route::post('/email/resend', [EmailVerificationController::class, 'resend'])->name('verification.resend');
 
@@ -47,6 +53,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
     Route::patch('/profile/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar');
     Route::delete('/profile/avatar', [ProfileController::class, 'deleteAvatar'])->name('profile.avatar.delete');
+    Route::post('/profile/send-verification-email', [ProfileController::class, 'sendVerificationEmail'])->name('profile.send-verification-email');
     Route::get('/profile/activity', [ProfileController::class, 'activity'])->name('profile.activity');
     Route::get('/profile/security', [ProfileController::class, 'security'])->name('profile.security');
     Route::post('/profile/two-factor', [ProfileController::class, 'toggleTwoFactor'])->name('profile.two-factor');
@@ -196,6 +203,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/product-templates', [ProductTemplateController::class, 'index'])->name('product-templates.index');
     Route::get('/product-templates/create', [ProductTemplateController::class, 'create'])->name('product-templates.create');
+    Route::get('/product-templates/search-categories', [ProductTemplateController::class, 'searchCategories'])->name('product-templates.search-categories');
     Route::get('/product-templates/{productTemplate}', [ProductTemplateController::class, 'show'])->name('product-templates.show');
     Route::get('/product-templates/{productTemplate}/edit', [ProductTemplateController::class, 'edit'])->name('product-templates.edit');
     Route::put('/product-templates/{productTemplate}', [ProductTemplateController::class, 'update'])->name('product-templates.update');
@@ -211,14 +219,18 @@ Route::middleware('auth')->group(function () {
     Route::post('/product-templates/{productTemplate}/delete-variant', [ProductTemplateController::class, 'deleteVariant'])->name('product-templates.delete-variant');
     Route::get('/product-templates/{productTemplate}/existing-attributes', [ProductTemplateController::class, 'getExistingAttributes'])->name('product-templates.existing-attributes');
 
-    // Product routes
-    Route::resource('products', ProductController::class);
-    Route::post('/products/{product}/toggle-status', [ProductController::class, 'toggleStatus'])->name('products.toggle-status');
+    // Product routes - Đặt các route cụ thể TRƯỚC resource route để tránh conflict
+    Route::get('/products/export', [ProductController::class, 'export'])->name('products.export');
+    Route::post('/products/import', [ProductController::class, 'import'])->name('products.import');
+    Route::get('/products/download-template', [ProductController::class, 'downloadTemplate'])->name('products.download-template');
     Route::get('/products/by-template', [ProductController::class, 'getByTemplate'])->name('products.by-template');
+    Route::post('/products/{product}/toggle-status', [ProductController::class, 'toggleStatus'])->name('products.toggle-status');
+    Route::resource('products', ProductController::class);
 
     // TikTok Orders routes
     Route::prefix('tiktok/orders')->name('tiktok.orders.')->group(function () {
         Route::get('/', [TikTokOrderController::class, 'index'])->name('index');
+        Route::match(['get', 'post'], '/export', [TikTokOrderController::class, 'export'])->name('export');
         Route::get('/{order}', [TikTokOrderController::class, 'show'])->name('show');
         Route::post('/sync', [TikTokOrderController::class, 'sync'])->name('sync');
         Route::get('/api/list', [TikTokOrderController::class, 'apiOrders'])->name('api');

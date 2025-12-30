@@ -26,6 +26,15 @@ class TikTokShopProductService
             'user_id' => $userId
         ]);
 
+        // Lấy user market để xác định category version
+        $userMarket = null;
+        if ($userId) {
+            $user = \App\Models\User::find($userId);
+            if ($user) {
+                $userMarket = $user->getPrimaryTikTokMarket();
+            }
+        }
+
         // Tạo bản ghi lịch sử upload
         $uploadHistory = $this->createUploadHistory($product, $shop, $userId);
 
@@ -48,8 +57,12 @@ class TikTokShopProductService
             // Tạo timestamp một lần duy nhất
             $timestamp = time();
 
-            // Chuẩn bị dữ liệu sản phẩm
-            $productData = $this->prepareProductData($product, $shop, $timestamp);
+            // Xác định category version dựa trên user market hoặc integration market
+            $market = $userMarket ?? $integration->market;
+            $categoryVersion = $this->getCategoryVersionFromMarket($market);
+
+            // Chuẩn bị dữ liệu sản phẩm (truyền market và category version để validate category)
+            $productData = $this->prepareProductData($product, $shop, $timestamp, $market, $categoryVersion);
 
             // Cập nhật lịch sử với request data
             $uploadHistory->update([
@@ -57,8 +70,8 @@ class TikTokShopProductService
                 'idempotency_key' => $productData['idempotency_key'] ?? null
             ]);
 
-            // Gọi API upload sản phẩm
-            $response = $this->callUploadProductAPI($productData, $integration, $shop, $timestamp);
+            // Gọi API upload sản phẩm (truyền user market để xác định category version)
+            $response = $this->callUploadProductAPI($productData, $integration, $shop, $timestamp, $userMarket);
 
             if ($response['success']) {
                 // Cập nhật lịch sử thành công
@@ -103,7 +116,7 @@ class TikTokShopProductService
             Log::info('=== END UPLOAD PRODUCT TO TIKTOK ===');
         }
     }
-    private function prepareProductData(Product $product, TikTokShop $shop, int $timestamp): array
+    private function prepareProductData(Product $product, TikTokShop $shop, int $timestamp, ?string $market = null, ?string $categoryVersion = null): array
     {
         // Lấy thông tin template nếu có (bao gồm variants, options, optionValues)
         $template = $product->productTemplate;
@@ -113,6 +126,9 @@ class TikTokShopProductService
                 'options.values'
             ]);
         }
+
+        // Xác định category_id đúng với market và category version
+        $categoryId = $this->getValidCategoryId($template, $market, $categoryVersion);
 
         // Chuẩn bị ảnh chính từ ProductImage với TikTok URI
         $mainImages = [];
@@ -173,7 +189,7 @@ class TikTokShopProductService
             'save_mode' => 'LISTING',
             'title' => $product->title,
             'description' => $product->description ?? $template->description ?? '',
-            'category_id' => $template->category_id ?? $this->getDefaultCategoryId(),
+            'category_id' => $categoryId,
             'main_images' => $mainImages,
             'skus' => $skus,
             'package_weight' => $packageWeight,
@@ -186,12 +202,12 @@ class TikTokShopProductService
         // TikTok yêu cầu length phải là số nguyên dương (positive whole number)
         // Đảm bảo length >= 2 để tránh lỗi "Incorrect parcel length format"
         $length = max(2, round($template->length ?? 10.00));
-            $productData['package_dimensions'] = [
+        $productData['package_dimensions'] = [
             'height' => (string) round($template->height ?? 10.00),
             'width' => (string) round($template->width ?? 10.00),
             'length' => (string) $length, // Đảm bảo >= 2
-                'unit' => $this->getDimensionUnit($shop->seller_region)
-            ];
+            'unit' => $this->getDimensionUnit($shop->seller_region)
+        ];
 
         // Thêm product_attributes từ ProdTemplateCategoryAttribute
         $productAttributes = $this->prepareProductAttributes($template);
@@ -211,27 +227,41 @@ class TikTokShopProductService
 
         return $productData;
     }
-    private function callUploadProductAPI(array $productData, TikTokShopIntegration $integration, TikTokShop $shop, int $timestamp): array
+    private function callUploadProductAPI(array $productData, TikTokShopIntegration $integration, TikTokShop $shop, int $timestamp, ?string $userMarket = null): array
     {
         $url = 'https://open-api.tiktokglobalshop.com/product/' . self::API_VERSION . '/products';
+
+        // Category version: Ưu tiên lấy từ user market, nếu không có thì lấy từ integration market
+        // US = v2, UK và các region khác = v1
+        $categoryVersion = $this->getCategoryVersionFromMarket($userMarket ?? $integration->market);
 
         // Sử dụng timestamp đã được truyền vào
         $queryParams = [
             'shop_cipher' => $shop->getShopCipher(),
             'app_key' => $integration->getAppKey(),
-            'timestamp' => $timestamp
+            'timestamp' => $timestamp,
+            'category_version' => $categoryVersion
         ];
 
-        // Tạo signature sử dụng TikTokSignatureService (BAO GỒM shop_cipher trong signature)
+        // Tạo signature sử dụng TikTokSignatureService (BAO GỒM shop_cipher và category_version trong signature)
         $signature = TikTokSignatureService::generateProductUploadSignature(
             $integration->getAppKey(),
             $integration->getAppSecret(),
             (string) $timestamp,
             $productData,
-            $shop->getShopCipher()
+            $shop->getShopCipher(),
+            $categoryVersion
         );
 
         $queryParams['sign'] = $signature;
+
+        Log::info('Using category version for product upload', [
+            'integration_id' => $integration->id,
+            'integration_market' => $integration->market,
+            'user_market' => $userMarket,
+            'category_version' => $categoryVersion,
+            'note' => 'Category version determined by user market (if available), otherwise integration market'
+        ]);
 
         $headers = [
             'Content-Type' => 'application/json',
@@ -388,11 +418,90 @@ class TikTokShopProductService
     }
 
     /**
-     * Lấy category ID mặc định
+     * Lấy category ID hợp lệ dựa trên market và category version
      */
-    private function getDefaultCategoryId(): string
+    private function getValidCategoryId($template, ?string $market = null, ?string $categoryVersion = null): string
     {
-        // TODO: Implement logic để lấy category ID mặc định
+        // Nếu có template và category_id từ template
+        if ($template && $template->category_id) {
+            $templateCategoryId = $template->category_id;
+
+            // Nếu có market và category version, kiểm tra xem category có thuộc về version đó không
+            if ($market && $categoryVersion) {
+                $category = \App\Models\TikTokShopCategory::where('category_id', $templateCategoryId)
+                    ->where('market', $market)
+                    ->where('category_version', $categoryVersion)
+                    ->where('is_leaf', true)
+                    ->first();
+
+                if ($category) {
+                    Log::info('Using template category ID that matches market and version', [
+                        'category_id' => $templateCategoryId,
+                        'market' => $market,
+                        'category_version' => $categoryVersion
+                    ]);
+                    return $templateCategoryId;
+                } else {
+                    // Category không thuộc về version này, tìm category tương ứng hoặc default
+                    Log::warning('Template category ID does not match market/version, finding alternative', [
+                        'template_category_id' => $templateCategoryId,
+                        'market' => $market,
+                        'category_version' => $categoryVersion
+                    ]);
+
+                    // Tìm category leaf đầu tiên của market và version này
+                    $alternativeCategory = \App\Models\TikTokShopCategory::where('market', $market)
+                        ->where('category_version', $categoryVersion)
+                        ->where('is_leaf', true)
+                        ->first();
+
+                    if ($alternativeCategory) {
+                        Log::info('Using alternative category ID from same market/version', [
+                            'original_category_id' => $templateCategoryId,
+                            'alternative_category_id' => $alternativeCategory->category_id,
+                            'market' => $market,
+                            'category_version' => $categoryVersion
+                        ]);
+                        return $alternativeCategory->category_id;
+                    }
+                }
+            } else {
+                // Không có market/version info, dùng category từ template
+                return $templateCategoryId;
+            }
+        }
+
+        // Nếu không có template category hoặc không tìm thấy category hợp lệ, lấy default category
+        return $this->getDefaultCategoryId($market, $categoryVersion);
+    }
+
+    /**
+     * Lấy category ID mặc định dựa trên market và category version
+     */
+    private function getDefaultCategoryId(?string $market = null, ?string $categoryVersion = null): string
+    {
+        // Nếu có market và category version, tìm category leaf đầu tiên
+        if ($market && $categoryVersion) {
+            $category = \App\Models\TikTokShopCategory::where('market', $market)
+                ->where('category_version', $categoryVersion)
+                ->where('is_leaf', true)
+                ->first();
+
+            if ($category) {
+                Log::info('Using default category ID from market/version', [
+                    'category_id' => $category->category_id,
+                    'market' => $market,
+                    'category_version' => $categoryVersion
+                ]);
+                return $category->category_id;
+            }
+        }
+
+        // Fallback về category ID mặc định
+        Log::warning('Using fallback default category ID', [
+            'market' => $market,
+            'category_version' => $categoryVersion
+        ]);
         return '1000001'; // Default category ID
     }
 
@@ -594,7 +703,7 @@ class TikTokShopProductService
             // Xử lý value_id và value_name
             $valueIds = [];
             $valueNames = [];
-            
+
             if ($attribute->value_id) {
                 if (is_array($attribute->value_id)) {
                     $valueIds = $attribute->value_id;
@@ -608,7 +717,7 @@ class TikTokShopProductService
                     }
                 }
             }
-            
+
             if ($attribute->value_name) {
                 if (is_array($attribute->value_name)) {
                     $valueNames = $attribute->value_name;
@@ -627,7 +736,7 @@ class TikTokShopProductService
             for ($i = 0; $i < max(count($valueIds), count($valueNames)); $i++) {
                 $valueId = $valueIds[$i] ?? null;
                 $valueName = $valueNames[$i] ?? null;
-                
+
                 if ($valueId && $valueName) {
                     $attributeData['values'][] = [
                         'id' => $valueId,
@@ -967,6 +1076,16 @@ class TikTokShopProductService
         ]);
 
         return $results;
+    }
+
+    /**
+     * Lấy category version từ market
+     * US = v2, UK và các region khác = v1
+     */
+    private function getCategoryVersionFromMarket(?string $market): string
+    {
+        $market = strtoupper(trim($market ?? ''));
+        return $market === 'US' ? 'v2' : 'v1';
     }
 
     /**

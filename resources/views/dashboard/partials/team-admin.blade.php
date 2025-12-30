@@ -3,7 +3,7 @@
 <div class="mb-8">
     <h2 class="text-xl font-semibold text-white mb-6 flex items-center">
         <i class="fas fa-users-cog mr-2 text-blue-400"></i>
-        Quản lý Team
+        Team Management
     </h2>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <!-- Team Management -->
@@ -15,13 +15,13 @@
                     </div>
                     <h3 class="text-lg font-semibold text-white">Team Management</h3>
                 </div>
-                <p class="text-gray-400 mb-4">Quản lý thành viên và thông tin team</p>
+                <p class="text-gray-400 mb-4">Manage members and team information</p>
                 <div class="space-y-2">
                     <a href="{{ route('team-admin.users.index') }}" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">
-                        <i class="fas fa-user-friends mr-2"></i>Quản lý Thành viên
+                        <i class="fas fa-user-friends mr-2"></i>Manage Members
                     </a>
                     <a href="{{ route('teams.show', auth()->user()->team) }}" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">
-                        <i class="fas fa-info-circle mr-2"></i>Thông tin Team
+                        <i class="fas fa-info-circle mr-2"></i>Team Details
                     </a>
                 </div>
             </div>
@@ -36,13 +36,13 @@
                     </div>
                     <h3 class="text-lg font-semibold text-white">TikTok Shop</h3>
                 </div>
-                <p class="text-gray-400 mb-4">Kết nối và quản lý TikTok Shop</p>
+                <p class="text-gray-400 mb-4">Connect and manage TikTok Shop</p>
                 <div class="space-y-2">
                     <a href="{{ route('team.tiktok-shop.index') }}" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">
-                        <i class="fas fa-link mr-2"></i>Kết nối TikTok
+                        <i class="fas fa-link mr-2"></i>Connect TikTok
                     </a>
                     <a href="{{ route('tiktok.orders.index') }}" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">
-                        <i class="fas fa-shopping-bag mr-2"></i>Đơn hàng
+                        <i class="fas fa-shopping-bag mr-2"></i>Orders
                     </a>
                 </div>
             </div>
@@ -57,7 +57,7 @@
                     </div>
                     <h3 class="text-lg font-semibold text-white">Analytics & Reports</h3>
                 </div>
-                <p class="text-gray-400 mb-4">Phân tích và báo cáo team</p>
+                <p class="text-gray-400 mb-4">Analyze and report for the team</p>
                 <div class="space-y-2">
                     <a href="{{ route('tiktok.analytics.index') }}" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">
                         <i class="fas fa-chart-line mr-2"></i>Shop Analytics
@@ -75,7 +75,7 @@
 <div class="mb-8">
     <h2 class="text-xl font-semibold text-white mb-6 flex items-center">
         <i class="fas fa-briefcase mr-2 text-green-400"></i>
-        Hoạt động Kinh doanh
+        Business Operations
     </h2>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <!-- Sales & Fulfillment -->
@@ -87,13 +87,13 @@
                     </div>
                     <h3 class="text-lg font-semibold text-white">Sales & Fulfillment</h3>
                 </div>
-                <p class="text-gray-400 mb-4">Quản lý bán hàng và fulfillment</p>
+                <p class="text-gray-400 mb-4">Manage sales and fulfillment</p>
                 <div class="space-y-2">
                     <a href="{{ route('sales.index') }}" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">
-                        <i class="fas fa-trending-up mr-2"></i>Quản lý Sales
+                        <i class="fas fa-trending-up mr-2"></i>Manage Sales
                     </a>
                     <a href="{{ route('fulfillment.index') }}" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">
-                        <i class="fas fa-box mr-2"></i>Quản lý Fulfillment
+                        <i class="fas fa-box mr-2"></i>Manage Fulfillment
                     </a>
                 </div>
             </div>
@@ -111,13 +111,13 @@
                     </div>
                     <h3 class="text-lg font-semibold text-white">Performance</h3>
                 </div>
-                <p class="text-gray-400 mb-4">Theo dõi hiệu suất team</p>
+                <p class="text-gray-400 mb-4">Monitor team performance</p>
                 <div class="space-y-2">
                     <a href="{{ route('tiktok.performance.index') }}" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">
                         <i class="fas fa-chart-area mr-2"></i>GMV Performance
                     </a>
                     <a href="{{ route('team-admin.roles.index') }}" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">
-                        <i class="fas fa-shield-alt mr-2"></i>Vai trò Team
+                        <i class="fas fa-shield-alt mr-2"></i>Team Roles
                     </a>
                 </div>
             </div>

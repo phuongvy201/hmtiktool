@@ -22,15 +22,34 @@ class TikTokShippingService
                 ];
             }
 
-            // Lấy thông tin app credentials
-            $appKey = config('tiktok-shop.app_key');
-            $appSecret = config('tiktok-shop.app_secret');
+            // Lấy thông tin app credentials từ integration (có xử lý market-specific)
+            // Tự động lấy credentials theo market của shop (US hoặc UK)
+            $market = $integration->market ?? 'US';
+            $appKey = $integration->getAppKey();
+            $appSecret = $integration->getAppSecret();
             $shopCipher = $shop->getShopCipher();
 
+            Log::info('Using TikTok credentials for shipping providers', [
+                'shop_id' => $shop->id,
+                'shop_name' => $shop->shop_name,
+                'market' => $market,
+                'app_key' => substr($appKey, 0, 10) . '...' // Chỉ log một phần để bảo mật
+            ]);
+
             if (!$appKey || !$appSecret) {
+                Log::warning('TikTok app credentials missing for shipping providers', [
+                    'shop_id' => $shop->id,
+                    'integration_id' => $integration->id,
+                    'market' => $market,
+                    'config_keys_checked' => [
+                        'market_specific' => "tiktok-shop.markets.{$market}",
+                        'general' => 'tiktok-shop.app_key'
+                    ]
+                ]);
+
                 return [
                     'success' => false,
-                    'error' => 'Thiếu TikTok app credentials'
+                    'error' => "Thiếu TikTok app credentials cho thị trường {$market}. Vui lòng cấu hình trong System Settings."
                 ];
             }
 
@@ -135,15 +154,34 @@ class TikTokShippingService
                 ];
             }
 
-            // Lấy thông tin app credentials
-            $appKey = config('tiktok-shop.app_key');
-            $appSecret = config('tiktok-shop.app_secret');
+            // Lấy thông tin app credentials từ integration (có xử lý market-specific)
+            // Tự động lấy credentials theo market của shop (US hoặc UK)
+            $market = $integration->market ?? 'US';
+            $appKey = $integration->getAppKey();
+            $appSecret = $integration->getAppSecret();
             $shopCipher = $shop->getShopCipher();
 
+            Log::info('Using TikTok credentials for mark as shipped', [
+                'shop_id' => $shop->id,
+                'shop_name' => $shop->shop_name,
+                'market' => $market,
+                'app_key' => substr($appKey, 0, 10) . '...' // Chỉ log một phần để bảo mật
+            ]);
+
             if (!$appKey || !$appSecret) {
+                Log::warning('TikTok app credentials missing for mark as shipped', [
+                    'shop_id' => $shop->id,
+                    'integration_id' => $integration->id,
+                    'market' => $market,
+                    'config_keys_checked' => [
+                        'market_specific' => "tiktok-shop.markets.{$market}",
+                        'general' => 'tiktok-shop.app_key'
+                    ]
+                ]);
+
                 return [
                     'success' => false,
-                    'error' => 'Thiếu TikTok app credentials'
+                    'error' => "Thiếu TikTok app credentials cho thị trường {$market}. Vui lòng cấu hình trong System Settings."
                 ];
             }
 
@@ -218,10 +256,29 @@ class TikTokShippingService
                         'data' => $data['data'] ?? []
                     ];
                 } else {
+                    // Xử lý các error codes cụ thể từ TikTok API
+                    $errorCode = $data['code'] ?? 'unknown';
+                    $errorMessage = $data['message'] ?? 'API error';
+
+                    // Dịch các error messages phổ biến
+                    $translatedMessage = match ($errorCode) {
+                        21011020 => 'Không thể đánh dấu gói hàng đã gửi. Đơn hàng có thể đã được xử lý, không ở trạng thái cho phép (không phải AWAITING_SHIPMENT), hoặc đã có tracking number rồi.',
+                        default => $errorMessage
+                    };
+
+                    Log::warning('TikTok API returned error for mark as shipped', [
+                        'shop_id' => $shop->id,
+                        'tiktok_order_id' => $orderId,
+                        'error_code' => $errorCode,
+                        'error_message' => $errorMessage,
+                        'translated_message' => $translatedMessage
+                    ]);
+
                     return [
                         'success' => false,
-                        'error' => $data['message'] ?? 'API error',
-                        'code' => $data['code'] ?? 'unknown'
+                        'error' => $translatedMessage,
+                        'code' => $errorCode,
+                        'original_message' => $errorMessage
                     ];
                 }
             }

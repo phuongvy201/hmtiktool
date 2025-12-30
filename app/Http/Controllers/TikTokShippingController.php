@@ -41,9 +41,20 @@ class TikTokShippingController extends Controller
             }
 
             // Lấy delivery_option_id từ order_data
-            $deliveryOptionId = $order->order_data['delivery_option_id'] ?? null;
+            // Có thể nằm ở nhiều vị trí trong order_data
+            $orderData = $order->order_data ?? [];
+            $deliveryOptionId = $orderData['delivery_option_id']
+                ?? $orderData['shipping_info']['delivery_option_id']
+                ?? $orderData['fulfillment_info']['delivery_option_id']
+                ?? null;
 
             if (!$deliveryOptionId) {
+                Log::warning('Delivery option ID not found in order data', [
+                    'order_id' => $orderId,
+                    'order_data_keys' => array_keys($orderData),
+                    'order_data_sample' => json_encode($orderData, JSON_PRETTY_PRINT)
+                ]);
+
                 return response()->json([
                     'success' => false,
                     'error' => 'Không tìm thấy delivery_option_id trong đơn hàng'
@@ -60,18 +71,41 @@ class TikTokShippingController extends Controller
             $result = TikTokShippingService::getShippingProviders($order->shop, $deliveryOptionId);
 
             if ($result['success']) {
+                // Xử lý response từ API - có thể có nhiều cấu trúc khác nhau
+                $apiData = $result['data'] ?? [];
+
+                // Kiểm tra các cấu trúc response có thể có
+                $shippingProviders = $apiData['shipping_providers']
+                    ?? $apiData['data']['shipping_providers']
+                    ?? $apiData['providers']
+                    ?? (is_array($apiData) && isset($apiData[0]) ? $apiData : []);
+
+                Log::info('Shipping providers retrieved successfully', [
+                    'order_id' => $orderId,
+                    'delivery_option_id' => $deliveryOptionId,
+                    'providers_count' => count($shippingProviders),
+                    'api_data_structure' => array_keys($apiData)
+                ]);
+
                 return response()->json([
                     'success' => true,
                     'data' => [
                         'order_id' => $orderId,
                         'delivery_option_id' => $deliveryOptionId,
-                        'shipping_providers' => $result['data']['shipping_providers'] ?? []
+                        'shipping_providers' => $shippingProviders
                     ]
                 ]);
             } else {
+                Log::error('Failed to get shipping providers from API', [
+                    'order_id' => $orderId,
+                    'delivery_option_id' => $deliveryOptionId,
+                    'error' => $result['error'] ?? 'Unknown error',
+                    'code' => $result['code'] ?? null
+                ]);
+
                 return response()->json([
                     'success' => false,
-                    'error' => $result['error']
+                    'error' => $result['error'] ?? 'Không thể lấy danh sách đơn vị vận chuyển từ TikTok API'
                 ], 400);
             }
         } catch (\Exception $e) {
@@ -83,7 +117,7 @@ class TikTokShippingController extends Controller
 
             return response()->json([
                 'success' => false,
-                'error' => 'Có lỗi xảy ra khi lấy danh sách đơn vị vận chuyển'
+                'error' => 'Có lỗi xảy ra khi lấy danh sách đơn vị vận chuyển: ' . $e->getMessage()
             ], 500);
         }
     }

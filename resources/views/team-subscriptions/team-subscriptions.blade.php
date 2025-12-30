@@ -13,8 +13,8 @@
                         </svg>
                     </a>
                     <div>
-                        <h1 class="text-3xl font-bold text-white mb-2">Gói Dịch vụ của Team: {{ $team->name }}</h1>
-                        <p class="text-gray-400">Lịch sử và quản lý gói dịch vụ của team</p>
+                        <h1 class="text-3xl font-bold text-white mb-2">Team Service Packages: {{ $team->name }}</h1>
+                        <p class="text-gray-400">History and management of this team's subscriptions</p>
                     </div>
                 </div>
                 <div class="flex items-center space-x-3">
@@ -23,7 +23,7 @@
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                         </svg>
-                        Gán gói mới
+                        Assign new package
                     </a>
                 </div>
             </div>
@@ -40,12 +40,12 @@
                     </div>
                     <div>
                         <h2 class="text-xl font-bold text-white">{{ $team->name }}</h2>
-                        <p class="text-gray-400">{{ $team->description ?: 'Không có mô tả' }}</p>
+                        <p class="text-gray-400">{{ $team->description ?: 'No description' }}</p>
                         <div class="flex items-center mt-2 space-x-4 text-sm">
-                            <span class="text-gray-300">{{ $team->users->count() }} thành viên</span>
+                            <span class="text-gray-300">{{ $team->users->count() }} members</span>
                             <span class="text-gray-300">•</span>
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $team->status === 'active' ? 'bg-green-600 text-green-100' : 'bg-red-600 text-red-100' }}">
-                                {{ $team->status === 'active' ? 'Hoạt động' : 'Không hoạt động' }}
+                                {{ $team->status === 'active' ? 'Active' : 'Inactive' }}
                             </span>
                         </div>
                     </div>
@@ -56,13 +56,13 @@
                         $currentSubscription = $team->currentSubscription();
                     @endphp
                     <div class="text-right">
-                        <div class="text-green-400 font-semibold">Gói hiện tại: {{ $currentSubscription->servicePackage->name }}</div>
-                        <div class="text-gray-400 text-sm">{{ $currentSubscription->remaining_days }} ngày còn lại</div>
+                        <div class="text-green-400 font-semibold">Current package: {{ $currentSubscription->servicePackage->name }}</div>
+                        <div class="text-gray-400 text-sm">{{ $currentSubscription->remaining_days }} days remaining</div>
                     </div>
                 @else
                     <div class="text-right">
-                        <div class="text-red-400 font-semibold">Chưa có gói dịch vụ</div>
-                        <div class="text-gray-400 text-sm">Cần gán gói dịch vụ</div>
+                        <div class="text-red-400 font-semibold">No service package</div>
+                        <div class="text-gray-400 text-sm">Please assign a service package</div>
                     </div>
                 @endif
             </div>
@@ -77,22 +77,22 @@
                             <thead class="bg-gray-700">
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                        Gói dịch vụ
+                                        Service package
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                        Thời gian
+                                        Duration
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                        Trạng thái
+                                        Status
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                        Thanh toán
+                                        Payment
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                        Người gán
+                                        Assigned by
                                     </th>
                                     <th class="px-6 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                        Thao tác
+                                        Actions
                                     </th>
                                 </tr>
                             </thead>
@@ -113,7 +113,7 @@
                                                         {{ $subscription->servicePackage->name }}
                                                         @if($subscription->isActive() && $subscription->id === ($team->currentSubscription()?->id))
                                                             <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-600 text-green-100">
-                                                                Hiện tại
+                                                                Current
                                                             </span>
                                                         @endif
                                                     </div>
@@ -124,10 +124,10 @@
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                                            <div class="space-y-1">
-                                                <div>📅 {{ $subscription->start_date->format('d/m/Y') }} - {{ $subscription->end_date->format('d/m/Y') }}</div>
-                                                <div>⏰ {{ $subscription->remaining_days }} ngày còn lại</div>
-                                            </div>
+                                                <div class="space-y-1">
+                                                    <div>📅 {{ $subscription->start_date->format('d/m/Y') }} - {{ $subscription->end_date->format('d/m/Y') }}</div>
+                                                    <div>⏰ {{ $subscription->remaining_days }} days remaining</div>
+                                                </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $subscription->status_badge_class }}">
@@ -135,10 +135,10 @@
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                                            <div class="space-y-1">
-                                                <div>{{ $subscription->formatted_paid_amount }}</div>
-                                                <div class="text-xs">{{ $subscription->payment_method ?: 'Chưa xác định' }}</div>
-                                            </div>
+                                                <div class="space-y-1">
+                                                    <div>{{ $subscription->formatted_paid_amount }}</div>
+                                                    <div class="text-xs">{{ $subscription->payment_method ?: 'Not specified' }}</div>
+                                                </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                                             <div class="flex items-center">
@@ -151,7 +151,7 @@
                                                 </div>
                                                 <div class="ml-3">
                                                     <div class="text-sm font-medium text-white">
-                                                        {{ $subscription->assignedBy ? $subscription->assignedBy->name : 'Hệ thống' }}
+                                                        {{ $subscription->assignedBy ? $subscription->assignedBy->name : 'System' }}
                                                     </div>
                                                     <div class="text-sm text-gray-400">
                                                         {{ $subscription->created_at->format('d/m/Y H:i') }}
@@ -176,7 +176,7 @@
                                                     </svg>
                                                 </a>
 
-                                                <form action="{{ route('team-subscriptions.destroy', $subscription) }}" method="POST" class="inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa gói dịch vụ này?')">
+                                                <form action="{{ route('team-subscriptions.destroy', $subscription) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this subscription?')">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="text-red-400 hover:text-red-300 transition-colors duration-200">
@@ -202,15 +202,15 @@
                         <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                         </svg>
-                        <h3 class="mt-2 text-sm font-medium text-gray-300">Chưa có gói dịch vụ nào</h3>
-                        <p class="mt-1 text-sm text-gray-400">Team này chưa được gán gói dịch vụ nào.</p>
+                        <h3 class="mt-2 text-sm font-medium text-gray-300">No service packages</h3>
+                        <p class="mt-1 text-sm text-gray-400">This team has no assigned packages yet.</p>
                         <div class="mt-6">
                             <a href="{{ route('team-subscriptions.create') }}" 
                                class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                                 </svg>
-                                Gán gói dịch vụ đầu tiên
+                                Assign the first package
                             </a>
                         </div>
                     </div>

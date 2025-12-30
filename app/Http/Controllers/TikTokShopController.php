@@ -46,41 +46,26 @@ class TikTokShopController extends Controller
     {
         $request->validate([
             'team_id' => 'required|exists:teams,id',
-            'app_key' => 'required|string|max:255',
-            'app_secret' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
+            'market' => 'required|in:US,UK',
+            'description' => 'nullable|string|max:1000',
         ]);
 
-        // Check if integration already exists for this team
-        $existingIntegration = TikTokShopIntegration::where('team_id', $request->team_id)->first();
-        if ($existingIntegration) {
-            return redirect()->route('tiktok-shop.index')
-                ->with('error', 'Team đã có tích hợp TikTok Shop.');
-        }
-
         try {
-            // Validate credentials format (simple validation)
-            $validationResult = $this->tikTokShopService->simpleValidateCredentials(
-                $request->app_key,
-                $request->app_secret
-            );
-
-            if (!$validationResult['success']) {
-                return back()->withErrors(['app_key' => $validationResult['error']]);
-            }
-
-            // Create integration
+            // Create integration with profile name
             $integration = TikTokShopIntegration::create([
                 'team_id' => $request->team_id,
-                'app_key' => $request->app_key,
-                'app_secret' => $request->app_secret,
+                'name' => $request->name,
+                'market' => $request->market,
+                'description' => $request->description,
                 'status' => 'pending',
             ]);
 
             return redirect()->route('tiktok-shop.index')
-                ->with('success', 'Tích hợp TikTok Shop đã được tạo thành công cho team. Vui lòng hoàn tất quá trình ủy quyền.');
+                ->with('success', 'TikTok Shop integration "' . $request->name . '" has been created successfully. Please complete the authorization process.');
         } catch (Exception $e) {
             Log::error('TikTok Shop Integration Create Error: ' . $e->getMessage());
-            return back()->withErrors(['error' => 'Có lỗi xảy ra: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'An error occurred: ' . $e->getMessage()]);
         }
     }
 

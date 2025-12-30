@@ -12,8 +12,8 @@
                     </svg>
                 </a>
                 <div>
-                    <h1 class="text-3xl font-bold text-white mb-2">Chỉnh sửa Gói Dịch vụ Team</h1>
-                    <p class="text-gray-400">Cập nhật thông tin gói dịch vụ cho team</p>
+                    <h1 class="text-3xl font-bold text-white mb-2">Edit Team Service Package</h1>
+                    <p class="text-gray-400">Update subscription information for the team</p>
                 </div>
             </div>
         </div>
@@ -27,12 +27,12 @@
 
                     <!-- Team Selection -->
                     <div>
-                        <label for="team_id" class="block text-sm font-medium text-gray-300 mb-2">Chọn Team *</label>
+                        <label for="team_id" class="block text-sm font-medium text-gray-300 mb-2">Select Team *</label>
                         <select name="team_id" id="team_id" required class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500">
-                            <option value="">Chọn team...</option>
+                            <option value="">Select a team...</option>
                             @foreach($teams as $team)
                                 <option value="{{ $team->id }}" {{ old('team_id', $teamSubscription->team_id) == $team->id ? 'selected' : '' }}>
-                                    {{ $team->name }} - {{ $team->description ? Str::limit($team->description, 50) : 'Không có mô tả' }}
+                                    {{ $team->name }} - {{ $team->description ? Str::limit($team->description, 50) : 'No description' }}
                                 </option>
                             @endforeach
                         </select>
@@ -43,12 +43,12 @@
 
                     <!-- Service Package Selection -->
                     <div>
-                        <label for="service_package_id" class="block text-sm font-medium text-gray-300 mb-2">Chọn Gói Dịch vụ *</label>
+                        <label for="service_package_id" class="block text-sm font-medium text-gray-300 mb-2">Select Service Package *</label>
                         <select name="service_package_id" id="service_package_id" required class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500">
-                            <option value="">Chọn gói dịch vụ...</option>
+                            <option value="">Select a package...</option>
                             @foreach($packages as $package)
                                 <option value="{{ $package->id }}" {{ old('service_package_id', $teamSubscription->service_package_id) == $package->id ? 'selected' : '' }}>
-                                    {{ $package->name }} - {{ $package->formatted_price }} ({{ $package->duration_days }} ngày)
+                                    {{ $package->name }} - {{ $package->formatted_price }} ({{ $package->duration_days }} days)
                                 </option>
                             @endforeach
                         </select>
@@ -60,7 +60,7 @@
                     <!-- Date Range -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label for="start_date" class="block text-sm font-medium text-gray-300 mb-2">Ngày bắt đầu *</label>
+                            <label for="start_date" class="block text-sm font-medium text-gray-300 mb-2">Start date *</label>
                             <input type="date" 
                                    name="start_date" 
                                    id="start_date" 
@@ -73,7 +73,7 @@
                         </div>
 
                         <div>
-                            <label for="end_date" class="block text-sm font-medium text-gray-300 mb-2">Ngày kết thúc *</label>
+                            <label for="end_date" class="block text-sm font-medium text-gray-300 mb-2">End date *</label>
                             <input type="date" 
                                    name="end_date" 
                                    id="end_date" 
@@ -88,12 +88,12 @@
 
                     <!-- Status -->
                     <div>
-                        <label for="status" class="block text-sm font-medium text-gray-300 mb-2">Trạng thái *</label>
+                        <label for="status" class="block text-sm font-medium text-gray-300 mb-2">Status *</label>
                         <select name="status" id="status" required class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500">
-                            <option value="active" {{ old('status', $teamSubscription->status) === 'active' ? 'selected' : '' }}>Đang hoạt động</option>
-                            <option value="pending" {{ old('status', $teamSubscription->status) === 'pending' ? 'selected' : '' }}>Chờ xử lý</option>
-                            <option value="expired" {{ old('status', $teamSubscription->status) === 'expired' ? 'selected' : '' }}>Đã hết hạn</option>
-                            <option value="cancelled" {{ old('status', $teamSubscription->status) === 'cancelled' ? 'selected' : '' }}>Đã hủy</option>
+                            <option value="active" {{ old('status', $teamSubscription->status) === 'active' ? 'selected' : '' }}>Active</option>
+                            <option value="pending" {{ old('status', $teamSubscription->status) === 'pending' ? 'selected' : '' }}>Pending</option>
+                            <option value="expired" {{ old('status', $teamSubscription->status) === 'expired' ? 'selected' : '' }}>Expired</option>
+                            <option value="cancelled" {{ old('status', $teamSubscription->status) === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
                         </select>
                         @error('status')
                             <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
@@ -103,7 +103,7 @@
                     <!-- Payment Information -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
-                            <label for="paid_amount" class="block text-sm font-medium text-gray-300 mb-2">Số tiền thanh toán</label>
+                            <label for="paid_amount" class="block text-sm font-medium text-gray-300 mb-2">Paid amount</label>
                             <input type="number" 
                                    name="paid_amount" 
                                    id="paid_amount" 
@@ -118,13 +118,13 @@
                         </div>
 
                         <div>
-                            <label for="payment_method" class="block text-sm font-medium text-gray-300 mb-2">Phương thức thanh toán</label>
+                            <label for="payment_method" class="block text-sm font-medium text-gray-300 mb-2">Payment method</label>
                             <select name="payment_method" id="payment_method" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500">
-                                <option value="">Chọn phương thức...</option>
-                                <option value="cash" {{ old('payment_method', $teamSubscription->payment_method) === 'cash' ? 'selected' : '' }}>Tiền mặt</option>
-                                <option value="bank_transfer" {{ old('payment_method', $teamSubscription->payment_method) === 'bank_transfer' ? 'selected' : '' }}>Chuyển khoản</option>
-                                <option value="credit_card" {{ old('payment_method', $teamSubscription->payment_method) === 'credit_card' ? 'selected' : '' }}>Thẻ tín dụng</option>
-                                <option value="free" {{ old('payment_method', $teamSubscription->payment_method) === 'free' ? 'selected' : '' }}>Miễn phí</option>
+                                <option value="">Select method...</option>
+                                <option value="cash" {{ old('payment_method', $teamSubscription->payment_method) === 'cash' ? 'selected' : '' }}>Cash</option>
+                                <option value="bank_transfer" {{ old('payment_method', $teamSubscription->payment_method) === 'bank_transfer' ? 'selected' : '' }}>Bank transfer</option>
+                                <option value="credit_card" {{ old('payment_method', $teamSubscription->payment_method) === 'credit_card' ? 'selected' : '' }}>Credit card</option>
+                                <option value="free" {{ old('payment_method', $teamSubscription->payment_method) === 'free' ? 'selected' : '' }}>Free</option>
                             </select>
                             @error('payment_method')
                                 <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
@@ -132,12 +132,12 @@
                         </div>
 
                         <div>
-                            <label for="transaction_id" class="block text-sm font-medium text-gray-300 mb-2">Mã giao dịch</label>
+                            <label for="transaction_id" class="block text-sm font-medium text-gray-300 mb-2">Transaction ID</label>
                             <input type="text" 
                                    name="transaction_id" 
                                    id="transaction_id" 
                                    value="{{ old('transaction_id', $teamSubscription->transaction_id) }}"
-                                   placeholder="Mã giao dịch..."
+                                   placeholder="Transaction ID..."
                                    class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500">
                             @error('transaction_id')
                                 <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
@@ -153,7 +153,7 @@
                                    value="1" 
                                    {{ old('auto_renew', $teamSubscription->auto_renew) ? 'checked' : '' }}
                                    class="rounded border-gray-600 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                            <span class="ml-2 text-sm text-gray-300">Tự động gia hạn</span>
+                            <span class="ml-2 text-sm text-gray-300">Auto renew</span>
                         </label>
                         @error('auto_renew')
                             <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
@@ -162,11 +162,11 @@
 
                     <!-- Notes -->
                     <div>
-                        <label for="notes" class="block text-sm font-medium text-gray-300 mb-2">Ghi chú</label>
+                        <label for="notes" class="block text-sm font-medium text-gray-300 mb-2">Notes</label>
                         <textarea name="notes" 
                                   id="notes" 
                                   rows="4"
-                                  placeholder="Ghi chú về gói dịch vụ..."
+                                  placeholder="Notes about this subscription..."
                                   class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500">{{ old('notes', $teamSubscription->notes) }}</textarea>
                         @error('notes')
                             <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
@@ -177,14 +177,14 @@
                     <div class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-700">
                         <a href="{{ route('team-subscriptions.show', $teamSubscription) }}" 
                            class="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors duration-200">
-                            Hủy
+                            Cancel
                         </a>
                         <button type="submit" 
                                 class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors duration-200">
                             <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            Cập nhật
+                            Update
                         </button>
                     </div>
                 </form>
@@ -202,7 +202,7 @@ document.getElementById('service_package_id').addEventListener('change', functio
     if (packageId && startDate) {
         // Get package duration from the selected option
         const selectedOption = this.options[this.selectedIndex];
-        const durationMatch = selectedOption.text.match(/\((\d+) ngày\)/);
+        const durationMatch = selectedOption.text.match(/\((\d+)\s+days\)/);
         
         if (durationMatch) {
             const durationDays = parseInt(durationMatch[1]);

@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\TikTokCategoryAttribute;
 use App\Models\TikTokShopCategory;
 use App\Models\TikTokShopIntegration;
+use App\Models\UserTikTokMarket;
 use App\Services\TikTokShopService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class TikTokCategoryAttributeController extends Controller
@@ -20,24 +22,26 @@ class TikTokCategoryAttributeController extends Controller
 
         if (!$categoryId) {
             return view('tik-tok-category-attributes.index', [
-                'categories' => TikTokShopCategory::where('is_leaf', true)->get(),
+                'categories' => TikTokShopCategory::where('is_leaf', true)->where('is_active', true)->get(),
                 'attributes' => collect(),
                 'selectedCategory' => null
             ]);
         }
 
-        $category = TikTokShopCategory::where('category_id', $categoryId)->first();
+        $category = TikTokShopCategory::where('category_id', $categoryId)->where('is_active', true)->first();
         if (!$category) {
             return redirect()->back()->with('error', 'Category không tồn tại');
         }
 
         $attributes = TikTokCategoryAttribute::where('category_id', $categoryId)
+            ->where('category_version', $category->category_version)
+            ->where('market', $category->market)
             ->orderBy('is_required', 'desc')
             ->orderBy('name')
             ->get();
 
         return view('tik-tok-category-attributes.index', [
-            'categories' => TikTokShopCategory::where('is_leaf', true)->get(),
+            'categories' => TikTokShopCategory::where('is_leaf', true)->where('is_active', true)->get(),
             'attributes' => $attributes,
             'selectedCategory' => $category
         ]);
@@ -58,7 +62,7 @@ class TikTokCategoryAttributeController extends Controller
 
         try {
             // Kiểm tra category
-            $category = TikTokShopCategory::where('category_id', $categoryId)->first();
+            $category = TikTokShopCategory::where('category_id', $categoryId)->where('is_active', true)->first();
             if (!$category) {
                 return response()->json([
                     'success' => false,
@@ -74,7 +78,7 @@ class TikTokCategoryAttributeController extends Controller
             }
 
             // Kiểm tra integration
-            $integration = TikTokShopIntegration::first();
+            $integration = TikTokShopIntegration::forMarket($category->market)->first();
             if (!$integration) {
                 return response()->json([
                     'success' => false,
@@ -95,15 +99,18 @@ class TikTokCategoryAttributeController extends Controller
 
             $attributes = $result['data'];
 
-            // Xóa attributes cũ nếu force sync
+            // Lấy category_version từ category
+            $categoryVersion = $category->category_version;
+
+            // Xóa attributes cũ nếu force sync (theo category_version)
             if ($force) {
-                TikTokCategoryAttribute::clearCategoryAttributes($categoryId);
+                TikTokCategoryAttribute::clearCategoryAttributes($categoryId, $categoryVersion, $category->market);
             }
 
-            // Lưu attributes mới
+            // Lưu attributes mới (với category_version)
             $savedCount = 0;
             foreach ($attributes as $attribute) {
-                TikTokCategoryAttribute::createOrUpdateFromApiData($categoryId, $attribute);
+                TikTokCategoryAttribute::createOrUpdateFromApiData($categoryId, $attribute, $category->market, $categoryVersion);
                 $savedCount++;
             }
 
@@ -149,7 +156,8 @@ class TikTokCategoryAttributeController extends Controller
     }
 
     /**
-     * API endpoint để lấy attributes của một category
+     * API endpoint để lấy attributes của một category từ TikTok API
+     * Không lấy từ database nữa, gọi trực tiếp API TikTok
      */
     public function getAttributes(Request $request)
     {
@@ -158,41 +166,134 @@ class TikTokCategoryAttributeController extends Controller
         ]);
 
         $categoryId = $request->input('category_id');
+        $user = Auth::user();
 
-        // Lấy tất cả attributes để tính stats
-        $allAttributes = TikTokCategoryAttribute::where('category_id', $categoryId)
-            ->orderBy('is_required', 'desc')
-            ->orderBy('name')
-            ->get();
+        if (!$user || !$user->team) {
+            return response()->json([
+                'success' => false,
+                'error' => 'User không có team'
+            ], 400);
+        }
 
-        // Chỉ lấy attributes có type là PRODUCT_PROPERTY để hiển thị
-        $productPropertyAttributes = TikTokCategoryAttribute::where('category_id', $categoryId)
-            ->productProperties()
-            ->orderBy('is_required', 'desc')
-            ->orderBy('name')
-            ->get();
+        // Lấy market từ bảng user_tiktok_markets (fallback sang method cũ nếu chưa có)
+        $userMarket = UserTikTokMarket::where('user_id', $user->id)->value('market')
+            ?? $user->getPrimaryTikTokMarket()
+            ?? 'UK'; // Fallback mặc định nếu chưa gán market
+
+        $market = strtoupper(trim($userMarket));
+        $categoryVersion = $market === 'US' ? 'v2' : 'v1';
+
+        Log::info('Category attributes - Market from user tiktokMarkets', [
+            'user_id' => $user->id,
+            'user_market' => $market,
+            'category_version' => $categoryVersion,
+            'category_id' => $categoryId
+        ]);
+
+        $groupedCollections = TikTokCategoryAttribute::getByCategoryWithGrouping($categoryId, $categoryVersion, $market);
+
+        $requiredCollection = collect($groupedCollections['required']);
+        $optionalCollection = collect($groupedCollections['optional']);
+        $productCollection = collect($groupedCollections['product_properties']);
+        $salesCollection = collect($groupedCollections['sales_properties']);
+
+        if ($productCollection->isEmpty() && $salesCollection->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Không tìm thấy dữ liệu attributes trong hệ thống. Vui lòng sync category trước khi sử dụng.'
+            ], 404);
+        }
+
+        $requiredAttributes = $requiredCollection->map(function ($attribute) {
+            return $this->formatAttributeFromModel($attribute);
+        })->values()->toArray();
+
+        $optionalAttributes = $optionalCollection->map(function ($attribute) {
+            return $this->formatAttributeFromModel($attribute);
+        })->values()->toArray();
+
+        $productProperties = $productCollection->map(function ($attribute) {
+            return $this->formatAttributeFromModel($attribute);
+        })->values()->toArray();
+
+        $salesProperties = $salesCollection->map(function ($attribute) {
+            return $this->formatAttributeFromModel($attribute);
+        })->values()->toArray();
+
+        $totalProductAttributes = count($productProperties);
+        $totalSalesAttributes = count($salesProperties);
+        $totalAttributes = $totalProductAttributes + $totalSalesAttributes;
 
         $groupedAttributes = [
-            'required' => $productPropertyAttributes->where('is_required', true),
-            'optional' => $productPropertyAttributes->where('is_required', false),
-            'product_properties' => $productPropertyAttributes,
-            'sales_properties' => $allAttributes->where('type', 'SALES_PROPERTY'),
+            'required' => $requiredAttributes,
+            'optional' => $optionalAttributes,
+            'product_properties' => $productProperties,
+            'sales_properties' => $salesProperties,
         ];
+
+        Log::info('Category attributes fetched from database cache', [
+            'category_id' => $categoryId,
+            'user_id' => $user->id,
+            'user_market' => $market,
+            'category_version' => $categoryVersion,
+            'total_attributes' => $totalAttributes,
+            'product_property_count' => $totalProductAttributes,
+            'required_count' => count($requiredAttributes),
+            'optional_count' => count($optionalAttributes),
+            'sales_property_count' => $totalSalesAttributes,
+        ]);
 
         return response()->json([
             'success' => true,
             'data' => [
-                'attributes' => $productPropertyAttributes,
+                'attributes' => $productProperties,
                 'grouped' => $groupedAttributes,
                 'stats' => [
-                    'total' => $allAttributes->count(),
-                    'required' => $productPropertyAttributes->where('is_required', true)->count(),
-                    'optional' => $productPropertyAttributes->where('is_required', false)->count(),
-                    'product_properties' => $productPropertyAttributes->count(),
-                    'sales_properties' => $allAttributes->where('type', 'SALES_PROPERTY')->count(),
+                    'total' => $totalAttributes,
+                    'required' => count($requiredAttributes),
+                    'optional' => count($optionalAttributes),
+                    'product_properties' => $totalProductAttributes,
+                    'sales_properties' => $totalSalesAttributes,
                 ]
             ]
         ]);
+    }
+
+    /**
+     * Format attribute từ API response
+     */
+    private function formatAttributeFromApi(array $attr): array
+    {
+        // Parse values
+        $values = [];
+        if (isset($attr['values']) && is_array($attr['values'])) {
+            foreach ($attr['values'] as $value) {
+                if (is_array($value)) {
+                    $values[] = [
+                        'id' => $value['id'] ?? $value['value_id'] ?? null,
+                        'name' => $value['name'] ?? $value['value'] ?? $value['display_name'] ?? '',
+                    ];
+                } else {
+                    $values[] = [
+                        'id' => $value,
+                        'name' => $value,
+                    ];
+                }
+            }
+        }
+
+        return [
+            'attribute_id' => $attr['id'] ?? $attr['attribute_id'] ?? null,
+            'id' => $attr['id'] ?? $attr['attribute_id'] ?? null,
+            'name' => $attr['name'] ?? $attr['display_name'] ?? 'Unknown',
+            'type' => $attr['type'] ?? 'PRODUCT_PROPERTY',
+            'is_required' => (bool) ($attr['is_required'] ?? $attr['required'] ?? false),
+            'is_multiple_selection' => (bool) ($attr['is_multiple_selection'] ?? $attr['multiple_selection'] ?? false),
+            'is_customizable' => (bool) ($attr['is_customizable'] ?? $attr['customizable'] ?? false),
+            'value_data_format' => $attr['value_data_format'] ?? $attr['data_format'] ?? null,
+            'values' => $values,
+            'description' => $attr['description'] ?? $attr['help_text'] ?? null,
+        ];
     }
 
     /**
@@ -227,12 +328,23 @@ class TikTokCategoryAttributeController extends Controller
 
         $categoryId = $request->input('category_id');
 
-        $lastSync = TikTokCategoryAttribute::where('category_id', $categoryId)
-            ->max('last_synced_at');
+        // Lấy category để lấy category_version
+        $category = TikTokShopCategory::where('category_id', $categoryId)->where('is_active', true)->first();
+        $categoryVersion = $category ? $category->category_version : null;
+        $market = $category ? $category->market : null;
 
-        $attributesCount = TikTokCategoryAttribute::where('category_id', $categoryId)->count();
+        $query = TikTokCategoryAttribute::where('category_id', $categoryId);
+        if ($categoryVersion) {
+            $query->where('category_version', $categoryVersion);
+        }
 
-        $needsSync = TikTokCategoryAttribute::needsSync($categoryId);
+        if ($market) {
+            $query->where('market', $market);
+        }
+
+        $lastSync = $query->max('last_synced_at');
+        $attributesCount = $query->count();
+        $needsSync = TikTokCategoryAttribute::needsSync($categoryId, 24, $categoryVersion, $market);
 
         return response()->json([
             'success' => true,
@@ -244,5 +356,37 @@ class TikTokCategoryAttributeController extends Controller
                 'can_sync' => TikTokShopCategory::where('category_id', $categoryId)->where('is_leaf', true)->exists()
             ]
         ]);
+    }
+
+    private function formatAttributeFromModel(TikTokCategoryAttribute $attribute): array
+    {
+        $values = collect($attribute->values ?? [])->map(function ($value) {
+            if (is_array($value)) {
+                return [
+                    'id' => $value['id'] ?? $value['value_id'] ?? $value['value'] ?? null,
+                    'name' => $value['name'] ?? $value['value'] ?? $value['display_name'] ?? '',
+                ];
+            }
+
+            return [
+                'id' => $value,
+                'name' => (string) $value,
+            ];
+        })->values()->toArray();
+
+        $attributeData = $attribute->attribute_data ?? [];
+
+        return [
+            'attribute_id' => $attribute->attribute_id,
+            'id' => $attribute->attribute_id,
+            'name' => $attribute->name,
+            'type' => $attribute->type ?? 'PRODUCT_PROPERTY',
+            'is_required' => (bool) $attribute->is_required,
+            'is_multiple_selection' => (bool) $attribute->is_multiple_selection,
+            'is_customizable' => (bool) $attribute->is_customizable,
+            'value_data_format' => $attribute->value_data_format,
+            'values' => $values,
+            'description' => $attributeData['description'] ?? $attributeData['help_text'] ?? null,
+        ];
     }
 }

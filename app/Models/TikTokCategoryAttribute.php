@@ -13,6 +13,8 @@ class TikTokCategoryAttribute extends Model
 
     protected $fillable = [
         'category_id',
+        'category_version',
+        'market',
         'attribute_id',
         'name',
         'type',
@@ -99,10 +101,19 @@ class TikTokCategoryAttribute extends Model
     /**
      * Kiểm tra xem attribute có cần sync không
      */
-    public static function needsSync(string $categoryId, int $hours = 24): bool
+    public static function needsSync(string $categoryId, int $hours = 24, ?string $categoryVersion = null, ?string $market = null): bool
     {
-        $lastSync = static::where('category_id', $categoryId)
-            ->max('last_synced_at');
+        $query = static::where('category_id', $categoryId);
+
+        if ($categoryVersion) {
+            $query->where('category_version', strtolower($categoryVersion));
+        }
+
+        if ($market) {
+            $query->where('market', strtoupper($market));
+        }
+
+        $lastSync = $query->max('last_synced_at');
 
         if (!$lastSync) {
             return true;
@@ -114,18 +125,32 @@ class TikTokCategoryAttribute extends Model
     /**
      * Xóa tất cả attributes của một category
      */
-    public static function clearCategoryAttributes(string $categoryId): int
+    public static function clearCategoryAttributes(string $categoryId, ?string $categoryVersion = null, ?string $market = null): int
     {
-        return static::where('category_id', $categoryId)->delete();
+        $query = static::where('category_id', $categoryId);
+
+        if ($categoryVersion) {
+            $query->where('category_version', strtolower($categoryVersion));
+        }
+
+        if ($market) {
+            $query->where('market', strtoupper($market));
+        }
+
+        return $query->delete();
     }
 
     /**
      * Tạo hoặc cập nhật attribute từ API data
      */
-    public static function createOrUpdateFromApiData(string $categoryId, array $attributeData): self
+    public static function createOrUpdateFromApiData(string $categoryId, array $attributeData, string $market, ?string $categoryVersion = null): self
     {
+        $normalizedVersion = $categoryVersion ? strtolower($categoryVersion) : null;
+
         $data = [
             'category_id' => $categoryId,
+            'category_version' => $normalizedVersion,
+            'market' => strtoupper($market),
             'attribute_id' => $attributeData['id'],
             'name' => $attributeData['name'],
             'type' => $attributeData['type'],
@@ -139,8 +164,18 @@ class TikTokCategoryAttribute extends Model
             'last_synced_at' => now(),
         ];
 
+        $uniqueKey = [
+            'category_id' => $categoryId,
+            'market' => strtoupper($market),
+            'attribute_id' => $attributeData['id']
+        ];
+
+        if ($normalizedVersion) {
+            $uniqueKey['category_version'] = $normalizedVersion;
+        }
+
         return static::updateOrCreate(
-            ['category_id' => $categoryId, 'attribute_id' => $attributeData['id']],
+            $uniqueKey,
             $data
         );
     }
@@ -148,10 +183,19 @@ class TikTokCategoryAttribute extends Model
     /**
      * Lấy attributes theo category với phân loại
      */
-    public static function getByCategoryWithGrouping(string $categoryId): array
+    public static function getByCategoryWithGrouping(string $categoryId, ?string $categoryVersion = null, ?string $market = null): array
     {
-        $attributes = static::where('category_id', $categoryId)
-            ->orderBy('is_required', 'desc')
+        $query = static::where('category_id', $categoryId);
+
+        if ($categoryVersion) {
+            $query->where('category_version', strtolower($categoryVersion));
+        }
+
+        if ($market) {
+            $query->where('market', strtoupper($market));
+        }
+
+        $attributes = $query->orderBy('is_required', 'desc')
             ->orderBy('name')
             ->get();
 
@@ -172,5 +216,13 @@ class TikTokCategoryAttribute extends Model
     public function scopeProductProperties($query)
     {
         return $query->where('type', 'PRODUCT_PROPERTY');
+    }
+
+    /**
+     * Scope để lọc theo market
+     */
+    public function scopeForMarket($query, string $market)
+    {
+        return $query->where('market', strtoupper($market));
     }
 }

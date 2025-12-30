@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'HMTik') }} - Đăng nhập</title>
+    <title>{{ config('app.name', 'HMTik') }} - Login</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -32,8 +32,8 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                     </svg>
                 </div>
-                <h1 class="text-3xl font-bold text-white mb-2">Chào mừng trở lại</h1>
-                <p class="text-gray-300">Đăng nhập vào tài khoản của bạn</p>
+                <h1 class="text-3xl font-bold text-white mb-2">Welcome back</h1>
+                <p class="text-gray-300">Log in to your account</p>
             </div>
 
             <!-- Login Form Card -->
@@ -56,7 +56,7 @@
                     <!-- Email Address -->
                     <div>
                         <label for="email" class="block text-sm font-medium text-gray-200 mb-2">
-                            Địa chỉ Email
+                            Email address
                         </label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -72,7 +72,7 @@
                                    autofocus 
                                    autocomplete="username"
                                    class="block w-full pl-10 pr-3 py-3 border border-gray-600 rounded-lg bg-white/5 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                                   placeholder="Nhập email của bạn">
+                                   placeholder="Enter your email">
                         </div>
                         @error('email')
                             <p class="mt-2 text-sm text-red-400 flex items-center">
@@ -87,7 +87,7 @@
                     <!-- Password -->
                     <div>
                         <label for="password" class="block text-sm font-medium text-gray-200 mb-2">
-                            Mật khẩu
+                            Password
                         </label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -101,7 +101,7 @@
                                    required 
                                    autocomplete="current-password"
                                    class="block w-full pl-10 pr-3 py-3 border border-gray-600 rounded-lg bg-white/5 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                                   placeholder="Nhập mật khẩu của bạn">
+                                   placeholder="Enter your password">
                         </div>
                         @error('password')
                             <p class="mt-2 text-sm text-red-400 flex items-center">
@@ -120,13 +120,13 @@
                                    type="checkbox" 
                                    name="remember"
                                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-600 rounded bg-white/5">
-                            <span class="ml-2 text-sm text-gray-300">Ghi nhớ đăng nhập</span>
+                            <span class="ml-2 text-sm text-gray-300">Remember me</span>
                         </label>
 
                         @if (Route::has('password.request'))
                             <a href="{{ route('password.request') }}" 
                                class="text-sm text-blue-400 hover:text-blue-300 transition-colors duration-200">
-                                Quên mật khẩu?
+                                Forgot password?
                             </a>
                         @endif
                     </div>
@@ -137,7 +137,7 @@
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
                         </svg>
-                        Đăng nhập
+                        Log in
                     </button>
                 </form>
 
@@ -148,10 +148,10 @@
                             <svg class="w-5 h-5 text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
-                            <span class="text-blue-400 text-sm font-medium">Cần tài khoản?</span>
+                            <span class="text-blue-400 text-sm font-medium">Need an account?</span>
                         </div>
                         <p class="text-xs text-gray-300">
-                            Liên hệ quản trị viên để được cấp tài khoản và phân quyền
+                            Contact an administrator to create an account and assign permissions
                         </p>
                     </div>
                 </div>
@@ -160,7 +160,7 @@
             <!-- Footer -->
             <div class="mt-8 text-center">
                 <p class="text-xs text-gray-400">
-                    © {{ date('Y') }} {{ config('app.name', 'HMTik') }}. Tất cả quyền được bảo lưu.
+                    © {{ date('Y') }} {{ config('app.name', 'HMTik') }}. All rights reserved.
                 </p>
             </div>
         </div>

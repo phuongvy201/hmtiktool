@@ -107,8 +107,8 @@
 <div id="loadingOverlay" class="loading-overlay" style="display: none;">
     <div class="text-center">
         <div class="loading-spinner mb-4"></div>
-        <div class="text-white text-lg font-medium">Đang tải dữ liệu performance...</div>
-        <div class="text-gray-300 text-sm mt-2">Vui lòng chờ trong giây lát</div>
+        <div class="text-white text-lg font-medium">Loading performance data...</div>
+        <div class="text-gray-300 text-sm mt-2">Please wait for a moment</div>
     </div>
 </div>
 
@@ -154,14 +154,14 @@
                     <div class="lg:col-span-2">
                         <label class="block text-sm font-medium text-gray-300 mb-3">Shop Selection:</label>
                         <select name="shop_id" id="shopSelect" class="block w-full px-4 py-3 border border-gray-600 rounded-xl shadow-sm bg-gray-700 text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300">
-                            <option value="">-- Chọn shop để xem performance --</option>
+                            <option value="">-- Select shop to view performance --</option>
                             @foreach($shops as $shop)
                                 <option value="{{ $shop->id }}" {{ request('shop_id') == $shop->id ? 'selected' : '' }}>
                                     {{ $shop->shop_name }}
                                     @if($shop->integration && $shop->integration->status === 'active')
-                                        <span class="text-green-400">(Hoạt động)</span>
+                                        <span class="text-green-400">(Active)</span>
                                     @else
-                                        <span class="text-red-400">(Không hoạt động)</span>
+                                        <span class="text-red-400">(Inactive)</span>
                                     @endif
                                 </option>
                             @endforeach
@@ -170,7 +170,7 @@
 
                     <!-- Date Range -->
                     <div class="lg:col-span-2">
-                        <label class="block text-sm font-medium text-gray-300 mb-3">Khoảng thời gian:</label>
+                        <label class="block text-sm font-medium text-gray-300 mb-3">Time range:</label>
                         <div class="grid grid-cols-2 gap-3">
                             <input type="date" name="start_date" id="startDate" 
                                    class="block w-full px-3 py-3 border border-gray-600 rounded-xl shadow-sm bg-gray-700 text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300" 
@@ -183,26 +183,47 @@
 
                     <!-- Granularity -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-3">Chi tiết:</label>
+                        <label class="block text-sm font-medium text-gray-300 mb-3">Detail:</label>
                         <select name="granularity" id="granularity" class="block w-full px-4 py-3 border border-gray-600 rounded-xl shadow-sm bg-gray-700 text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300">
-                            <option value="1D" {{ request('granularity', '1D') == '1D' ? 'selected' : '' }}>Theo ngày</option>
-                            <option value="ALL" {{ request('granularity') == 'ALL' ? 'selected' : '' }}>Tổng hợp</option>
+                            <option value="1D" {{ request('granularity', '1D') == '1D' ? 'selected' : '' }}>By day</option>
+                            <option value="ALL" {{ request('granularity') == 'ALL' ? 'selected' : '' }}>Summary</option>
                         </select>
                     </div>
 
                     <!-- Actions -->
                     <div class="flex flex-col justify-end space-y-3">
                         <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-xl transition duration-200 flex items-center justify-center">
-                            <i class="fas fa-search mr-2"></i>Load Data
+                            <i class="fas fa-search mr-2"></i>Load data
                         </button>
                         <button type="button" id="refreshData" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-xl transition duration-200 flex items-center justify-center">
-                            <i class="fas fa-sync-alt mr-2"></i>Refresh
+                            <i class="fas fa-sync-alt mr-2"></i>Refresh data
                         </button>
                     </div>
                 </div>
             </form>
         </div>
     </div>
+
+    <!-- Error Message -->
+    @if(session('error'))
+        <div class="mb-6 bg-red-900 border border-red-700 text-red-200 px-6 py-4 rounded-xl">
+            <div class="flex items-center">
+                <i class="fas fa-exclamation-circle mr-3 text-xl"></i>
+                <div>
+                        <strong class="font-semibold">Error loading data:</strong>
+                    <p class="mt-1">{{ session('error') }}</p>
+                    <p class="mt-2 text-sm text-red-300">
+                        Please check:
+                        <ul class="list-disc list-inside mt-1 space-y-1">
+                                <li>Is the shop integration active?</li>
+                            <li>Is the access token valid?</li>
+                            <li>Is the connection to the TikTok API stable?</li>    
+                        </ul>
+                    </p>
+                </div>
+            </div>
+        </div>
+    @endif
 
     @if($performanceData && $selectedShop)
         <!-- Key Metrics Cards -->
@@ -356,8 +377,8 @@
                             <td colspan="9" class="px-6 py-12 text-center">
                                 <div class="flex flex-col items-center">
                                     <i class="fas fa-chart-line text-4xl text-gray-400 mb-4"></i>
-                                    <div class="text-gray-400 text-lg font-medium">Không có dữ liệu performance</div>
-                                    <div class="text-gray-500 text-sm mt-2">Vui lòng chọn shop và khoảng thời gian</div>
+                                    <div class="text-gray-400 text-lg font-medium">No performance data</div>
+                                    <div class="text-gray-500 text-sm mt-2">Please select shop and time range</div>
                                 </div>
                             </td>
                         </tr>
@@ -374,7 +395,7 @@
                     <i class="fas fa-chart-line text-6xl text-gray-400 mb-6"></i>
                     <h3 class="text-2xl font-bold text-white mb-4">Welcome to GMV Performance Dashboard</h3>
                     <p class="text-gray-400 text-lg mb-6 max-w-2xl">
-                        Chọn một shop từ dropdown trên để xem các chỉ số performance chi tiết bao gồm GMV, orders, conversion rate và nhiều hơn nữa.
+                        Select a shop from the dropdown above to view detailed performance metrics including GMV, orders, conversion rate and more.
                     </p>
                     <div class="flex items-center space-x-4 text-sm text-gray-500">
                         <div class="flex items-center">
@@ -544,7 +565,7 @@ document.getElementById('refreshData').addEventListener('click', function() {
     
     const shopId = document.getElementById('shopSelect').value;
     if (!shopId) {
-        showError('Vui lòng chọn shop trước khi refresh');
+        showError('Please select shop before refreshing');
         return;
     }
     
@@ -580,11 +601,11 @@ async function refreshPerformanceData() {
             // Reload the page to show updated data
             window.location.reload();
         } else {
-            showError('Có lỗi xảy ra khi tải dữ liệu: ' + (data.message || 'Unknown error'));
+            showError('An error occurred while loading data: ' + (data.message || 'Unknown error'));
         }
     } catch (error) {
         console.error('Error refreshing data:', error);
-        showError('Có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại.');
+                    showError('An error occurred while loading data. Please try again.');
     } finally {
         isLoading = false;
         hideLoadingOverlay();

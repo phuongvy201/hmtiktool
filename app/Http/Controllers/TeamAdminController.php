@@ -4,23 +4,24 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Team;
+use App\Services\EmailVerificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Auth;
-use App\Mail\VerifyEmail;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\URL;
+use App\Models\UserTikTokMarket;
 
 class TeamAdminController extends Controller
 {
-    public function __construct()
+    private EmailVerificationService $emailVerificationService;
+
+    public function __construct(EmailVerificationService $emailVerificationService)
     {
         $this->middleware('auth');
         $this->middleware('role:team-admin');
+        $this->emailVerificationService = $emailVerificationService;
     }
 
     /**
@@ -28,6 +29,8 @@ class TeamAdminController extends Controller
      */
     public function index(Request $request)
     {
+        $this->authorize('view-users');
+
         $query = User::with(['roles', 'team'])
             ->where('team_id', Auth::user()->team_id)
             ->where('is_system_user', false);
@@ -68,7 +71,10 @@ class TeamAdminController extends Controller
      */
     public function create()
     {
-        $roles = Role::all();
+        $this->authorize('create-users');
+
+        // Chỉ lấy roles cấp team, không lấy roles cấp hệ thống (system- roles)
+        $roles = $this->getTeamLevelRoles();
         return view('team-admin.users.create', compact('roles'));
     }
 
@@ -77,11 +83,17 @@ class TeamAdminController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('create-users');
+
+        // Get list of team role IDs to validate
+        $teamLevelRoleIds = $this->getTeamLevelRoles()->pluck('id')->toArray();
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'role_id' => 'required|exists:roles,id',
+            'role_id' => ['required', 'exists:roles,id', Rule::in($teamLevelRoleIds)],
+            'market' => 'nullable|string|in:US,UK',
         ]);
 
         $user = User::create([
@@ -92,30 +104,32 @@ class TeamAdminController extends Controller
             'is_system_user' => false, // Always team user
         ]);
 
+        // Save TikTok market (single selection)
+        $user->tiktokMarkets()->delete();
+        if (!empty($validated['market'])) {
+            UserTikTokMarket::create([
+                'user_id' => $user->id,
+                'market' => $validated['market'],
+            ]);
+        }
+
         $role = Role::find($validated['role_id']);
         $user->assignRole($role);
 
-        // Send verification email
+        // Send verification email to new user
         try {
-            $token = Str::random(64);
-            $user->update([
-                'email_verification_token' => $token,
-                'email_verification_expires_at' => now()->addHours(1),
-            ]);
-
-            $verificationUrl = URL::temporarySignedRoute(
-                'verification.verify',
-                now()->addHour(),
-                ['id' => $user->id, 'token' => $token]
-            );
-
-            Mail::to($user->email)->send(new VerifyEmail($user, $verificationUrl));
+            $sent = $this->emailVerificationService->sendVerificationEmail($user);
+            if ($sent) {
+                return redirect()->route('team-admin.users.index')->with('success', 'Member added to team successfully. Verification email has been sent.');
+            }
         } catch (\Exception $e) {
             // Log error but don't fail the user creation
             Log::error('Failed to send verification email: ' . $e->getMessage());
         }
 
-        return redirect()->route('team-admin.users.index')->with('success', 'Thành viên đã được thêm vào team thành công. Email xác thực đã được gửi.');
+        return redirect()->route('team-admin.users.index')
+            ->with('success', 'Member added to team successfully.')
+            ->with('error', 'Verification email not sent, please send again from profile page.');
     }
 
     /**
@@ -123,9 +137,11 @@ class TeamAdminController extends Controller
      */
     public function show(User $user)
     {
+        $this->authorize('view-users');
+
         // Ensure user belongs to the same team
         if ($user->team_id !== Auth::user()->team_id) {
-            abort(403, 'Bạn không có quyền xem thành viên này.');
+            abort(403, 'You do not have permission to view this member.');
         }
 
         $user->load(['roles.permissions', 'team']);
@@ -137,12 +153,16 @@ class TeamAdminController extends Controller
      */
     public function edit(User $user)
     {
+        $this->authorize('edit-users');
+
         // Ensure user belongs to the same team
         if ($user->team_id !== Auth::user()->team_id) {
-            abort(403, 'Bạn không có quyền chỉnh sửa thành viên này.');
+            abort(403, 'You do not have permission to edit this member.');
         }
 
-        $roles = Role::all();
+        // Chỉ lấy roles cấp team, không lấy roles cấp hệ thống (system- roles)
+        $roles = $this->getTeamLevelRoles();
+
         return view('team-admin.users.edit', compact('user', 'roles'));
     }
 
@@ -151,16 +171,22 @@ class TeamAdminController extends Controller
      */
     public function update(Request $request, User $user)
     {
+        $this->authorize('edit-users');
+
         // Ensure user belongs to the same team
         if ($user->team_id !== Auth::user()->team_id) {
             abort(403, 'Bạn không có quyền chỉnh sửa thành viên này.');
         }
 
+        // Get list of team role IDs to validate
+        $teamLevelRoleIds = $this->getTeamLevelRoles()->pluck('id')->toArray();
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'password' => 'nullable|string|min:8|confirmed',
-            'role_id' => 'required|exists:roles,id',
+            'role_id' => ['required', 'exists:roles,id', Rule::in($teamLevelRoleIds)],
+            'market' => 'nullable|string|in:US,UK',
         ]);
 
         $user->update([
@@ -174,11 +200,20 @@ class TeamAdminController extends Controller
             $user->update(['password' => Hash::make($validated['password'])]);
         }
 
+        // Update TikTok market (single selection)
+        $user->tiktokMarkets()->delete();
+        if (!empty($validated['market'])) {
+            UserTikTokMarket::create([
+                'user_id' => $user->id,
+                'market' => $validated['market'],
+            ]);
+        }
+
         // Update role
         $role = Role::find($validated['role_id']);
         $user->syncRoles([$role]);
 
-        return redirect()->route('team-admin.users.index')->with('success', 'Thông tin thành viên đã được cập nhật thành công.');
+        return redirect()->route('team-admin.users.index')->with('success', 'Member information updated successfully.');
     }
 
     /**
@@ -186,20 +221,22 @@ class TeamAdminController extends Controller
      */
     public function destroy(User $user)
     {
+        $this->authorize('edit-users');
+
         // Ensure user belongs to the same team
         if ($user->team_id !== Auth::user()->team_id) {
-            abort(403, 'Bạn không có quyền xóa thành viên này.');
+            abort(403, 'You do not have permission to delete this member.');
         }
 
         // Don't allow team admin to remove themselves
         if ($user->id === Auth::id()) {
-            return redirect()->route('team-admin.users.index')->with('error', 'Bạn không thể xóa chính mình khỏi team.');
+            return redirect()->route('team-admin.users.index')->with('error', 'You cannot delete yourself from the team.');
         }
 
         // Remove from team (set team_id to null) instead of deleting
         $user->update(['team_id' => null]);
 
-        return redirect()->route('team-admin.users.index')->with('success', 'Thành viên đã được xóa khỏi team thành công.');
+        return redirect()->route('team-admin.users.index')->with('success', 'Member deleted from team successfully.');
     }
 
     /**
@@ -241,5 +278,18 @@ class TeamAdminController extends Controller
         $teamRoles = $teamRoles->unique('id');
 
         return view('team-admin.roles', compact('team', 'teamRoles', 'teamMembers'));
+    }
+
+    /**
+     * Get list of team roles (excluding system- roles)
+     * System- roles: all roles with name starting with "system-"
+     */
+    private function getTeamLevelRoles()
+    {
+        // Exclude all roles with name starting with "system-"
+        // Team roles are usually: team-admin, team-member, or custom roles
+        return Role::where('name', 'not like', 'system-%')
+            ->where('name', '!=', 'super-admin')
+            ->get();
     }
 }

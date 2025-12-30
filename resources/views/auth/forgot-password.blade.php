@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'HMTik') }} - Quên mật khẩu</title>
+    <title>{{ config('app.name', 'HMTik') }} - Forgot Password</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -32,8 +32,8 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
                     </svg>
                 </div>
-                <h1 class="text-3xl font-bold text-white mb-2">Quên mật khẩu?</h1>
-                <p class="text-gray-300">Đừng lo lắng, chúng tôi sẽ gửi link đặt lại mật khẩu</p>
+                <h1 class="text-3xl font-bold text-white mb-2">Forgot your password?</h1>
+                <p class="text-gray-300">No worries, we'll send you a reset link</p>
             </div>
 
             <!-- Forgot Password Form Card -->
@@ -56,7 +56,7 @@
                     <!-- Email Address -->
                     <div>
                         <label for="email" class="block text-sm font-medium text-gray-200 mb-2">
-                            Địa chỉ Email
+                            Email address
                         </label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -71,7 +71,7 @@
                                    required 
                                    autofocus
                                    class="block w-full pl-10 pr-3 py-3 border border-gray-600 rounded-lg bg-white/5 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200"
-                                   placeholder="Nhập email của bạn">
+                                   placeholder="Enter your email">
                         </div>
                         @error('email')
                             <p class="mt-2 text-sm text-red-400 flex items-center">
@@ -89,16 +89,16 @@
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                         </svg>
-                        Gửi link đặt lại mật khẩu
+                        Send reset link
                     </button>
                 </form>
 
                 <!-- Back to Login Link -->
                 <div class="mt-6 text-center">
                     <p class="text-sm text-gray-300">
-                        Nhớ mật khẩu rồi? 
+                        Remember your password? 
                         <a href="{{ route('login') }}" class="font-medium text-orange-400 hover:text-orange-300 transition-colors duration-200">
-                            Đăng nhập ngay
+                            Log in now
                         </a>
                     </p>
                 </div>
@@ -107,7 +107,7 @@
             <!-- Footer -->
             <div class="mt-8 text-center">
                 <p class="text-xs text-gray-400">
-                    © {{ date('Y') }} {{ config('app.name', 'HMTik') }}. Tất cả quyền được bảo lưu.
+                    © {{ date('Y') }} {{ config('app.name', 'HMTik') }}. All rights reserved.
                 </p>
             </div>
         </div>

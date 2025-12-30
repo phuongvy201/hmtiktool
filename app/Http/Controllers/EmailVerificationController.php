@@ -3,15 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Mail\VerifyEmail;
+use App\Services\EmailVerificationService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Auth;
 
 class EmailVerificationController extends Controller
 {
+    private EmailVerificationService $emailVerificationService;
+
+    public function __construct(EmailVerificationService $emailVerificationService)
+    {
+        $this->emailVerificationService = $emailVerificationService;
+    }
+
     /**
      * Send verification email
      */
@@ -24,33 +28,18 @@ class EmailVerificationController extends Controller
         $user = User::where('email', $request->email)->first();
 
         if (!$user) {
-            return back()->with('error', 'Email không tồn tại trong hệ thống.');
+            return back()->with('error', 'Email does not exist in the system.');
         }
 
-        if ($user->email_verified_at) {
-            return back()->with('info', 'Email đã được xác thực trước đó.');
-        }
+        $sent = $this->emailVerificationService->sendVerificationEmail($user);
 
-        // Generate verification token
-        $token = Str::random(64);
-        $user->update([
-            'email_verification_token' => $token,
-            'email_verification_expires_at' => now()->addHours(1), // 1 hour expiry
-        ]);
-
-        // Generate verification URL
-        $verificationUrl = URL::temporarySignedRoute(
-            'verification.verify',
-            now()->addHour(),
-            ['id' => $user->id, 'token' => $token]
-        );
-
-        // Send email
-        try {
-            Mail::to($user->email)->send(new VerifyEmail($user, $verificationUrl));
-            return back()->with('success', 'Email xác thực đã được gửi. Vui lòng kiểm tra hộp thư của bạn.');
-        } catch (\Exception $e) {
-            return back()->with('error', 'Không thể gửi email xác thực. Vui lòng thử lại sau.');
+        if ($sent) {
+            return back()->with('success', 'Email verification has been sent. Please check your email inbox.');
+        } else {
+            if ($user->email_verified_at) {
+                return back()->with('info', 'Email has been verified before.');
+            }
+            return back()->with('error', 'Unable to send verification email. Please try again later.');
         }
     }
 
@@ -60,29 +49,29 @@ class EmailVerificationController extends Controller
     public function verify(Request $request, $id, $token)
     {
         $user = User::findOrFail($id);
+        $result = $this->emailVerificationService->verifyEmail($user, $token);
 
-        // Check if already verified
-        if ($user->email_verified_at) {
-            return redirect()->route('dashboard')->with('info', 'Email đã được xác thực trước đó.');
+        if ($result['success']) {
+            // Refresh & login to ensure session reflects verified state
+            $user = $user->fresh();
+            Auth::login($user);
+
+            // If user is logged in, redirect to dashboard
+            // If user is not logged in, redirect to login with message
+            if (Auth::check() && Auth::id() == $user->id) {
+                return redirect()->route('dashboard')->with('success', $result['message']);
+            } else {
+                return redirect()->route('login')->with('success', $result['message'] . ' Please login to continue.');
+            }
+        } else {
+            // If user is logged in, redirect to dashboard with error
+            // If user is not logged in, redirect to login with error
+            if (Auth::check() && Auth::id() == $user->id) {
+                return redirect()->route('dashboard')->with('error', $result['message']);
+            } else {
+                return redirect()->route('login')->with('error', $result['message']);
+            }
         }
-
-        // Check if token matches and not expired
-        if ($user->email_verification_token !== $token) {
-            return redirect()->route('dashboard')->with('error', 'Link xác thực không hợp lệ.');
-        }
-
-        if ($user->email_verification_expires_at && $user->email_verification_expires_at < now()) {
-            return redirect()->route('dashboard')->with('error', 'Link xác thực đã hết hạn. Vui lòng yêu cầu gửi lại email.');
-        }
-
-        // Mark email as verified
-        $user->update([
-            'email_verified_at' => now(),
-            'email_verification_token' => null,
-            'email_verification_expires_at' => null,
-        ]);
-
-        return redirect()->route('dashboard')->with('success', 'Email đã được xác thực thành công!');
     }
 
     /**
@@ -97,38 +86,15 @@ class EmailVerificationController extends Controller
         $user = User::where('email', $request->email)->first();
 
         if (!$user) {
-            return back()->with('error', 'Email không tồn tại trong hệ thống.');
+            return back()->with('error', 'Email does not exist in the system.');
         }
 
-        if ($user->email_verified_at) {
-            return back()->with('info', 'Email đã được xác thực trước đó.');
-        }
+        $result = $this->emailVerificationService->resendVerificationEmail($user);
 
-        // Check if we can resend (prevent spam)
-        if ($user->email_verification_expires_at && $user->email_verification_expires_at > now()->subMinutes(5)) {
-            return back()->with('error', 'Vui lòng đợi 5 phút trước khi yêu cầu gửi lại email xác thực.');
-        }
-
-        // Generate new verification token
-        $token = Str::random(64);
-        $user->update([
-            'email_verification_token' => $token,
-            'email_verification_expires_at' => now()->addHours(1),
-        ]);
-
-        // Generate verification URL
-        $verificationUrl = URL::temporarySignedRoute(
-            'verification.verify',
-            now()->addHour(),
-            ['id' => $user->id, 'token' => $token]
-        );
-
-        // Send email
-        try {
-            Mail::to($user->email)->send(new VerifyEmail($user, $verificationUrl));
-            return back()->with('success', 'Email xác thực đã được gửi lại. Vui lòng kiểm tra hộp thư của bạn.');
-        } catch (\Exception $e) {
-            return back()->with('error', 'Không thể gửi email xác thực. Vui lòng thử lại sau.');
+        if ($result['success']) {
+            return back()->with('success', $result['message']);
+        } else {
+            return back()->with('error', $result['message']);
         }
     }
 

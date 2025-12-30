@@ -20,7 +20,9 @@ class SyncTikTokCategoryAttributes extends Command
                             {category_id? : Specific category ID to sync}
                             {--force : Force sync even if not needed}
                             {--hours=24 : Hours threshold for sync check}
-                            {--locale=en-US : Locale for attributes}';
+                            {--locale=en-US : Locale for attributes}
+                            {--market= : Market filter (e.g. US, UK)}
+                            {--category-version= : Category version to override (v1, v2)}';
 
     /**
      * The console command description.
@@ -39,65 +41,114 @@ class SyncTikTokCategoryAttributes extends Command
         $hours = (int) $this->option('hours');
         $locale = $this->option('locale');
 
-        $this->info('Starting TikTok Shop category attributes sync...');
+        $marketFilter = strtoupper((string) $this->option('market'));
+        $categoryVersionFilter = $this->option('category-version') ? strtolower($this->option('category-version')) : null;
 
-        // Lấy integration đầu tiên
-        $integration = TikTokShopIntegration::first();
+        $this->info('Starting TikTok Shop category attributes sync for UK (v1) and US (v2)...');
 
-        if (!$integration) {
-            $this->warn('No TikTok Shop integration found. Please set up integration first.');
+        if ($marketFilter) {
+            $this->line("  • Market filter: {$marketFilter}");
+        }
+
+        if ($categoryVersionFilter) {
+            $this->line("  • Category version override: {$categoryVersionFilter}");
+        }
+
+        $markets = $marketFilter ? [$marketFilter] : ['UK', 'US'];
+
+        // Lấy integrations theo market filter
+        $integrations = TikTokShopIntegration::query()
+            ->whereIn('additional_data->market', $markets)
+            ->get();
+
+        if ($integrations->isEmpty()) {
+            $this->warn('No UK or US TikTok Shop integration found. Please set up integrations first.');
             return 0;
         }
 
-        try {
-            if ($categoryId) {
-                // Sync specific category
-                $result = $this->syncCategoryAttributes($integration, $categoryId, $force, $hours, $locale);
+        $totalSynced = 0;
+        $totalSkipped = 0;
+        $totalErrors = 0;
 
-                if ($result) {
-                    $this->info("✅ Successfully synced attributes for category: {$categoryId}");
-                    return 0;
-                } else {
-                    $this->warn("⚠️  Skipped sync for category {$categoryId} (not needed). Use --force to override.");
-                    return 0;
-                }
-            } else {
-                // Sync all leaf categories
-                $result = $this->syncAllCategoryAttributes($integration, $force, $hours, $locale);
+        foreach ($integrations as $integration) {
+            $market = $integration->market;
+            $categoryVersion = $integration->getCategoryVersion();
 
-                if ($result) {
-                    $this->info("✅ Successfully synced attributes for all categories");
-                    return 0;
-                } else {
-                    $this->warn("⚠️  No categories needed sync. Use --force to override.");
-                    return 0;
-                }
+            $this->info("Processing {$market} market ({$categoryVersion})...");
+
+            if ($categoryVersionFilter && strtolower($categoryVersion) !== $categoryVersionFilter) {
+                $this->warn("⚠️  Skipped {$market} because category version does not match filter ({$categoryVersionFilter})");
+                $totalSkipped++;
+                continue;
             }
-        } catch (\Exception $e) {
-            $this->error("❌ Error syncing category attributes: " . $e->getMessage());
-            Log::error('TikTok category attributes sync error', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            return 1;
+
+            try {
+                if ($categoryId) {
+                    // Sync specific category
+                    $result = $this->syncCategoryAttributes($integration, $categoryId, $force, $hours, $locale, $categoryVersionFilter);
+
+                    if ($result) {
+                        $this->info("✅ Successfully synced attributes for category {$categoryId} in {$market} ({$categoryVersion})");
+                        $totalSynced++;
+                    } else {
+                        $this->warn("⚠️  Skipped sync for category {$categoryId} in {$market} ({$categoryVersion}) - not needed. Use --force to override.");
+                        $totalSkipped++;
+                    }
+                } else {
+                    // Sync all leaf categories
+                    $result = $this->syncAllCategoryAttributes($integration, $force, $hours, $locale, $categoryVersionFilter);
+
+                    if ($result) {
+                        $this->info("✅ Successfully synced attributes for all categories in {$market} ({$categoryVersion})");
+                        $totalSynced++;
+                    } else {
+                        $this->warn("⚠️  No categories needed sync in {$market} ({$categoryVersion}). Use --force to override.");
+                        $totalSkipped++;
+                    }
+                }
+            } catch (\Exception $e) {
+                $totalErrors++;
+                $this->error("❌ Error syncing category attributes for {$market} ({$categoryVersion}): " . $e->getMessage());
+                Log::error('TikTok category attributes sync error', [
+                    'market' => $market,
+                    'category_version' => $categoryVersion,
+                    'integration_id' => $integration->id,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+            }
         }
+
+        $this->newLine();
+        $this->info("Sync Summary:");
+        $this->info("  ✅ Successfully synced: {$totalSynced} markets");
+        $this->info("  ⏭️  Skipped: {$totalSkipped} markets");
+        $this->info("  ❌ Errors: {$totalErrors} markets");
+
+        return $totalErrors > 0 ? 1 : 0;
     }
 
     /**
      * Sync attributes cho một category cụ thể
      */
-    private function syncCategoryAttributes(TikTokShopIntegration $integration, string $categoryId, bool $force, int $hours, string $locale): bool
+    private function syncCategoryAttributes(TikTokShopIntegration $integration, string $categoryId, bool $force, int $hours, string $locale, ?string $categoryVersionOverride = null): bool
     {
-        // Kiểm tra xem có cần sync không
-        if (!$force && !TikTokCategoryAttribute::needsSync($categoryId, $hours)) {
-            $this->warn("Attributes for category {$categoryId} were synced recently. Use --force to override.");
+        $market = $integration->market ?? 'US';
+        $categoryVersion = strtolower($categoryVersionOverride ?: $integration->getCategoryVersion());
+
+        // Kiểm tra xem có cần sync không (với category_version)
+        if (!$force && !TikTokCategoryAttribute::needsSync($categoryId, $hours, $categoryVersion, $market)) {
+            $this->warn("Attributes for category {$categoryId} (version {$categoryVersion}) were synced recently. Use --force to override.");
             return false;
         }
 
-        // Kiểm tra xem category có tồn tại không
-        $category = TikTokShopCategory::where('category_id', $categoryId)->first();
+        // Kiểm tra xem category có tồn tại không (theo market và version)
+        $category = TikTokShopCategory::where('category_id', $categoryId)
+            ->where('market', $market)
+            ->where('category_version', $categoryVersion)
+            ->first();
         if (!$category) {
-            $this->warn("Category {$categoryId} not found in database. Please sync categories first.");
+            $this->warn("Category {$categoryId} not found in database for {$market} ({$categoryVersion}). Please sync categories first.");
             return false;
         }
 
@@ -121,44 +172,18 @@ class SyncTikTokCategoryAttributes extends Command
 
         $this->info("Retrieved " . count($attributes) . " attributes from TikTok Shop API");
 
-        // Log chi tiết attributes nhận được
-        Log::info('SyncTikTokCategoryAttributes: Attributes retrieved from API', [
-            'category_id' => $categoryId,
-            'category_name' => $category->category_name,
-            'attributes_count' => count($attributes),
-            'sample_attributes' => array_slice($attributes, 0, 3)
-        ]);
+        // Xóa attributes cũ của category này (theo category_version)
+        $deletedCount = TikTokCategoryAttribute::clearCategoryAttributes($categoryId, $categoryVersion, $market);
+        $this->info("Cleared {$deletedCount} old attributes for {$market} ({$categoryVersion})");
 
-        // Xóa attributes cũ của category này
-        $deletedCount = TikTokCategoryAttribute::clearCategoryAttributes($categoryId);
-        $this->info("Cleared {$deletedCount} old attributes");
-
-        // Lưu attributes mới
+        // Lưu attributes mới (với category_version)
         $savedCount = 0;
         foreach ($attributes as $attribute) {
-            TikTokCategoryAttribute::createOrUpdateFromApiData($categoryId, $attribute);
+            TikTokCategoryAttribute::createOrUpdateFromApiData($categoryId, $attribute, $market, $categoryVersion);
             $savedCount++;
         }
 
         $this->info("Saved {$savedCount} attributes to database");
-
-        // Log thành công với thống kê chi tiết
-        $requiredCount = TikTokCategoryAttribute::where('category_id', $categoryId)->where('is_required', true)->count();
-        $optionalCount = TikTokCategoryAttribute::where('category_id', $categoryId)->where('is_required', false)->count();
-        $productPropsCount = TikTokCategoryAttribute::where('category_id', $categoryId)->where('type', 'PRODUCT_PROPERTY')->count();
-        $salesPropsCount = TikTokCategoryAttribute::where('category_id', $categoryId)->where('type', 'SALES_PROPERTY')->count();
-
-        Log::info('TikTok category attributes synced successfully', [
-            'category_id' => $categoryId,
-            'category_name' => $category->category_name,
-            'total_attributes' => $savedCount,
-            'required_attributes' => $requiredCount,
-            'optional_attributes' => $optionalCount,
-            'product_properties' => $productPropsCount,
-            'sales_properties' => $salesPropsCount,
-            'synced_at' => now()->toISOString(),
-            'locale' => $locale
-        ]);
 
         return true;
     }
@@ -166,10 +191,17 @@ class SyncTikTokCategoryAttributes extends Command
     /**
      * Sync attributes cho tất cả leaf categories
      */
-    private function syncAllCategoryAttributes(TikTokShopIntegration $integration, bool $force, int $hours, string $locale): bool
+    private function syncAllCategoryAttributes(TikTokShopIntegration $integration, bool $force, int $hours, string $locale, ?string $categoryVersionOverride = null): bool
     {
-        // Lấy tất cả leaf categories
-        $leafCategories = TikTokShopCategory::where('is_leaf', true)->get();
+        $market = $integration->market ?? 'US';
+        $categoryVersion = strtolower($categoryVersionOverride ?: $integration->getCategoryVersion());
+
+        // Lấy tất cả leaf categories của market và version này
+        $leafCategories = TikTokShopCategory::where('market', $market)
+            ->where('category_version', $categoryVersion)
+            ->where('is_leaf', true)
+            ->where('is_active', true)
+            ->get();
 
         if ($leafCategories->isEmpty()) {
             $this->warn('No leaf categories found. Please sync categories first.');
@@ -189,7 +221,7 @@ class SyncTikTokCategoryAttributes extends Command
             try {
                 $progressBar->setMessage("Syncing {$category->category_name} ({$category->category_id})");
 
-                $result = $this->syncCategoryAttributes($integration, $category->category_id, $force, $hours, $locale);
+                $result = $this->syncCategoryAttributes($integration, $category->category_id, $force, $hours, $locale, $categoryVersionOverride);
 
                 if ($result) {
                     $syncedCount++;

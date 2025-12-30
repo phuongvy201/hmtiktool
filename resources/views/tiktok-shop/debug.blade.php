@@ -13,7 +13,7 @@
                 </a>
                 <div>
                     <h1 class="text-3xl font-bold text-white mb-2">Debug OAuth Flow</h1>
-                    <p class="text-gray-400">Thông tin chi tiết về quy trình OAuth cho team: <span class="text-blue-400 font-medium">{{ $integration->team->name }}</span></p>
+                    <p class="text-gray-400">Detailed information about the OAuth flow for team: <span class="text-blue-400 font-medium">{{ $integration->team->name }}</span></p>
                 </div>
             </div>
         </div>
@@ -29,7 +29,7 @@
                     Authorization URL
                 </h3>
                 <div class="bg-gray-700 rounded-lg p-4">
-                    <p class="text-sm text-gray-300 mb-2">URL để khách hàng ủy quyền:</p>
+                    <p class="text-sm text-gray-300 mb-2">URL for customer authorization:</p>
                     <div class="flex items-center">
                         <input type="text" value="{{ $oauthInfo['authorization_url'] }}" readonly 
                                class="flex-1 bg-gray-600 border border-gray-500 rounded-lg px-3 py-2 text-white text-sm">
@@ -50,7 +50,7 @@
                     Callback URL
                 </h3>
                 <div class="bg-gray-700 rounded-lg p-4">
-                    <p class="text-sm text-gray-300 mb-2">URL TikTok sẽ redirect về:</p>
+                    <p class="text-sm text-gray-300 mb-2">URL TikTok will redirect to:</p>
                     <div class="flex items-center">
                         <input type="text" value="{{ $oauthInfo['callback_url'] }}" readonly 
                                class="flex-1 bg-gray-600 border border-gray-500 rounded-lg px-3 py-2 text-white text-sm">
@@ -69,7 +69,7 @@
                 <svg class="w-5 h-5 mr-2 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                 </svg>
-                API Endpoint & Parameters
+                API endpoint & parameters
             </h3>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -109,7 +109,7 @@
                 <svg class="w-5 h-5 mr-2 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                 </svg>
-                Quy trình OAuth Flow
+                OAuth flow
             </h3>
             
             <div class="space-y-4">
@@ -132,7 +132,7 @@
                  <svg class="w-5 h-5 mr-2 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
                  </svg>
-                 Thông tin Validation
+                 Validation information
              </h3>
              
              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -140,10 +140,10 @@
                      <h4 class="text-md font-semibold text-blue-400 mb-3">Simple Validation:</h4>
                      <div class="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
                          <ul class="list-disc list-inside space-y-1 text-gray-300 text-sm">
-                             <li>Kiểm tra App Key và App Secret không được để trống</li>
-                             <li>Kiểm tra độ dài tối thiểu 10 ký tự</li>
-                             <li>Kiểm tra format App Key (chữ cái, số, dấu gạch ngang, dấu gạch dưới)</li>
-                             <li>Không gọi API, chỉ kiểm tra format</li>
+                             <li>Check App Key and App Secret are not empty</li>
+                             <li>Check minimum length of 10 characters</li>
+                             <li>Check format App Key (letters, numbers, hyphens, underscores)</li>
+                             <li>Do not call API, only check format</li>
                          </ul>
                      </div>
                  </div>
@@ -152,10 +152,10 @@
                      <h4 class="text-md font-semibold text-orange-400 mb-3">API Validation:</h4>
                      <div class="bg-orange-500/10 border border-orange-500/20 rounded-lg p-4">
                          <ul class="list-disc list-inside space-y-1 text-gray-300 text-sm">
-                             <li>Gọi API TikTok Shop để kiểm tra thực tế</li>
-                             <li>Gửi request với auth_code test</li>
-                             <li>Phân tích response để xác định tính hợp lệ</li>
-                             <li>Có thể gặp lỗi network hoặc API rate limit</li>
+                                <li>Call TikTok Shop API to test</li>
+                             <li>Send request with auth_code test</li>
+                             <li>Analyze response to determine validity</li>
+                             <li>May encounter network errors or API rate limit</li>    
                          </ul>
                      </div>
                  </div>
@@ -168,31 +168,31 @@
                  <svg class="w-5 h-5 mr-2 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
                  </svg>
-                 Xử lý lỗi thường gặp
+                 Error handling
              </h3>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <h4 class="text-md font-semibold text-red-400 mb-3">Lỗi 36004004 - Invalid Auth Code:</h4>
+                    <h4 class="text-md font-semibold text-red-400 mb-3">Error 36004004 - Invalid Auth Code:</h4>
                     <div class="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
-                        <p class="text-gray-300 text-sm mb-2"><strong>Nguyên nhân:</strong></p>
+                        <p class="text-gray-300 text-sm mb-2"><strong>Reason:</strong></p>
                         <ul class="list-disc list-inside space-y-1 text-gray-300 text-sm">
-                            <li>Auth code đã được sử dụng hoặc hết hạn</li>
-                            <li>Auth code không đúng format</li>
-                            <li>App key/secret không khớp với auth code</li>
+                            <li>Auth code has been used or expired</li>
+                            <li>Auth code is not in the correct format</li>
+                            <li>App key/secret does not match the auth code</li>
                         </ul>
-                        <p class="text-gray-300 text-sm mt-2"><strong>Giải pháp:</strong> Yêu cầu khách hàng thực hiện lại quy trình ủy quyền</p>
+                        <p class="text-gray-300 text-sm mt-2"><strong>Solution:</strong> Request the customer to re-perform the authorization process</p>
                     </div>
                 </div>
                 
                 <div>
-                    <h4 class="text-md font-semibold text-red-400 mb-3">Lỗi khác:</h4>
+                    <h4 class="text-md font-semibold text-red-400 mb-3">Other errors:</h4>
                     <div class="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
                         <ul class="list-disc list-inside space-y-1 text-gray-300 text-sm">
-                            <li><strong>10004:</strong> App key/secret không hợp lệ</li>
-                            <li><strong>10008:</strong> Access token hết hạn</li>
-                            <li><strong>10010:</strong> Refresh token hết hạn</li>
-                            <li><strong>10012:</strong> Không có quyền truy cập</li>
+                            <li><strong>10004:</strong> App key/secret is not valid</li>
+                            <li><strong>10008:</strong> Access token expired</li>
+                            <li><strong>10010:</strong> Refresh token expired</li>
+                            <li><strong>10012:</strong> No access permission</li>
                         </ul>
                     </div>
                 </div>
@@ -203,11 +203,11 @@
         <div class="flex items-center justify-end space-x-4 pt-6">
             <a href="{{ route('tiktok-shop.index') }}" 
                class="px-6 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors duration-200">
-                Quay lại
+                Back
             </a>
             <a href="{{ route('tiktok-shop.edit', $integration) }}" 
                class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors duration-200">
-                Chỉnh sửa tích hợp
+                        Edit integration
             </a>
         </div>
     </div>

@@ -19,18 +19,22 @@ class TikTokShopCategory extends Model
     protected $table = 'tiktok_shop_categories';
 
     protected $fillable = [
+        'market',
+        'category_version',
         'category_id',
         'category_name',
         'parent_category_id',
         'level',
         'is_leaf',
-        'metadata',
+        'is_active',
+        'category_data',
         'last_synced_at',
     ];
 
     protected $casts = [
-        'metadata' => 'array',
+        'category_data' => 'array',
         'is_leaf' => 'boolean',
+        'is_active' => 'boolean',
         'last_synced_at' => 'datetime',
     ];
 
@@ -63,6 +67,22 @@ class TikTokShopCategory extends Model
     }
 
     /**
+     * Scope để lọc theo market
+     */
+    public function scopeForMarket($query, string $market)
+    {
+        return $query->where('market', strtoupper($market));
+    }
+
+    /**
+     * Scope để lọc theo category version
+     */
+    public function scopeForVersion($query, string $version)
+    {
+        return $query->where('category_version', strtolower($version));
+    }
+
+    /**
      * Scope để lấy root categories (level 1)
      */
     public function scopeRootCategories($query)
@@ -73,30 +93,86 @@ class TikTokShopCategory extends Model
     /**
      * Lấy categories dưới dạng array cho select dropdown
      */
-    public static function getCategoriesArray(): array
+    public static function getCategoriesArray(?string $market = null, ?string $categoryVersion = null): array
     {
-        return static::leafCategories()
-            ->orderBy('category_name')
+        $query = static::leafCategories()->where('is_active', true);
+
+        if ($market) {
+            $query->forMarket($market);
+        }
+
+        if ($categoryVersion) {
+            $query->forVersion($categoryVersion);
+        }
+
+        return $query->orderBy('category_name')
             ->pluck('category_name', 'category_id')
             ->toArray();
     }
 
     /**
      * Lấy categories với hierarchy cho select dropdown
+     * Có cache để tránh query nhiều lần
      */
-    public static function getCategoriesWithHierarchy(): array
+    public static function getCategoriesWithHierarchy(?string $market = null, ?string $categoryVersion = null): array
     {
-        $categories = static::leafCategories()
-            ->orderBy('category_name')
-            ->get();
+        $cacheKey = sprintf(
+            'tiktok_categories_hierarchy_%s_%s',
+            $market ? strtolower($market) : 'all',
+            $categoryVersion ? strtolower($categoryVersion) : 'all'
+        );
 
-        $result = [];
-        foreach ($categories as $category) {
-            $hierarchy = static::getCategoryHierarchy($category->category_id);
-            $result[$category->category_id] = $hierarchy;
+        return \Illuminate\Support\Facades\Cache::remember($cacheKey, 3600, function () use ($market, $categoryVersion) {
+            $allCategoriesQuery = static::query();
+
+            if ($market) {
+                $allCategoriesQuery->forMarket($market);
+            }
+
+            if ($categoryVersion) {
+                $allCategoriesQuery->forVersion($categoryVersion);
+            }
+
+            $allCategoriesQuery->where('is_active', true);
+
+            // Lấy tất cả categories (bao gồm cả parent) một lần
+            $allCategories = $allCategoriesQuery
+                ->orderBy('category_name')
+                ->get()
+                ->keyBy('category_id');
+
+            // Lấy chỉ leaf categories
+            $leafCategories = $allCategories->where('is_leaf', true);
+
+            $result = [];
+            foreach ($leafCategories as $category) {
+                $hierarchy = static::buildHierarchyFromCache($category, $allCategories);
+                $result[$category->category_id] = $hierarchy;
+            }
+
+            return $result;
+        });
+    }
+
+    /**
+     * Build hierarchy từ cache (không query database)
+     */
+    private static function buildHierarchyFromCache($category, $allCategories): string
+    {
+        $hierarchy = [$category->category_name];
+        $currentCategory = $category;
+
+        while ($currentCategory->parent_category_id && $currentCategory->parent_category_id !== '0') {
+            $parent = $allCategories->get($currentCategory->parent_category_id);
+            if ($parent) {
+                array_unshift($hierarchy, $parent->category_name);
+                $currentCategory = $parent;
+            } else {
+                break;
+            }
         }
 
-        return $result;
+        return implode(' -> ', $hierarchy);
     }
 
     /**
@@ -126,9 +202,20 @@ class TikTokShopCategory extends Model
     /**
      * Kiểm tra xem categories có cần sync không (dựa trên thời gian)
      */
-    public static function needsSystemSync($hours = 24): bool
+    public static function needsSystemSync($hours = 24, ?string $market = null, ?string $categoryVersion = null): bool
     {
-        $lastSync = static::orderBy('last_synced_at', 'desc')
+        $query = static::query();
+
+        if ($market) {
+            $query->forMarket($market);
+        }
+
+        if ($categoryVersion) {
+            $query->forVersion($categoryVersion);
+        }
+
+        $lastSync = $query
+            ->orderBy('last_synced_at', 'desc')
             ->value('last_synced_at');
 
         if (!$lastSync) {

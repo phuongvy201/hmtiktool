@@ -4,20 +4,35 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Team;
+use App\Services\EmailVerificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
+    private EmailVerificationService $emailVerificationService;
+
+    public function __construct(EmailVerificationService $emailVerificationService)
+    {
+        $this->emailVerificationService = $emailVerificationService;
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
         $this->authorize('view-users');
+
+            // Seller is not authorized to view the list of team members
+        $user = Auth::user();
+        if ($user && $user->hasRole('seller')) {
+            abort(403, 'You are not authorized to view the list of team members.');
+        }
 
         $query = User::with(['roles', 'team']);
 
@@ -90,7 +105,20 @@ class UserController extends Controller
         $role = Role::find($validated['role_id']);
         $user->assignRole($role);
 
-        return redirect()->route('users.index')->with('success', 'Người dùng đã được tạo thành công.');
+        // Send verification email
+        try {
+            $sent = $this->emailVerificationService->sendVerificationEmail($user);
+            if ($sent) {
+                return redirect()->route('users.index')->with('success', 'User created successfully. Verification email sent.');
+            }
+        } catch (\Exception $e) {
+            Log::error('Failed to send verification email when creating user', [
+                'user_id' => $user->id,
+                'error' => $e->getMessage()
+            ]);
+        }
+
+        return redirect()->route('users.index')->with('success', 'User created successfully. Verification email not sent.');
     }
 
     /**
@@ -148,7 +176,7 @@ class UserController extends Controller
         $role = Role::find($validated['role_id']);
         $user->syncRoles([$role]);
 
-        return redirect()->route('users.index')->with('success', 'Người dùng đã được cập nhật thành công.');
+        return redirect()->route('users.index')->with('success', 'User updated successfully.');
     }
 
     /**
@@ -160,6 +188,6 @@ class UserController extends Controller
 
         $user->delete();
 
-        return redirect()->route('users.index')->with('success', 'Người dùng đã được xóa thành công.');
+        return redirect()->route('users.index')->with('success', 'User deleted successfully.');
     }
 }

@@ -26,6 +26,7 @@ class User extends Authenticatable
         'password',
         'team_id',
         'is_system_user',
+        'email_verified_at',
         'email_verification_token',
         'email_verification_expires_at',
         'avatar',
@@ -66,6 +67,39 @@ class User extends Authenticatable
     public function team()
     {
         return $this->belongsTo(Team::class);
+    }
+
+    /**
+     * Get TikTok markets assigned to this user
+     */
+    public function tiktokMarkets()
+    {
+        return $this->hasMany(UserTikTokMarket::class);
+    }
+
+    /**
+     * Get primary TikTok market for this user (first market assigned)
+     */
+    public function getPrimaryTikTokMarket(): ?string
+    {
+        $market = $this->tiktokMarkets()->first();
+        return $market ? $market->market : null;
+    }
+
+    /**
+     * Check if user has access to a specific market
+     */
+    public function hasTikTokMarket(string $market): bool
+    {
+        return $this->tiktokMarkets()->where('market', $market)->exists();
+    }
+
+    /**
+     * Get all markets assigned to this user as array
+     */
+    public function getTikTokMarkets(): array
+    {
+        return $this->tiktokMarkets()->pluck('market')->toArray();
     }
 
     /**
@@ -134,11 +168,7 @@ class User extends Authenticatable
      */
     public function getAvatarUrlAttribute()
     {
-        if ($this->avatar) {
-            return Storage::disk('public')->url($this->avatar);
-        }
-
-        // Return default avatar based on user's name
+        // Luôn dùng avatar mặc định
         $name = urlencode($this->name);
         return "https://ui-avatars.com/api/?name={$name}&color=7C3AED&background=1F2937&size=128&bold=true";
     }

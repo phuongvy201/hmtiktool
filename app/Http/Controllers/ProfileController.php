@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Http\Requests\PasswordUpdateRequest;
 use App\Http\Requests\AvatarUpdateRequest;
+use App\Services\EmailVerificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,18 +13,28 @@ use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
+use Illuminate\Support\Str;
 use App\Models\User;
 use App\Models\SystemSetting;
 
 class ProfileController extends Controller
 {
+    private EmailVerificationService $emailVerificationService;
+
+    public function __construct(EmailVerificationService $emailVerificationService)
+    {
+        $this->emailVerificationService = $emailVerificationService;
+    }
+
     /**
      * Display the user's profile form.
      */
     public function edit(Request $request): View
     {
-        $user = $request->user();
-        $user->load('roles', 'team');
+        // Refresh để luôn lấy trạng thái mới nhất (email_verified_at, avatar, ...).
+        $user = $request->user()->fresh(['roles', 'team', 'tiktokMarkets']);
+        $primaryMarket = $user->getPrimaryTikTokMarket();
+        $userMarkets = $user->getTikTokMarkets();
 
         // Lấy thông tin cấu hình hệ thống
         $systemSettings = [
@@ -32,7 +43,7 @@ class ProfileController extends Controller
             'session_timeout' => SystemSetting::getValue('session_timeout', 120),
         ];
 
-        return view('profile.edit', compact('user', 'systemSettings'));
+        return view('profile.edit', compact('user', 'systemSettings', 'primaryMarket', 'userMarkets'));
     }
 
     /**
@@ -53,7 +64,7 @@ class ProfileController extends Controller
 
         $user->save();
 
-        return Redirect::route('profile.edit')->with('success', 'Thông tin cá nhân đã được cập nhật thành công.');
+        return Redirect::route('profile.edit')->with('success', 'Profile information updated successfully.');
     }
 
     /**
@@ -65,7 +76,7 @@ class ProfileController extends Controller
 
         // Kiểm tra mật khẩu hiện tại
         if (!Hash::check($request->current_password, $user->password)) {
-            return back()->withErrors(['current_password' => 'Mật khẩu hiện tại không đúng.']);
+            return back()->withErrors(['current_password' => 'Current password is incorrect.']);
         }
 
         // Cập nhật mật khẩu mới
@@ -75,7 +86,7 @@ class ProfileController extends Controller
         // Logout tất cả session khác (optional)
         Auth::logoutOtherDevices($request->password);
 
-        return Redirect::route('profile.edit')->with('success', 'Mật khẩu đã được cập nhật thành công.');
+        return Redirect::route('profile.edit')->with('success', 'Password updated successfully.');
     }
 
     /**
@@ -83,23 +94,7 @@ class ProfileController extends Controller
      */
     public function updateAvatar(AvatarUpdateRequest $request): RedirectResponse
     {
-        $user = $request->user();
-
-        if ($request->hasFile('avatar')) {
-            // Xóa avatar cũ nếu có
-            if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
-                Storage::disk('public')->delete($user->avatar);
-            }
-
-            // Lưu avatar mới
-            $path = $request->file('avatar')->store('avatars', 'public');
-            $user->avatar = $path;
-            $user->save();
-
-            return Redirect::route('profile.edit')->with('success', 'Ảnh đại diện đã được cập nhật thành công.');
-        }
-
-        return Redirect::route('profile.edit')->with('error', 'Không có file ảnh được chọn.');
+        return Redirect::route('profile.edit')->with('error', 'Avatar update function is disabled. Avatar always uses default.');
     }
 
     /**
@@ -107,17 +102,57 @@ class ProfileController extends Controller
      */
     public function deleteAvatar(Request $request): RedirectResponse
     {
-        $user = $request->user();
+        return Redirect::route('profile.edit')->with('error', 'Avatar update function is disabled. Avatar always uses default.');
+    }
 
-        if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
-            Storage::disk('public')->delete($user->avatar);
-            $user->avatar = null;
-            $user->save();
-
-            return Redirect::route('profile.edit')->with('success', 'Ảnh đại diện đã được xóa.');
+    /**
+     * Delete avatar from S3 if it belongs to our bucket.
+     */
+    private function deleteAvatarFromS3IfPossible(?string $avatarPathOrUrl): void
+    {
+        if (!$avatarPathOrUrl) {
+            return;
         }
 
-        return Redirect::route('profile.edit')->with('error', 'Không có ảnh đại diện để xóa.');
+        $disk = Storage::disk('s3');
+
+        // Convert URL to relative path to delete
+        $relativePath = $avatarPathOrUrl;
+        if (str_starts_with($avatarPathOrUrl, 'http')) {
+            $parsed = parse_url($avatarPathOrUrl);
+            $relativePath = isset($parsed['path']) ? ltrim($parsed['path'], '/') : '';
+        }
+
+        if ($relativePath && $disk->exists($relativePath)) {
+            $disk->delete($relativePath);
+        }
+    }
+
+    /**
+     * Build public S3 URL, supporting custom endpoint/AWS_URL.
+     */
+    private function makeS3PublicUrl(string $path): string
+    {
+        $customUrl = rtrim(
+            config('filesystems.disks.s3.url')
+                ?? config('filesystems.disks.s3.endpoint')
+                ?? env('AWS_URL', ''),
+            '/'
+        );
+
+        if (!empty($customUrl)) {
+            return $customUrl . '/' . ltrim($path, '/');
+        }
+
+        $bucket = config('filesystems.disks.s3.bucket');
+        $region = config('filesystems.disks.s3.region');
+
+        if (!empty($bucket) && !empty($region)) {
+            return "https://{$bucket}.s3.{$region}.amazonaws.com/" . ltrim($path, '/');
+        }
+
+        // Fallback to disk URL
+        return Storage::disk('s3')->url($path);
     }
 
     /**
@@ -127,7 +162,7 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        // Lấy hoạt động gần đây (có thể implement sau)
+        // Get recent activities (can be implemented later)
         $activities = collect(); // Placeholder cho activity log
 
         return view('profile.activity', compact('user', 'activities'));
@@ -140,9 +175,9 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        // Lấy thông tin bảo mật
+        // Get security information
         $securityInfo = [
-            'last_login' => $user->last_login_at ?? 'Chưa đăng nhập',
+            'last_login' => $user->last_login_at ?? 'Not logged in',
             'login_count' => $user->login_count ?? 0,
             'two_factor_enabled' => $user->two_factor_enabled ?? false,
             'email_verified' => !is_null($user->email_verified_at),
@@ -161,8 +196,8 @@ class ProfileController extends Controller
         $user->two_factor_enabled = !$user->two_factor_enabled;
         $user->save();
 
-        $status = $user->two_factor_enabled ? 'bật' : 'tắt';
-        return Redirect::route('profile.security')->with('success', "Xác thực 2 yếu tố đã được {$status}.");
+        $status = $user->two_factor_enabled ? 'enabled' : 'disabled';
+        return Redirect::route('profile.security')->with('success', "Two-factor authentication has been {$status}.");
     }
 
     /**
@@ -177,15 +212,13 @@ class ProfileController extends Controller
         $user = $request->user();
 
         if (!Hash::check($request->password, $user->password)) {
-            return back()->withErrors(['password' => 'Mật khẩu không đúng.']);
+            return back()->withErrors(['password' => 'Password is incorrect.']);
         }
 
-        // Xóa avatar nếu có
-        if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
-            Storage::disk('public')->delete($user->avatar);
-        }
+        // Delete avatar if it exists
+        $this->deleteAvatarFromS3IfPossible($user->avatar);
 
-        // Xóa tài khoản
+        // Delete account
         $user->delete();
 
         $request->session()->invalidate();
@@ -201,7 +234,7 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        // Lấy thông báo (có thể implement sau)
+        // Get notifications (can be implemented later)
         $notifications = collect(); // Placeholder cho notifications
 
         return view('profile.notifications', compact('user', 'notifications'));
@@ -213,7 +246,7 @@ class ProfileController extends Controller
     public function markNotificationAsRead(Request $request, $id): RedirectResponse
     {
         // Implement notification marking logic
-        return Redirect::route('profile.notifications')->with('success', 'Đã đánh dấu thông báo là đã đọc.');
+        return Redirect::route('profile.notifications')->with('success', 'Notification marked as read.');
     }
 
     /**
@@ -224,8 +257,29 @@ class ProfileController extends Controller
         $user = $request->user();
 
         // Implement data export logic
-        // Có thể tạo job để export data
+        // Can create job to export data
 
-        return Redirect::route('profile.edit')->with('success', 'Yêu cầu xuất dữ liệu đã được gửi. Bạn sẽ nhận được email khi hoàn thành.');
+        return Redirect::route('profile.edit')->with('success', 'Data export request has been sent. You will receive an email when it is complete.');
+    }
+
+    /**
+     * Send verification email for authenticated user
+     */
+    public function sendVerificationEmail(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        // Check if already verified
+        if ($user->email_verified_at) {
+            return Redirect::route('profile.edit')->with('info', 'Email has been verified       before.');
+        }
+
+        $sent = $this->emailVerificationService->sendVerificationEmail($user);
+
+        if ($sent) {
+            return Redirect::route('profile.edit')->with('success', 'Verification email has been sent. Please check your inbox.');
+        } else {
+            return Redirect::route('profile.edit')->with('error', 'Unable to send verification email. Please try again later.');
+        }
     }
 }

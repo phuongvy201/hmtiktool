@@ -168,13 +168,23 @@ class TikTokOrderService
         // Nếu không có body parameters nào, thêm một filter mặc định để signature hoạt động
         // TikTok Order API yêu cầu ít nhất một body parameter để signature generation hoạt động
         if (empty($bodyParams)) {
-            // Thêm filter thời gian mặc định (30 ngày gần đây)
-            $thirtyDaysAgo = strtotime('-30 days');
-            $bodyParams['create_time_ge'] = $thirtyDaysAgo;
+            // Thử dùng update_time_ge thay vì create_time_ge để lấy đơn hàng đã được cập nhật gần đây
+            // Ưu tiên update_time vì nó sẽ lấy được cả đơn hàng cũ nhưng mới được cập nhật
+            $ninetyDaysAgo = strtotime('-90 days');
+
+            // Dùng cả create_time_ge và update_time_ge để lấy được nhiều đơn hàng hơn
+            $bodyParams['update_time_ge'] = $ninetyDaysAgo;
+            // Không dùng create_time_ge để tránh bỏ sót đơn hàng cũ nhưng mới update
 
             Log::info('No filters provided, adding default time filter for signature generation', [
-                'default_filter' => ['create_time_ge' => $thirtyDaysAgo],
-                'note' => 'TikTok Order API requires at least one body parameter for signature to work'
+                'default_filter' => [
+                    'update_time_ge' => $ninetyDaysAgo,
+                    'update_time_ge_formatted' => date('Y-m-d H:i:s', $ninetyDaysAgo),
+                    'current_time' => date('Y-m-d H:i:s'),
+                    'days_ago' => 90,
+                    'note' => 'Using update_time_ge instead of create_time_ge to catch recently updated orders'
+                ],
+                'note' => 'TikTok Order API requires at least one body parameter for signature to work. Using update_time_ge (90 days ago) as default filter.'
             ]);
         }
 
@@ -338,7 +348,7 @@ class TikTokOrderService
         return [
             'tiktok_shop_id' => $shopId,
             'order_id' => $orderData['id'] ?? $orderData['order_id'] ?? null,
-            'order_number' => $orderData['order_number'] ?? null,
+            'order_number' => $orderData['order_number'] ?? $orderData['order_no'] ?? $orderData['display_order_number'] ?? null,
             'order_status' => $orderData['status'] ?? $orderData['order_status'] ?? null,
             'buyer_user_id' => $orderData['user_id'] ?? $orderData['buyer_user_id'] ?? null,
             'buyer_username' => $orderData['buyer_username'] ?? null,

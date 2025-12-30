@@ -6,29 +6,29 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                 </svg>
             </div>
-            <h3 class="text-lg font-semibold text-white">Quản lý Sản phẩm</h3>
+            <h3 class="text-lg font-semibold text-white">Product Management</h3>
         </div>
-        <p class="text-gray-400 mb-4">Quản lý template và sản phẩm của team</p>
+        <p class="text-gray-400 mb-4">Manage team templates and products</p>
         
         <div class="space-y-3">
             @can('view-product-templates')
             <a href="{{ route('product-templates.index') }}" 
                class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center text-sm">
-                <i class="fas fa-layer-group mr-2"></i>Quản lý Templates
+                <i class="fas fa-layer-group mr-2"></i>Manage Templates
             </a>
             @endcan
             
             @can('view-products')
             <a href="{{ route('products.index') }}" 
                class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center text-sm">
-                <i class="fas fa-box mr-2"></i>Quản lý Sản phẩm
+                <i class="fas fa-box mr-2"></i>Manage Products
             </a>
             @endcan
             
             @can('create-products')
             <a href="{{ route('products.create') }}" 
                class="block w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center text-sm">
-                <i class="fas fa-plus mr-2"></i>Tạo sản phẩm mới
+                <i class="fas fa-plus mr-2"></i>Create New Product
             </a>
             @endcan
         </div>
@@ -42,7 +42,7 @@
                 </div>
                 <div class="text-center">
                     <div class="text-green-400 font-semibold">{{ $productCount ?? 0 }}</div>
-                    <div class="text-gray-500">Sản phẩm</div>
+                    <div class="text-gray-500">Products</div>
                 </div>
             </div>
         </div>

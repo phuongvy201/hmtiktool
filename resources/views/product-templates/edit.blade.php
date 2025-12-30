@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Chỉnh sửa Product Template')
+@section('title', 'Edit Product Template')
 
 @php
     // Helper function to safely handle array/string fields
@@ -46,8 +46,8 @@
                     </svg>
                 </a>
                 <div>
-                    <h1 class="text-3xl font-bold text-white mb-2">Chỉnh sửa Product Template</h1>
-                    <p class="text-gray-400">Cập nhật thông tin template sản phẩm và quản lý variants</p>
+                    <h1 class="text-3xl font-bold text-white mb-2">Edit Product Template</h1>
+                    <p class="text-gray-400">Update product template information and manage variants</p>
                 </div>
             </div>
         </div>
@@ -62,7 +62,7 @@
                     </div>
                 @endif
 
-                <form method="POST" action="{{ route('product-templates.update', $productTemplate) }}" enctype="multipart/form-data">
+                <form id="templateEditForm" method="POST" action="{{ route('product-templates.update', $productTemplate) }}" enctype="multipart/form-data" onsubmit="return handleAttributesSubmit(this);">
                     @csrf
                     @method('PUT')
                     
@@ -72,12 +72,12 @@
                             <svg class="w-5 h-5 mr-2 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                             </svg>
-                            Thông tin cơ bản
+                            Basic Information
                         </h3>
                         
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
-                                <label for="name" class="block text-sm font-medium text-gray-300 mb-2">Tên sản phẩm *</label>
+                                <label for="name" class="block text-sm font-medium text-gray-300 mb-2">Product Name *</label>
                                 <input type="text" id="name" name="name" value="{{ old('name', safeValue($productTemplate->name)) }}" required
                                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 @error('name') border-red-500 @enderror">
                                 @error('name')
@@ -86,7 +86,7 @@
                             </div>
                             
                             <div>
-                                <label for="base_price" class="block text-sm font-medium text-gray-300 mb-2">Giá cơ bản (VNĐ) *</label>
+                                <label for="base_price" class="block text-sm font-medium text-gray-300 mb-2">Base Price  *</label>
                                 <input type="number" id="base_price" name="base_price" step="0.01" value="{{ old('base_price', safeValue($productTemplate->base_price)) }}" required
                                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 @error('base_price') border-red-500 @enderror">
                                 @error('base_price')
@@ -95,7 +95,7 @@
                             </div>
                             
                             <div>
-                                <label for="list_price" class="block text-sm font-medium text-gray-300 mb-2">Giá niêm yết (VNĐ)</label>
+                                <label for="list_price" class="block text-sm font-medium text-gray-300 mb-2">List Price (Optional) </label>
                                 <input type="number" id="list_price" name="list_price" step="0.01" value="{{ old('list_price', safeValue($productTemplate->list_price)) }}"
                                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 @error('list_price') border-red-500 @enderror">
                                 @error('list_price')
@@ -105,17 +105,17 @@
                         </div>
                         
                         <div class="mt-4">
-                            <label for="category_search" class="block text-sm font-medium text-gray-300 mb-2">Tìm kiếm danh mục</label>
+                            <label for="category_search" class="block text-sm font-medium text-gray-300 mb-2">Search Category</label>
                             <div class="relative">
                                 <input type="text" id="category_search" name="category_search" 
-                                       placeholder="Nhập từ khóa tìm kiếm (ví dụ: T-shirt, Phone, Computer...)"
+                                       placeholder="Enter search keyword (e.g. T-shirt, Phone, Computer...)"
                                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 @error('category') border-red-500 @enderror">
                                 <input type="hidden" id="category" name="category" value="{{ old('category', $productTemplate->category_id) }}">
                                 
                                 <!-- Search results dropdown -->
                                 <div id="category_results" class="absolute z-50 w-full mt-1 bg-gray-800 border border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto hidden">
                                     <div class="p-2 text-gray-400 text-sm border-b border-gray-600">
-                                        Kết quả tìm kiếm: <span id="results_count">0</span>
+                                        Search Results: <span id="results_count">0</span>
                                     </div>
                                     <div id="results_list" class="p-0">
                                         <!-- Results will be populated here -->
@@ -127,7 +127,7 @@
                             <div id="selected_category_display" class="mt-2 p-2 bg-gray-800 rounded-lg border border-gray-600 {{ $productTemplate->category_id ? '' : 'hidden' }}">
                                 <div class="flex items-center justify-between">
                                     <span class="text-white text-sm">
-                                        <strong>Danh mục đã chọn:</strong> 
+                                        <strong>Selected Category:</strong> 
                                         <span id="selected_category_name">{{ $categories[$productTemplate->category_id] ?? '' }}</span>
                                     </span>
                                     <button type="button" id="clear_category" class="text-red-400 hover:text-red-300 text-sm">
@@ -144,14 +144,14 @@
                                     <svg class="w-4 h-4 mr-2 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                     </svg>
-                                    Thuộc tính danh mục
+                                        Category Attributes
                                 </h4>
                                 
                                 <!-- Loading indicator -->
                                 <div id="attributes_loading" class="hidden">
                                     <div class="flex items-center justify-center p-4">
                                         <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-                                        <span class="ml-2 text-gray-300">Đang tải thuộc tính...</span>
+                                        <span class="ml-2 text-gray-300">Loading attributes...</span>
                                     </div>
                                 </div>
 
@@ -161,7 +161,7 @@
                                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
                                         </svg>
-                                        Thuộc tính bắt buộc
+                                        Required Attributes
                                     </h5>
                                     <div id="required_attributes_list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                                         <!-- Required attributes will be loaded here -->
@@ -173,8 +173,8 @@
                                     <h5 class="text-sm font-medium text-gray-400 mb-2 flex items-center">
                                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                        </svg>
-                                        Thuộc tính tùy chọn
+                                                </svg>
+                                                    Optional Attributes
                                     </h5>
                                     <div id="optional_attributes_list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                                         <!-- Optional attributes will be loaded here -->
@@ -187,7 +187,7 @@
                                         <svg class="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                         </svg>
-                                        <p>Không có thuộc tính nào cho danh mục này</p>
+                                        <p>No attributes found for this category</p>
                                     </div>
                                 </div>
                             </div>
@@ -198,12 +198,12 @@
                         </div>
                         
                         <div class="mt-4">
-                            <label for="description" class="block text-sm font-medium text-gray-300 mb-2">Mô tả</label>
+                            <label for="description" class="block text-sm font-medium text-gray-300 mb-2">Description</label>
                             <textarea id="description" name="description" rows="5" 
                                       class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 @error('description') border-red-500 @enderror whitespace-pre-wrap"
-                                      placeholder="Nhập mô tả sản phẩm...&#10;&#10;Ví dụ:&#10;• Chất liệu: 100% cotton&#10;• Kiểu dáng: Regular fit&#10;• Màu sắc: Đen, Trắng, Xanh">{{ old('description', safeFieldValue($productTemplate->description)) }}</textarea>
+                                      placeholder="Enter product description...&#10;&#10;Example:&#10;• Material: 100% cotton&#10;• Style: Regular fit&#10;• Color: Black, White, Blue">{{ old('description', safeFieldValue($productTemplate->description)) }}</textarea>
                             <div class="mt-2 text-xs text-gray-400">
-                                <p>💡 <strong>Mẹo:</strong> Sử dụng Enter để xuống dòng, dấu • để tạo danh sách</p>
+                                <p>💡 <strong>Tip:</strong> Use Enter to create a new line, • to create a list</p>
                             </div>
                             @error('description')
                                 <p class="text-red-400 text-sm mt-1">{{ $message }}</p>
@@ -217,12 +217,12 @@
                             <svg class="w-5 h-5 mr-2 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
                             </svg>
-                            Kích thước & Trọng lượng
+                            Dimensions & Weight
                         </h3>
                         
                         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                             <div>
-                                <label for="weight" class="block text-sm font-medium text-gray-300 mb-2">Trọng lượng (kg)</label>
+                                <label for="weight" class="block text-sm font-medium text-gray-300 mb-2">Weight (kg)</label>
                                 <input type="number" id="weight" name="weight" step="0.01" value="{{ old('weight', safeValue($productTemplate->weight)) }}"
                                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 @error('weight') border-red-500 @enderror">
                                 @error('weight')
@@ -231,7 +231,7 @@
                             </div>
                             
                             <div>
-                                <label for="height" class="block text-sm font-medium text-gray-300 mb-2">Chiều cao (cm)</label>
+                                <label for="height" class="block text-sm font-medium text-gray-300 mb-2">Height (cm)</label>
                                 <input type="number" id="height" name="height" step="0.01" value="{{ old('height', safeValue($productTemplate->height)) }}"
                                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 @error('height') border-red-500 @enderror">
                                 @error('height')
@@ -240,7 +240,7 @@
                             </div>
                             
                             <div>
-                                <label for="width" class="block text-sm font-medium text-gray-300 mb-2">Chiều rộng (cm)</label>
+                                <label for="width" class="block text-sm font-medium text-gray-300 mb-2">Width (cm)</label>
                                 <input type="number" id="width" name="width" step="0.01" value="{{ old('width', safeValue($productTemplate->width)) }}"
                                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 @error('width') border-red-500 @enderror">
                                 @error('width')
@@ -249,7 +249,7 @@
                             </div>
                             
                             <div>
-                                <label for="length" class="block text-sm font-medium text-gray-300 mb-2">Chiều dài (cm)</label>
+                                <label for="length" class="block text-sm font-medium text-gray-300 mb-2">Length (cm)</label>
                                 <input type="number" id="length" name="length" step="0.01" value="{{ old('length', safeValue($productTemplate->length)) }}"
                                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 @error('length') border-red-500 @enderror">
                                 @error('length')
@@ -265,7 +265,7 @@
                             <svg class="w-5 h-5 mr-2 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                             </svg>
-                            Hình ảnh & Video
+                            Images & Video
                         </h3>
                         
                         <div class="grid grid-cols-1 gap-4">
@@ -276,7 +276,7 @@
                                     :multiple="true"
                                     :maxFiles="10"
                                     :existingImages="old('images', $productTemplate->images ?? [])"
-                                    label="Hình ảnh sản phẩm"
+                                    label="Product Images"
                                 />
                                 @error('images')
                                     <p class="text-red-400 text-sm mt-1">{{ $message }}</p>
@@ -286,12 +286,12 @@
                             <!-- Size Chart and Video -->
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label for="size_chart_file" class="block text-sm font-medium text-gray-300 mb-2">Bảng size</label>
+                                        <label for="size_chart_file" class="block text-sm font-medium text-gray-300 mb-2">Size Chart</label>
                                     <input type="file" id="size_chart_file" name="size_chart_files[]" accept="image/*"
                                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 @error('size_chart_files') border-red-500 @enderror">
                                     @if($productTemplate->size_chart)
                                         <div class="mt-2 p-2 bg-gray-700 rounded border border-gray-600">
-                                            <p class="text-sm text-gray-300 mb-1">Bảng size hiện tại:</p>
+                                            <p class="text-sm text-gray-300 mb-1">Current size chart:</p>
                                             <img src="{{ $productTemplate->size_chart }}" alt="Current size chart" class="max-w-full h-32 object-contain rounded">
                                         </div>
                                     @endif
@@ -301,15 +301,15 @@
                                 </div>
                                 
                                 <div>
-                                    <label for="product_video_file" class="block text-sm font-medium text-gray-300 mb-2">Video sản phẩm</label>
+                                    <label for="product_video_file" class="block text-sm font-medium text-gray-300 mb-2">Product Video</label>
                                     <input type="file" id="product_video_file" name="product_video_files[]" accept="video/*"
                                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 @error('product_video_files') border-red-500 @enderror">
                                     @if($productTemplate->product_video)
                                         <div class="mt-2 p-2 bg-gray-700 rounded border border-gray-600">
-                                            <p class="text-sm text-gray-300 mb-1">Video hiện tại:</p>
+                                            <p class="text-sm text-gray-300 mb-1">Current video:</p>
                                             <video controls class="max-w-full h-32 rounded">
                                                 <source src="{{ $productTemplate->product_video }}" type="video/mp4">
-                                                Trình duyệt của bạn không hỗ trợ video.
+                                                Your browser does not support the video format.
                                             </video>
                                         </div>
                                     @endif
@@ -328,10 +328,10 @@
                             <svg class="w-5 h-5 mr-2 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
                             </svg>
-                            Tùy chọn hiện tại
+                            Current Options
                         </h3>
                         <div class="bg-gray-700 rounded-lg p-4">
-                            <p class="text-gray-300 mb-4">Các tùy chọn và variants đã được tạo. Bạn có thể chỉnh sửa thông tin variants bên dưới.</p>
+                            <p class="text-gray-300 mb-4">The options and variants have been created. You can edit the variant information below.</p>
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 @foreach($productTemplate->options as $option)
                                     <div class="bg-gray-600 p-3 rounded border border-gray-500">
@@ -345,7 +345,44 @@
                                 @endforeach
                             </div>
                             <div class="mt-4">
-                                <p class="text-sm text-gray-400">Tổng cộng: {{ $productTemplate->variants->count() }} variants</p>
+                                <p class="text-sm text-gray-400">Total: {{ $productTemplate->variants->count() }} variants</p>
+                            </div>
+                        </div>
+                        <!-- Edit Current Options (rename/add values) -->
+                        <div class="bg-gray-700 rounded-lg p-4 mt-4 border border-gray-600">
+                            <div class="flex items-center justify-between mb-3">
+                                <h4 class="text-white font-medium flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                    </svg>
+                                    Edit Current Options
+                                </h4>
+                                <p class="text-xs text-gray-400">Rename options, rename values, or add new values</p>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                @foreach($productTemplate->options as $option)
+                                    <div class="bg-gray-800 border border-gray-700 rounded-lg p-3">
+                                        <label class="block text-xs font-semibold text-gray-300 mb-2">Option name</label>
+                                        <input type="text" name="options_edit[{{ $option->id }}][name]" value="{{ $option->name }}"
+                                               class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                                        <div class="mt-3 space-y-2">
+                                            <p class="text-xs text-gray-400 font-semibold">Values</p>
+                                            @foreach($option->values as $value)
+                                                <input type="text"
+                                                       name="options_edit[{{ $option->id }}][values][{{ $value->id }}]"
+                                                       value="{{ $value->value }}"
+                                                       class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                                            @endforeach
+                                            <div id="new-values-{{ $option->id }}" class="space-y-2"></div>
+                                            <button type="button"
+                                                    class="mt-1 px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs transition-colors"
+                                                    onclick="addNewOptionValue({{ $option->id }})">
+                                                + Add value
+                                            </button>
+                                        </div>
+                                        <p class="text-[11px] text-gray-400 mt-2">Note: removing values here is not supported; leave blank to keep unchanged.</p>
+                                    </div>
+                                @endforeach
                             </div>
                         </div>
                     </div>
@@ -359,16 +396,16 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                             </svg>
-                            Quản lý Variants
+                            Manage Variants
                         </h3>
                         
                         <div class="bg-gray-700 rounded-lg p-4 mb-4">
                             <div class="flex items-center justify-between mb-4">
                                 <div>
                                     <p class="text-gray-300 text-sm">
-                                        Tổng số variants: <span class="font-bold text-yellow-400">{{ $productTemplate->variants->count() }}</span>
+                                        Total variants: <span class="font-bold text-yellow-400">{{ $productTemplate->variants->count() }}</span>
                                     </p>
-                                    <p class="text-gray-400 text-xs">Quản lý thông tin giá, số lượng và hình ảnh cho từng variant</p>
+                                    <p class="text-gray-400 text-xs">Manage price, quantity and images for each variant</p>
                                 </div>
                                 <button type="button" id="setBulkPriceBtn" class="px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg text-sm transition-colors duration-200 flex items-center">
                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -385,31 +422,41 @@
                                 <svg class="w-4 h-4 mr-2 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                 </svg>
-                                Chỉnh sửa thông minh
+                                Smart Edit
                             </h4>
                             
                             <!-- Quick Selection Tools -->
                             <div class="bg-gray-600 rounded-lg p-3 mb-4">
-                                <h5 class="text-white font-medium mb-3">Công cụ chọn nhanh</h5>
+                                <h5 class="text-white font-medium mb-3">Quick Selection Tools</h5>
                                 <div class="flex flex-wrap gap-2">
                                     <button type="button" id="selectAllBtn" class="px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded text-sm transition-colors">
-                                        Chọn tất cả
+                                        Select All
                                     </button>
                                     <button type="button" id="selectNoneBtn" class="px-3 py-1 bg-gray-600 hover:bg-gray-500 text-white rounded text-sm transition-colors">
-                                        Bỏ chọn tất cả
+                                            Select None
                                     </button>
                                     <button type="button" id="selectInverseBtn" class="px-3 py-1 bg-purple-600 hover:bg-purple-500 text-white rounded text-sm transition-colors">
-                                        Đảo ngược lựa chọn
+                                        Inverse Selection
                                     </button>
                                     <span class="text-sm text-gray-300 ml-2">
-                                        Đã chọn: <span id="selectedCount" class="font-medium text-blue-400">0</span> variants
+                                        Selected: <span id="selectedCount" class="font-medium text-blue-400">0</span> variants
                                     </span>
                                 </div>
                             </div>
                             
                             <!-- Smart Filters -->
                             <div class="bg-gray-600 rounded-lg p-3 mb-4">
-                                <h5 class="text-white font-medium mb-3">Bộ lọc thông minh</h5>
+                                <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
+                                    <h5 class="text-white font-medium">Smart Filters</h5>
+                                    <div class="flex items-center gap-2">
+                                        <button type="button" onclick="selectAllFilterValues()" class="px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded text-sm transition-colors">
+                                            Select all values
+                                        </button>
+                                        <button type="button" onclick="clearAllFilterValues()" class="px-3 py-1 bg-gray-600 hover:bg-gray-500 text-white rounded text-sm transition-colors">
+                                            Clear values
+                                        </button>
+                                    </div>
+                                </div>
                                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3" id="smartFilters">
                                     <!-- Smart filters will be generated here -->
                                 </div>
@@ -427,43 +474,43 @@
                                         </div>
                                         <div class="flex space-x-2">
                                             <button type="button" id="applyMultiSelection" class="px-3 py-1 bg-purple-600 hover:bg-purple-500 text-white rounded text-sm transition-colors">
-                                                Áp dụng lựa chọn
+                                                Apply Selection
                                             </button>
                                             <button type="button" id="clearMultiSelection" class="px-3 py-1 bg-gray-500 hover:bg-gray-400 text-white rounded text-sm transition-colors">
-                                                Xóa lựa chọn
+                                                Clear Selection
                                             </button>
                                         </div>
                                     </div>
                                     <div class="text-sm text-gray-300">
-                                        Đã chọn: <span id="multiSelectionCount" class="font-medium text-purple-400">0</span> giá trị
+                                        Selected: <span id="multiSelectionCount" class="font-medium text-purple-400">0</span> values
                                     </div>
                                 </div>
                             </div>
                             
                             <!-- Bulk Edit Form -->
                             <div class="bg-gray-600 rounded-lg p-3 mb-4">
-                                <h5 class="text-white font-medium mb-3">Chỉnh sửa hàng loạt</h5>
+                                <h5 class="text-white font-medium mb-3">Bulk Edit</h5>
                                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-300 mb-1">Giá bán (VNĐ)</label>
+                                        <label class="block text-sm font-medium text-gray-300 mb-1">Sale Price </label>
                                         <input type="number" id="bulkPrice" step="0.01" 
                                                class="w-full bg-gray-700 border border-gray-500 rounded px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
-                                               placeholder="Nhập giá">
+                                                placeholder="Enter price">
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-300 mb-1">Giá niêm yết (VNĐ)</label>
+                                        <label class="block text-sm font-medium text-gray-300 mb-1">List Price (Optional) </label>
                                         <input type="number" id="bulkListPrice" step="0.01" 
                                                class="w-full bg-gray-700 border border-gray-500 rounded px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
-                                               placeholder="Nhập giá niêm yết">
+                                               placeholder="Enter list price">
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-300 mb-1">Số lượng</label>
+                                        <label class="block text-sm font-medium text-gray-300 mb-1">Quantity</label>
                                         <input type="number" id="bulkQuantity" min="0" 
                                                class="w-full bg-gray-700 border border-gray-500 rounded px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
-                                               placeholder="Nhập số lượng">
+                                               placeholder="Enter quantity">
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-300 mb-1">Hình ảnh bulk</label>
+                                        <label class="block text-sm font-medium text-gray-300 mb-1">Bulk Images</label>
                                         <input type="file" id="bulkImages" name="bulk_images_files[]" accept="image/*" multiple
                                                class="w-full bg-gray-700 border border-gray-500 rounded px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500">
                                     </div>
@@ -472,14 +519,14 @@
                                 <div class="flex items-center justify-between mt-3 pt-3 border-t border-gray-500">
                                     <div class="flex space-x-2">
                                         <button type="button" id="applyBulkEdit" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded text-sm transition-colors">
-                                            Áp dụng cho variants đã chọn
+                                            Apply to selected variants
                                         </button>
                                         <button type="button" id="applyBulkEditAll" class="px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded text-sm transition-colors">
-                                            Áp dụng cho tất cả
+                                            Apply to all
                                         </button>
                                     </div>
                                     <button type="button" id="clearBulkForm" class="px-3 py-1 bg-gray-500 hover:bg-gray-400 text-white rounded text-sm transition-colors">
-                                        Xóa form
+                                        Clear form
                                     </button>
                                 </div>
                             </div>
@@ -492,12 +539,12 @@
                                     <h4 class="text-lg font-semibold text-white mb-4">Set Bulk Price</h4>
                                     <div class="space-y-4">
                                         <div>
-                                            <label class="block text-sm font-medium text-gray-300 mb-2">Giá (VNĐ)</label>
+                                            <label class="block text-sm font-medium text-gray-300 mb-2">Price </label>
                                             <input type="number" id="modalBulkPrice" step="0.01" 
                                                    class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500">
                                         </div>
                                         <div>
-                                            <label class="block text-sm font-medium text-gray-300 mb-2">Giá niêm yết (VNĐ) - Tùy chọn</label>
+                                            <label class="block text-sm font-medium text-gray-300 mb-2">List Price (Optional)  - Optional</label>
                                             <input type="number" id="modalBulkListPrice" step="0.01" 
                                                    class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500">
                                         </div>
@@ -505,11 +552,11 @@
                                     <div class="flex justify-end space-x-3 mt-6">
                                         <button type="button" id="cancelBulkPrice" 
                                                 class="px-4 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors duration-200">
-                                            Hủy
+                                            Cancel
                                         </button>
                                         <button type="button" id="applyBulkPrice" 
                                                 class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition-colors duration-200">
-                                            Áp dụng
+                                                Apply Price
                                         </button>
                                     </div>
                                 </div>
@@ -523,22 +570,22 @@
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                                             <input type="checkbox" id="selectAll" class="rounded border-gray-500 bg-gray-600 text-blue-500 focus:ring-blue-500">
                                         </th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Hình ảnh</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Images</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">SKU</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Combination</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Giá</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Giá niêm yết</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Số lượng</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Thao tác</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Price</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">List Price (Optional)</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Quantity</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody class="bg-gray-700 divide-y divide-gray-600">
+                                <tbody class="bg-gray-800 divide-y divide-gray-700">
                                     @foreach($productTemplate->variants as $variant)
-                                        <tr class="hover:bg-gray-600 transition-colors duration-200">
-                                            <td class="px-6 py-4 whitespace-nowrap">
+                                        <tr class="bg-gray-800 hover:bg-gray-700 transition-colors duration-150">
+                                            <td class="px-6 py-4 whitespace-nowrap align-top">
                                                 <input type="checkbox" class="variant-checkbox rounded border-gray-500 bg-gray-600 text-blue-500 focus:ring-blue-500" value="{{ $variant->id }}" data-variant-index="{{ $loop->index }}">
                                             </td>
-                                            <td class="px-6 py-4 whitespace-nowrap">
+                                            <td class="px-6 py-4 whitespace-nowrap align-top">
                                                 @php
                                                     $variantImage = null;
                                                     if (isset($variant->variant_data['image']) && $variant->variant_data['image']) {
@@ -559,10 +606,10 @@
                                                 <input type="file" name="variants[{{ $loop->index }}][image_file]" accept="image/*" 
                                                        class="mt-1 w-full text-xs text-gray-300 file:mr-4 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-medium file:bg-blue-600 file:text-white hover:file:bg-blue-500">
                                             </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-white">
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-white align-top">
                                                 {{ $variant->sku }}
                                             </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-white">
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-white align-top">
                                                 @php
                                                     $combination = [];
                                                     foreach($variant->optionValues as $optionValue) {
@@ -571,19 +618,22 @@
                                                 @endphp
                                                 {{ implode(' / ', $combination) }}
                                             </td>
-                                            <td class="px-6 py-4 whitespace-nowrap">
+                                            <td class="px-6 py-4 whitespace-nowrap align-top">
+                                                <div class="text-xs text-gray-400 mb-1">Sale Price</div>
                                                 <input type="number" step="0.01" class="variant-price w-24 bg-gray-600 border border-gray-500 rounded text-sm text-white focus:outline-none focus:border-blue-500" 
                                                        value="{{ $variant->price }}" data-variant-id="{{ $variant->id }}">
                                             </td>
-                                            <td class="px-6 py-4 whitespace-nowrap">
+                                            <td class="px-6 py-4 whitespace-nowrap align-top">
+                                                <div class="text-xs text-gray-400 mb-1">List Price (Optional)</div>
                                                 <input type="number" step="0.01" class="variant-list-price w-24 bg-gray-600 border border-gray-500 rounded text-sm text-white focus:outline-none focus:border-blue-500" 
                                                        value="{{ $variant->list_price }}" data-variant-id="{{ $variant->id }}">
                                             </td>
-                                            <td class="px-6 py-4 whitespace-nowrap">
+                                            <td class="px-6 py-4 whitespace-nowrap align-top">
+                                                <div class="text-xs text-gray-400 mb-1">Quantity</div>
                                                 <input type="number" class="variant-quantity w-20 bg-gray-600 border border-gray-500 rounded text-sm text-white focus:outline-none focus:border-blue-500" 
                                                        value="{{ $variant->stock_quantity }}" data-variant-id="{{ $variant->id }}">
                                             </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium align-top">
                                                 <button type="button" class="text-red-400 hover:text-red-300 transition-colors duration-200 remove-variant" data-variant-id="{{ $variant->id }}">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -602,11 +652,11 @@
                     <div class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-700">
                         <a href="{{ route('product-templates.index') }}" 
                            class="px-6 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors duration-200">
-                            Hủy
+                            Cancel
                         </a>
                         <button type="submit" 
                                 class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors duration-200">
-                            Cập nhật Template
+                                    Update Template
                         </button>
                     </div>
                 </form>
@@ -634,6 +684,7 @@
 
     // Initialize on page load
     document.addEventListener('DOMContentLoaded', function() {
+        console.info('[ATTR] edit page scripts loaded');
         // Generate variants data from existing variants
         generateVariantsData();
         
@@ -712,12 +763,41 @@
         
         console.log('Attribute map:', attributeMap);
         
+        // Helper buttons listener (attach once)
+        if (!window.smartFiltersListenerAttached) {
+            smartFilters.addEventListener('click', function(e) {
+                const selectAllBtn = e.target.closest('[data-action="select-attr-all"]');
+                const clearBtn = e.target.closest('[data-action="clear-attr"]');
+                if (selectAllBtn) {
+                    const attr = selectAllBtn.dataset.attribute;
+                    selectAllValuesForAttribute(attr);
+                }
+                if (clearBtn) {
+                    const attr = clearBtn.dataset.attribute;
+                    clearValuesForAttribute(attr);
+                }
+            });
+            window.smartFiltersListenerAttached = true;
+        }
+
         // Create filter sections for each attribute
         Object.entries(attributeMap).forEach(([attributeName, values]) => {
             const filterDiv = document.createElement('div');
             filterDiv.className = 'bg-gray-700 rounded p-3';
             filterDiv.innerHTML = `
-                <h6 class="text-white font-medium mb-2 text-sm">${attributeName}</h6>
+                <div class="flex items-center justify-between mb-2">
+                    <h6 class="text-white font-medium text-sm">${attributeName}</h6>
+                    <div class="flex items-center gap-2 text-xs">
+                        <button type="button" data-action="select-attr-all" data-attribute="${attributeName}"
+                                class="px-2 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded">
+                            Select all
+                        </button>
+                        <button type="button" data-action="clear-attr" data-attribute="${attributeName}"
+                                class="px-2 py-1 bg-gray-600 hover:bg-gray-500 text-white rounded">
+                            Clear
+                        </button>
+                    </div>
+                </div>
                 <div class="space-y-1">
                     ${Array.from(values).map(value => `
                         <label class="flex items-center text-sm text-gray-300 cursor-pointer hover:bg-gray-600 rounded px-2 py-1 transition-colors">
@@ -739,6 +819,20 @@
                 updateMultiSelectionCount();
             }
         });
+    }
+
+    // Select all values of a specific attribute
+    function selectAllValuesForAttribute(attributeName) {
+        document.querySelectorAll(`.multi-filter-checkbox[data-attribute="${attributeName}"]`).forEach(cb => cb.checked = true);
+        updateMultiSelectionCount();
+        showNotification(`Selected all values of ${attributeName}`, 'success');
+    }
+
+    // Clear values of a specific attribute
+    function clearValuesForAttribute(attributeName) {
+        document.querySelectorAll(`.multi-filter-checkbox[data-attribute="${attributeName}"]`).forEach(cb => cb.checked = false);
+        updateMultiSelectionCount();
+        showNotification(`Cleared values of ${attributeName}`, 'info');
     }
     
     // Count variants with specific attribute value
@@ -768,13 +862,25 @@
             countElement.textContent = selectedCount;
         }
     }
+
+function selectAllFilterValues() {
+    document.querySelectorAll('.multi-filter-checkbox').forEach(cb => cb.checked = true);
+    updateMultiSelectionCount();
+    showNotification('Selected all attribute values', 'success');
+}
+
+function clearAllFilterValues() {
+    document.querySelectorAll('.multi-filter-checkbox').forEach(cb => cb.checked = false);
+    updateMultiSelectionCount();
+    showNotification('Cleared attribute selections', 'info');
+}
     
     // Select variants by multiple attribute values
     function selectVariantsByMultipleAttributeValues() {
         const selectedValues = getSelectedMultiFilterValues();
         
         if (selectedValues.length === 0) {
-            showNotification('Vui lòng chọn ít nhất một giá trị thuộc tính!', 'error');
+            showNotification('Please select at least one attribute value!', 'error');
             return;
         }
         
@@ -830,7 +936,7 @@
         updateSelectedCount();
         
         const selectedText = selectedValues.map(s => `${s.attribute}: ${s.value}`).join(', ');
-        showNotification(`Đã chọn variants có: ${selectedText} (Logic: ${selectedLogic})`, 'success');
+        showNotification(`Selected variants with: ${selectedText} (Logic: ${selectedLogic})`, 'success');
     }
     
     // Clear multi-selection
@@ -841,7 +947,7 @@
         });
         
         updateMultiSelectionCount();
-        showNotification('Đã xóa lựa chọn thuộc tính', 'info');
+        showNotification('Attribute selection cleared', 'info');
     }
     
     // Setup quick selection buttons
@@ -855,7 +961,7 @@
                 const checkboxes = document.querySelectorAll('.variant-checkbox');
                 checkboxes.forEach(checkbox => checkbox.checked = true);
                 updateSelectedCount();
-                showNotification('Đã chọn tất cả variants', 'success');
+                showNotification('All variants selected', 'success');
             });
         }
         
@@ -864,7 +970,7 @@
                 const checkboxes = document.querySelectorAll('.variant-checkbox');
                 checkboxes.forEach(checkbox => checkbox.checked = false);
                 updateSelectedCount();
-                showNotification('Đã bỏ chọn tất cả variants', 'info');
+                showNotification('All variants unselected', 'info');
             });
         }
         
@@ -873,7 +979,7 @@
                 const checkboxes = document.querySelectorAll('.variant-checkbox');
                 checkboxes.forEach(checkbox => checkbox.checked = !checkbox.checked);
                 updateSelectedCount();
-                showNotification('Đã đảo ngược lựa chọn', 'info');
+                    showNotification('Selection inverted', 'info');
             });
         }
         
@@ -897,7 +1003,7 @@
             applyBulkEditBtn.addEventListener('click', function() {
                 const selectedVariants = getSelectedVariants();
                 if (selectedVariants.length === 0) {
-                    showNotification('Vui lòng chọn ít nhất một variant!', 'error');
+                    showNotification('Please select at least one variant!', 'error');
                     return;
                 }
                 applyBulkEdit(selectedVariants);
@@ -918,7 +1024,7 @@
                 document.getElementById('bulkListPrice').value = '';
                 document.getElementById('bulkQuantity').value = '';
                 document.getElementById('bulkImages').value = '';
-                showNotification('Đã xóa form', 'info');
+                showNotification('Form cleared', 'info');
             });
         }
         
@@ -965,7 +1071,7 @@
         const bulkImages = document.getElementById('bulkImages').files; // Sửa từ bulkImage thành bulkImages
         
         if (!bulkPrice && !bulkListPrice && !bulkQuantity && bulkImages.length === 0) {
-            showNotification('Vui lòng nhập ít nhất một thông tin để áp dụng!', 'error');
+                showNotification('Please enter at least one information to apply!', 'error');
             return;
         }
         
@@ -1046,7 +1152,7 @@
             }
         });
         
-        showNotification(`Đã áp dụng thông tin cho ${appliedCount} trường dữ liệu!`, 'success');
+            showNotification(`Applied information to ${appliedCount} data fields!`, 'success');
         
                                 // Mark variants as updated for form submission
                         variantIndices.forEach(index => {
@@ -1134,7 +1240,7 @@
             setBulkPriceBtn.addEventListener('click', function() {
                 const selectedVariants = document.querySelectorAll('.variant-checkbox:checked');
                 if (selectedVariants.length === 0) {
-                    showNotification('Vui lòng chọn ít nhất một variant.', 'error');
+                    showNotification('Please select at least one variant!', 'error');
                     return;
                 }
                 document.getElementById('bulkPriceModal').classList.remove('hidden');
@@ -1156,7 +1262,7 @@
                 const selectedVariants = document.querySelectorAll('.variant-checkbox:checked');
                 
                 if (!price) {
-                    showNotification('Vui lòng nhập giá.', 'error');
+                    showNotification('Please enter price!', 'error');
                     return;
                 }
 
@@ -1179,12 +1285,12 @@
                     if (data.success) {
                         location.reload();
                     } else {
-                        showNotification('Có lỗi xảy ra khi cập nhật giá.', 'error');
+                        showNotification('An error occurred when updating price!', 'error');
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    showNotification('Có lỗi xảy ra khi cập nhật giá.', 'error');
+                    showNotification('An error occurred when updating price!', 'error');
                 });
             });
         }
@@ -1211,7 +1317,7 @@
         // Remove variant
         document.querySelectorAll('.remove-variant').forEach(button => {
             button.addEventListener('click', function() {
-                if (confirm('Bạn có chắc chắn muốn xóa variant này?')) {
+                if (confirm('Are you sure you want to delete this variant?')) {
                     const variantId = this.dataset.variantId;
                     
                     fetch(`{{ route('product-templates.delete-variant', $productTemplate) }}`, {
@@ -1226,14 +1332,14 @@
                     .then(data => {
                         if (data.success) {
                             this.closest('tr').remove();
-                            showNotification('Đã xóa variant thành công!', 'success');
+                            showNotification('Variant deleted successfully!', 'success');
                         } else {
-                            showNotification('Có lỗi xảy ra khi xóa variant.', 'error');
+                            showNotification('An error occurred when deleting variant!', 'error');
                         }
                     })
                     .catch(error => {
                         console.error('Error:', error);
-                        showNotification('Có lỗi xảy ra khi xóa variant.', 'error');
+                        showNotification('An error occurred when deleting variant!', 'error');
                     });
                 }
             });
@@ -1258,14 +1364,14 @@
         .then(response => response.json())
         .then(data => {
             if (!data.success) {
-                showNotification('Có lỗi xảy ra khi cập nhật variant.', 'error');
+                showNotification('An error occurred when updating variant!', 'error');
             } else {
-                showNotification('Cập nhật variant thành công!', 'success');
+                showNotification('Variant updated successfully!', 'success');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            showNotification('Có lỗi xảy ra khi cập nhật variant.', 'error');
+                showNotification('An error occurred when updating variant!', 'error');
         });
     }
 
@@ -1311,10 +1417,12 @@
 
     // Setup form submit handler
     function setupFormSubmitHandler() {
-        const form = document.querySelector('form');
+        const form = document.getElementById('templateEditForm');
         if (form) {
             form.addEventListener('submit', function(e) {
-                console.log('Form submission started...');
+                console.info('[ATTR] form submit start');
+                // Collect attribute inputs into a JSON payload to ensure they are sent
+                collectAttributesForSubmit(form);
                 
                 // Handle bulk images that couldn't be set via DataTransfer
                 const bulkImageInput = document.getElementById('bulkImages');
@@ -1402,6 +1510,66 @@
         }
     }
 
+    // Collect attribute inputs into a JSON string (additional payload)
+    function collectAttributesForSubmit(form) {
+        const payload = {};
+        const inputs = form.querySelectorAll('[name^="attributes["]');
+        inputs.forEach(el => {
+            const match = el.name.match(/^attributes\[(.+?)\](\[\])?$/);
+            if (!match) return;
+            const attrId = match[1];
+            const isArray = !!match[2];
+
+            if (el.type === 'checkbox') {
+                if (!el.checked) return;
+                payload[attrId] = payload[attrId] || [];
+                payload[attrId].push(el.value);
+            } else {
+                const val = el.value?.trim();
+                if (!val) return;
+                if (isArray) {
+                    payload[attrId] = payload[attrId] || [];
+                    payload[attrId].push(val);
+                } else {
+                    payload[attrId] = val;
+                }
+            }
+        });
+
+        let hidden = form.querySelector('input[name="attributes_json"]');
+        if (!hidden) {
+            hidden = document.createElement('input');
+            hidden.type = 'hidden';
+            hidden.name = 'attributes_json';
+            form.appendChild(hidden);
+        }
+        hidden.value = JSON.stringify(payload);
+        console.log('[ATTR][submit] payload', payload);
+        return true;
+    }
+
+    // Add new value input for an option in "Edit Current Options"
+    function addNewOptionValue(optionId) {
+        const container = document.getElementById(`new-values-${optionId}`);
+        if (!container) return;
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.name = `options_edit[${optionId}][new_values][]`;
+        input.placeholder = 'New value';
+        input.className = 'w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500';
+        container.appendChild(input);
+    }
+
+    // Inline fallback for onsubmit
+    function handleAttributesSubmit(form) {
+        try {
+            collectAttributesForSubmit(form);
+        } catch (err) {
+            console.error('[ATTR] handleAttributesSubmit error', err);
+        }
+        return true; // allow submit
+    }
+
     // Show notification
     function showNotification(message, type = 'info') {
         // Create notification element
@@ -1438,12 +1606,16 @@
     // Image Modal functions
     function openImageModal(imageSrc) {
         document.getElementById('modalImage').src = imageSrc;
-        document.getElementById('imageModal').classList.remove('hidden');
+        const modal = document.getElementById('imageModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
         document.body.style.overflow = 'hidden';
     }
 
     function closeImageModal() {
-        document.getElementById('imageModal').classList.add('hidden');
+        const modal = document.getElementById('imageModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
         document.body.style.overflow = 'auto';
     }
 
@@ -1506,7 +1678,7 @@
                 } else {
                     resultsList.innerHTML = `
                         <div class="p-3 text-gray-400 text-sm text-center">
-                            Không tìm thấy danh mục nào phù hợp
+                            No category found
                         </div>
                     `;
                     resultsCount.textContent = '0';
@@ -1608,39 +1780,79 @@
                             const groupedAttributes = data.data.grouped;
                             let hasAttributes = false;
 
-                            // Display required attributes
                             if (groupedAttributes.required && groupedAttributes.required.length > 0) {
                                 hasAttributes = true;
                                 requiredList.innerHTML = groupedAttributes.required.map(attr => 
                                     createAttributeInput(attr, true)
                                 ).join('');
                             } else {
-                                requiredList.innerHTML = '<p class="text-gray-500 text-sm">Không có thuộc tính bắt buộc</p>';
+                                requiredList.innerHTML = '<p class="text-gray-500 text-sm">No required attributes</p>';
                             }
 
-                            // Display optional attributes
                             if (groupedAttributes.optional && groupedAttributes.optional.length > 0) {
                                 hasAttributes = true;
                                 optionalList.innerHTML = groupedAttributes.optional.map(attr => 
                                     createAttributeInput(attr, false)
                                 ).join('');
                             } else {
-                                optionalList.innerHTML = '<p class="text-gray-500 text-sm">Không có thuộc tính tùy chọn</p>';
+                                optionalList.innerHTML = '<p class="text-gray-500 text-sm">No optional attributes</p>';
                             }
 
                             if (!hasAttributes) {
-                                noAttributesDiv.classList.remove('hidden');
+                                renderFallbackExistingAttributes(requiredList, optionalList, noAttributesDiv);
                             }
                         } else {
-                            noAttributesDiv.classList.remove('hidden');
+                            renderFallbackExistingAttributes(requiredList, optionalList, noAttributesDiv);
                         }
                     })
                     .catch(error => {
                         console.error('Error loading attributes:', error);
                         loadingDiv.classList.add('hidden');
-                        noAttributesDiv.classList.remove('hidden');
+                        renderFallbackExistingAttributes(requiredList, optionalList, noAttributesDiv);
                     });
             });
+        }
+
+        // Fallback render using existing attributes from backend when API returns none
+        function renderFallbackExistingAttributes(requiredList, optionalList, noAttributesDiv) {
+            const existing = window.existingAttributes || {};
+            const entries = Object.entries(existing);
+            if (!entries.length) {
+                noAttributesDiv.classList.remove('hidden');
+                return;
+            }
+
+            const renderInput = ([id, val]) => {
+                // val can be object or array from backend
+                const displayName = val.attribute_name || val.name || `Attribute ${id}`;
+                const type = val.type || 'text';
+                const values = Array.isArray(val) ? val : (val.values || val.value ? [val] : []);
+
+                // multiple values -> multiple hidden inputs to preserve on submit
+                if (values.length > 1) {
+                    return `
+                        <div class="bg-gray-800 rounded-lg p-2 border border-gray-700">
+                            <label class="block text-xs font-medium text-gray-300 mb-1">${displayName}</label>
+                            ${values.map(v => `<input type="hidden" name="attributes[${id}][]" value="${v.value_id || v.value || ''}">`).join('')}
+                            <p class="text-xs text-gray-400">Existing values kept</p>
+                        </div>
+                    `;
+                }
+
+                const v = values[0] || val;
+                const value = v.value_id || v.value || '';
+                return `
+                    <div class="bg-gray-800 rounded-lg p-2 border border-gray-700">
+                        <label class="block text-xs font-medium text-gray-300 mb-1">${displayName}</label>
+                        <input type="text" name="attributes[${id}]" value="${value}" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-sm text-white placeholder-gray-400 focus:outline-none focus:border-blue-500">
+                        <p class="text-xs text-gray-400 mt-1">Existing value kept</p>
+                    </div>
+                `;
+            };
+
+            requiredList.innerHTML = entries.map(renderInput).join('');
+            optionalList.innerHTML = '';
+            noAttributesDiv.classList.add('hidden');
         }
 
         // Create attribute input field
@@ -1658,7 +1870,7 @@
                             <button type="button" 
                                     class="w-full bg-gray-700 border ${requiredClass} rounded-lg px-2 py-1 text-sm text-white focus:outline-none focus:border-blue-500 flex items-center justify-between"
                                     onclick="toggleCheckboxDropdown('${attribute.attribute_id}')">
-                                <span id="selected-text-${attribute.attribute_id}">-- Chọn --</span>
+                                <span id="selected-text-${attribute.attribute_id}">-- Select --</span>
                                 <i class="fas fa-chevron-down text-xs"></i>
                             </button>
                             <div id="checkbox-dropdown-${attribute.attribute_id}" 
@@ -1683,7 +1895,7 @@
                         <select name="attributes[${attribute.attribute_id}]" 
                                 class="w-full bg-gray-700 border ${requiredClass} rounded-lg px-2 py-1 text-sm text-white focus:outline-none focus:border-blue-500"
                                 ${isRequired ? 'required' : ''}>
-                            <option value="">-- Chọn --</option>
+                            <option value="">-- Select --</option>
                             ${attribute.values.map(value => 
                                 `<option value="${value.id}">${value.name}</option>`
                             ).join('')}
@@ -1695,7 +1907,7 @@
                 inputHtml = `
                     <input type="text" 
                            name="attributes[${attribute.attribute_id}]" 
-                           placeholder="Nhập ${attribute.name}"
+                            placeholder="Enter ${attribute.name}"
                            class="w-full bg-gray-700 border ${requiredClass} rounded-lg px-2 py-1 text-sm text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
                            ${isRequired ? 'required' : ''}>
                 `;
@@ -1704,7 +1916,7 @@
                 inputHtml = `
                     <input type="text" 
                            name="attributes[${attribute.attribute_id}]" 
-                           placeholder="Nhập ${attribute.name}"
+                           placeholder="Enter ${attribute.name}"
                            class="w-full bg-gray-700 border ${requiredClass} rounded-lg px-2 py-1 text-sm text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
                            ${isRequired ? 'required' : ''}>
                 `;
@@ -1721,7 +1933,7 @@
                         `<p class="text-xs text-gray-500 mt-1">${attribute.value_data_format}</p>` : ''
                     }
                     ${attribute.is_multiple_selection ? 
-                        '<p class="text-xs text-blue-400 mt-1">Nhiều giá trị</p>' : ''
+                        '<p class="text-xs text-blue-400 mt-1">Multiple values</p>' : ''
                     }
                 </div>
             `;
@@ -1757,6 +1969,23 @@
                 });
         }
 
+        // Normalize selected value ids/names from existing attributes
+        function getSelectedValueIds(existingValue) {
+            if (!existingValue) return [];
+            if (Array.isArray(existingValue.value_id)) return existingValue.value_id.map(String);
+            if (Array.isArray(existingValue.value)) return existingValue.value.map(String);
+            if (existingValue.value_id) return [String(existingValue.value_id)];
+            if (existingValue.value) return [String(existingValue.value)];
+            return [];
+        }
+
+        function getSelectedValueNames(existingValue) {
+            if (!existingValue) return [];
+            if (Array.isArray(existingValue.value_name)) return existingValue.value_name;
+            if (existingValue.value_name) return [existingValue.value_name];
+            return [];
+        }
+
         // Override createAttributeInput to include existing values
         function createAttributeInput(attribute, isRequired) {
             const requiredClass = isRequired ? 'border-red-500' : 'border-gray-600';
@@ -1764,17 +1993,19 @@
             
             // Get existing value for this attribute
             const existingValue = window.existingAttributes && window.existingAttributes[attribute.attribute_id];
+            const selectedValueIds = getSelectedValueIds(existingValue);
+            const selectedValueNames = getSelectedValueNames(existingValue);
             
             let inputHtml = '';
             
             if (attribute.values && attribute.values.length > 0) {
                 if (attribute.is_multiple_selection) {
                     // Dropdown-style checkbox selector with existing values
-                    const selectedValues = existingValue && Array.isArray(existingValue) ? existingValue : [];
-                    const selectedText = selectedValues.length === 0 ? '-- Chọn --' : 
-                                       selectedValues.length === 1 ? 
-                                       attribute.values.find(v => v.id == selectedValues[0].value_id)?.name || '-- Chọn --' :
-                                       `${selectedValues.length} mục đã chọn`;
+                    const selectedText = selectedValueIds.length === 0
+                        ? '-- Select --'
+                        : selectedValueIds.length === 1
+                            ? (attribute.values.find(v => String(v.id) === selectedValueIds[0])?.name || selectedValueNames[0] || '-- Select --')
+                            : `${selectedValueIds.length} items selected`;
                     
                     inputHtml = `
                         <div class="relative">
@@ -1787,7 +2018,7 @@
                             <div id="checkbox-dropdown-${attribute.attribute_id}" 
                                  class="absolute z-10 w-full mt-1 bg-gray-700 border border-gray-600 rounded-lg shadow-lg hidden max-h-48 overflow-y-auto">
                                 ${attribute.values.map(value => {
-                                    const isChecked = selectedValues.some(ev => ev.value_id == value.id) ? 'checked' : '';
+                                    const isChecked = selectedValueIds.includes(String(value.id)) ? 'checked' : '';
                                     return `
                                         <label class="flex items-center space-x-2 px-3 py-2 hover:bg-gray-600 cursor-pointer text-sm">
                                             <input type="checkbox" 
@@ -1806,13 +2037,14 @@
                     `;
                 } else {
                     // Dropdown for single selection
+                    const selectedId = selectedValueIds[0] || '';
                     inputHtml = `
                         <select name="attributes[${attribute.attribute_id}]" 
                                 class="w-full bg-gray-700 border ${requiredClass} rounded-lg px-2 py-1 text-sm text-white focus:outline-none focus:border-blue-500"
                                 ${isRequired ? 'required' : ''}>
-                            <option value="">-- Chọn --</option>
+                            <option value="">-- Select --</option>
                             ${attribute.values.map(value => {
-                                const isSelected = existingValue && existingValue.value_id == value.id ? 'selected' : '';
+                                const isSelected = selectedId && String(value.id) === String(selectedId) ? 'selected' : '';
                                 return `<option value="${value.id}" ${isSelected}>${value.name}</option>`;
                             }).join('')}
                         </select>
@@ -1820,12 +2052,14 @@
                 }
             } else if (attribute.is_customizable) {
                 // Text input for customizable attributes
-                const existingTextValue = existingValue ? existingValue.value : '';
+                const existingTextValue = existingValue
+                    ? (Array.isArray(existingValue.value) ? existingValue.value.join(', ') : (existingValue.value ?? ''))
+                    : '';
                 inputHtml = `
                     <input type="text" 
                            name="attributes[${attribute.attribute_id}]" 
                            value="${existingTextValue}"
-                           placeholder="Nhập ${attribute.name}"
+                           placeholder="Enter ${attribute.name}"
                            class="w-full bg-gray-700 border ${requiredClass} rounded-lg px-2 py-1 text-sm text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
                            ${isRequired ? 'required' : ''}>
                 `;
@@ -1836,7 +2070,7 @@
                     <input type="text" 
                            name="attributes[${attribute.attribute_id}]" 
                            value="${existingTextValue}"
-                           placeholder="Nhập ${attribute.name}"
+                           placeholder="Enter ${attribute.name}"
                            class="w-full bg-gray-700 border ${requiredClass} rounded-lg px-2 py-1 text-sm text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
                            ${isRequired ? 'required' : ''}>
                 `;
@@ -1853,10 +2087,14 @@
                         `<p class="text-xs text-gray-500 mt-1">${attribute.value_data_format}</p>` : ''
                     }
                     ${attribute.is_multiple_selection ? 
-                        '<p class="text-xs text-blue-400 mt-1">Nhiều giá trị</p>' : ''
+                        '<p class="text-xs text-blue-400 mt-1">Multiple values</p>' : ''
                     }
                     ${existingValue ? 
-                        `<p class="text-xs text-green-400 mt-1">✓ Đã chọn: ${existingValue.value_name || existingValue.value}</p>` : ''
+                        `<p class="text-xs text-green-400 mt-1">✓ Selected: ${
+                            selectedValueNames.length > 0
+                                ? selectedValueNames.join(', ')
+                                : (Array.isArray(existingValue.value) ? existingValue.value.join(', ') : (existingValue.value ?? ''))
+                        }</p>` : ''
                     }
                 </div>
             `;
@@ -1887,11 +2125,11 @@
             const selectedText = document.getElementById('selected-text-' + attributeId);
             
             if (checkboxes.length === 0) {
-                selectedText.textContent = '-- Chọn --';
+                selectedText.textContent = '-- Select --';
             } else if (checkboxes.length === 1) {
                 selectedText.textContent = checkboxes[0].nextElementSibling.textContent;
             } else {
-                selectedText.textContent = `${checkboxes.length} mục đã chọn`;
+                    selectedText.textContent = `${checkboxes.length} items selected`;
             }
         };
 

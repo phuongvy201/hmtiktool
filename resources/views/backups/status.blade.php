@@ -13,8 +13,8 @@
                         </svg>
                     </a>
                     <div>
-                        <h1 class="text-3xl font-bold text-white mb-2">Trạng thái Backup</h1>
-                        <p class="text-gray-400">Tổng quan hệ thống backup & restore</p>
+                        <h1 class="text-3xl font-bold text-white mb-2">Backup Status</h1>
+                        <p class="text-gray-400">Overview of backup & restore system</p>
                     </div>
                 </div>
                 <div class="flex space-x-3">
@@ -23,7 +23,7 @@
                         <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                         </svg>
-                        Tạo Backup
+                        Create Backup
                     </a>
                 </div>
             </div>
@@ -39,7 +39,7 @@
                         </svg>
                     </div>
                     <div>
-                        <p class="text-gray-400 text-sm">Tổng Backup</p>
+                        <p class="text-gray-400 text-sm">Total Backups</p>
                         <p class="text-2xl font-bold text-white">{{ $status['total_backups'] }}</p>
                     </div>
                 </div>
@@ -53,7 +53,7 @@
                         </svg>
                     </div>
                     <div>
-                        <p class="text-gray-400 text-sm">Thành công</p>
+                        <p class="text-gray-400 text-sm">Successful</p>
                         <p class="text-2xl font-bold text-white">{{ $status['successful_backups'] }}</p>
                     </div>
                 </div>
@@ -67,7 +67,7 @@
                         </svg>
                     </div>
                     <div>
-                        <p class="text-gray-400 text-sm">Thất bại</p>
+                        <p class="text-gray-400 text-sm">Failed</p>
                         <p class="text-2xl font-bold text-white">{{ $status['failed_backups'] }}</p>
                     </div>
                 </div>
@@ -81,7 +81,7 @@
                         </svg>
                     </div>
                     <div>
-                        <p class="text-gray-400 text-sm">Tổng dung lượng</p>
+                        <p class="text-gray-400 text-sm">Total Size</p>
                         <p class="text-2xl font-bold text-white">{{ $status['total_size'] }}</p>
                     </div>
                 </div>
@@ -97,20 +97,20 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path>
                         </svg>
                     </div>
-                    <h2 class="text-xl font-semibold text-white">Thông tin hệ thống</h2>
+                    <h2 class="text-xl font-semibold text-white">System Information</h2>
                 </div>
 
                 <div class="space-y-4">
                     <div class="flex justify-between items-center py-2 border-b border-gray-700">
-                        <span class="text-gray-400">Thư mục backup:</span>
+                        <span class="text-gray-400">Backup directory:</span>
                         <span class="text-white font-mono text-sm">{{ $status['backup_directory'] }}</span>
                     </div>
                     <div class="flex justify-between items-center py-2 border-b border-gray-700">
-                        <span class="text-gray-400">Dung lượng còn trống:</span>
+                        <span class="text-gray-400">Available space:</span>
                         <span class="text-green-400 font-medium">{{ $status['available_space'] }}</span>
                     </div>
                     <div class="flex justify-between items-center py-2 border-b border-gray-700">
-                        <span class="text-gray-400">Tỷ lệ thành công:</span>
+                        <span class="text-gray-400">Success rate:</span>
                         <span class="text-white font-medium">
                             @if($status['total_backups'] > 0)
                                 {{ round(($status['successful_backups'] / $status['total_backups']) * 100, 1) }}%
@@ -120,12 +120,12 @@
                         </span>
                     </div>
                     <div class="flex justify-between items-center py-2">
-                        <span class="text-gray-400">Backup gần nhất:</span>
+                        <span class="text-gray-400">Latest backup:</span>
                         <span class="text-white">
                             @if($status['latest_backup'])
                                 {{ $status['latest_backup']->created_at->diffForHumans() }}
                             @else
-                                Chưa có
+                                None yet
                             @endif
                         </span>
                     </div>
@@ -140,7 +140,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                     </div>
-                    <h2 class="text-xl font-semibold text-white">Trạng thái sức khỏe</h2>
+                    <h2 class="text-xl font-semibold text-white">Health Status</h2>
                 </div>
 
                 <div class="space-y-4">
@@ -158,7 +158,7 @@
 
                     <div class="mb-4">
                         <div class="flex justify-between items-center mb-2">
-                            <span class="text-gray-400">Điểm sức khỏe:</span>
+                            <span class="text-gray-400">Health score:</span>
                             <span class="text-white font-medium">{{ $healthScore }}/{{ $totalChecks }}</span>
                         </div>
                         <div class="w-full bg-gray-700 rounded-full h-2">
@@ -178,7 +178,7 @@
                                     <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                                 </svg>
                             @endif
-                            <span class="text-gray-300">Có backup trong hệ thống</span>
+                            <span class="text-gray-300">There are backups in the system</span>
                         </div>
 
                         <div class="flex items-center">
@@ -191,7 +191,7 @@
                                     <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                                 </svg>
                             @endif
-                            <span class="text-gray-300">Có backup thành công</span>
+                            <span class="text-gray-300">Successful backups exist</span>
                         </div>
 
                         <div class="flex items-center">
@@ -204,7 +204,7 @@
                                     <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                                 </svg>
                             @endif
-                            <span class="text-gray-300">Không có backup thất bại</span>
+                            <span class="text-gray-300">No failed backups</span>
                         </div>
 
                         <div class="flex items-center">
@@ -217,7 +217,7 @@
                                     <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                                 </svg>
                             @endif
-                            <span class="text-gray-300">Backup gần đây (≤ 7 ngày)</span>
+                            <span class="text-gray-300">Recent backup (≤ 7 days)</span>
                         </div>
                     </div>
                 </div>
@@ -227,7 +227,7 @@
         <!-- Recent Backups -->
         <div class="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-700">
-                <h3 class="text-lg font-semibold text-white">Backup gần đây</h3>
+                <h3 class="text-lg font-semibold text-white">Recent Backups</h3>
             </div>
 
             @if($recentBackups->count() > 0)
@@ -235,11 +235,11 @@
                     <table class="w-full">
                         <thead class="bg-gray-700">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Thông tin</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Trạng thái</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Kích thước</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Thời gian</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Thao tác</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Info</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Size</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Time</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-700">
@@ -293,11 +293,11 @@
                     <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
                     </svg>
-                    <h3 class="text-lg font-medium text-gray-300 mb-2">Chưa có backup nào</h3>
-                    <p class="text-gray-400 mb-4">Tạo backup đầu tiên để bắt đầu</p>
+                    <h3 class="text-lg font-medium text-gray-300 mb-2">No backups yet</h3>
+                    <p class="text-gray-400 mb-4">Create the first backup to get started</p>
                     <a href="{{ route('backups.create') }}" 
                        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors duration-200">
-                        Tạo Backup đầu tiên
+                        Create first Backup
                     </a>
                 </div>
             @endif

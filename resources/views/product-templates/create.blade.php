@@ -18,8 +18,8 @@
                     </svg>
                 </a>
                 <div>
-                    <h1 class="text-3xl font-bold text-white mb-2">Tạo Product Template</h1>
-                    <p class="text-gray-400">Tạo template sản phẩm mới với đầy đủ thông tin và variants</p>
+                    <h1 class="text-3xl font-bold text-white mb-2">Create Product Template</h1>
+                    <p class="text-gray-400">Create a new product template with all the information and variants</p>
                 </div>
             </div>
         </div>
@@ -43,7 +43,7 @@
                 <!-- Validation Errors -->
                 @if ($errors->any())
                     <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                        <h4 class="font-bold mb-2">Có lỗi xảy ra:</h4>
+                        <h4 class="font-bold mb-2">There was an error:</h4>
                         <ul class="list-disc list-inside space-y-1">
                             @foreach ($errors->all() as $error)
                                 <li>{{ $error }}</li>
@@ -54,7 +54,7 @@
 
 
 
-                <form method="POST" action="{{ route('product-templates.store') }}" enctype="multipart/form-data" id="templateForm">
+                <form method="POST" action="{{ route('product-templates.store') }}" enctype="multipart/form-data" id="templateForm" onsubmit="return handleAttributesSubmit(this);">
                     @csrf
                     
                     <!-- Basic Information -->
@@ -63,12 +63,12 @@
                             <svg class="w-5 h-5 mr-2 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                             </svg>
-                            Thông tin cơ bản
+                            Basic Information
                         </h3>
                         
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
-                                <label for="name" class="block text-sm font-medium text-gray-300 mb-2">Tên template sản phẩm *</label>
+                                <label for="name" class="block text-sm font-medium text-gray-300 mb-2">Product Template Name *</label>
                                 <input type="text" id="name" name="name" value="{{ old('name') }}" required
                                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 @error('name') border-red-500 @enderror">
                                 @error('name')
@@ -77,7 +77,7 @@
                             </div>
                             
                             <div>
-                                <label for="base_price" class="block text-sm font-medium text-gray-300 mb-2">Giá cơ bản *</label>
+                                <label for="base_price" class="block text-sm font-medium text-gray-300 mb-2">Base Price *</label>
                                 <input type="number" id="base_price" name="base_price" step="0.01" value="{{ old('base_price') }}" required
                                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 @error('base_price') border-red-500 @enderror">
                                 @error('base_price')
@@ -86,7 +86,7 @@
                             </div>
                             
                             <div>
-                                <label for="list_price" class="block text-sm font-medium text-gray-300 mb-2">Giá niêm yết</label>
+                                <label for="list_price" class="block text-sm font-medium text-gray-300 mb-2">List Price (Optional)</label>
                                 <input type="number" id="list_price" name="list_price" step="0.01" value="{{ old('list_price') }}"
                                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 @error('list_price') border-red-500 @enderror">
                                 @error('list_price')
@@ -96,17 +96,17 @@
                         </div>
                         
                         <div class="mt-4">
-                            <label for="category_search" class="block text-sm font-medium text-gray-300 mb-2">Tìm kiếm danh mục</label>
+                            <label for="category_search" class="block text-sm font-medium text-gray-300 mb-2">Search Category</label>
                             <div class="relative">
                                 <input type="text" id="category_search" name="category_search" 
-                                       placeholder="Nhập từ khóa tìm kiếm (ví dụ: T-shirt, Phone, Computer...)"
+                                       placeholder="Enter search keyword (e.g. T-shirt, Phone, Computer...)"
                                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 @error('category') border-red-500 @enderror">
                                 <input type="hidden" id="category" name="category" value="{{ old('category') }}">
                                 
                                 <!-- Search results dropdown -->
                                 <div id="category_results" class="absolute z-50 w-full mt-1 bg-gray-800 border border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto hidden">
                                     <div class="p-2 text-gray-400 text-sm border-b border-gray-600">
-                                        Kết quả tìm kiếm: <span id="results_count">0</span>
+                                        Search Results: <span id="results_count">0</span>
                                     </div>
                                     <div id="results_list" class="p-0">
                                         <!-- Results will be populated here -->
@@ -118,7 +118,7 @@
                             <div id="selected_category_display" class="mt-2 p-2 bg-gray-800 rounded-lg border border-gray-600 {{ $oldCategoryName ? '' : 'hidden' }}">
                                 <div class="flex items-center justify-between">
                                     <span class="text-white text-sm">
-                                        <strong>Danh mục đã chọn:</strong> 
+                                        <strong>Selected Category:</strong> 
                                         <span id="selected_category_name">{{ $oldCategoryName }}</span>
                                     </span>
                                     <button type="button" id="clear_category" class="text-red-400 hover:text-red-300 text-sm">
@@ -135,14 +135,14 @@
                                     <svg class="w-4 h-4 mr-2 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                     </svg>
-                                    Thuộc tính danh mục
+                                    Category Attributes
                                 </h4>
                                 
                                 <!-- Loading indicator -->
                                 <div id="attributes_loading" class="hidden">
                                     <div class="flex items-center justify-center p-4">
                                         <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-                                        <span class="ml-2 text-gray-300">Đang tải thuộc tính...</span>
+                                        <span class="ml-2 text-gray-300">Loading attributes...</span>
                                     </div>
                                 </div>
 
@@ -152,7 +152,7 @@
                                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
                                         </svg>
-                                        Thuộc tính bắt buộc
+                                        Required Attributes
                                     </h5>
                                     <div id="required_attributes_list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                                         <!-- Required attributes will be loaded here -->
@@ -165,7 +165,7 @@
                                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                         </svg>
-                                        Thuộc tính tùy chọn
+                                        Optional Attributes
                                     </h5>
                                     <div id="optional_attributes_list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                                         <!-- Optional attributes will be loaded here -->
@@ -178,7 +178,7 @@
                                         <svg class="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                         </svg>
-                                        <p>Không có thuộc tính nào cho danh mục này</p>
+                                        <p>No attributes found for this category</p>
                                     </div>
                                 </div>
                             </div>
@@ -189,9 +189,9 @@
                         </div>
 
                         <script>
-                            // Categories data from backend
-                            const categories = @json($categories);
+                            // Don't load categories right away - load via AJAX when searching
                             let searchTimeout;
+                            let categoriesCache = {};
                             
                             document.addEventListener('DOMContentLoaded', function() {
                                 const searchInput = document.getElementById('category_search');
@@ -203,44 +203,71 @@
                                 const selectedName = document.getElementById('selected_category_name');
                                 const clearBtn = document.getElementById('clear_category');
                                 
-                                // Search functionality
+                                // Search functionality - load qua AJAX
                                 searchInput.addEventListener('input', function() {
                                     clearTimeout(searchTimeout);
+                                    const query = this.value.trim();
+                                    
+                                    if (query.length < 2) {
+                                        resultsDiv.classList.add('hidden');
+                                        return;
+                                    }
+                                    
+                                    // Show loading
+                                    resultsList.innerHTML = '<div class="p-3 text-gray-400 text-sm text-center">Đang tìm kiếm...</div>';
+                                    resultsDiv.classList.remove('hidden');
+                                    
                                     searchTimeout = setTimeout(() => {
-                                        const query = this.value.trim().toLowerCase();
-                                        
-                                        if (query.length < 2) {
-                                            resultsDiv.classList.add('hidden');
-                                            return;
-                                        }
-                                        
-                                        // Filter categories
-                                        const filtered = Object.entries(categories).filter(([id, name]) => 
-                                            name.toLowerCase().includes(query)
-                                        ).slice(0, 10); // Limit to 10 results
-                                        
-                                        // Display results
-                                        if (filtered.length > 0) {
-                                            resultsList.innerHTML = filtered.map(([id, name]) => `
-                                                <div class="category-result p-2 hover:bg-gray-700 cursor-pointer border-b border-gray-600 last:border-b-0" 
-                                                     data-id="${id}" data-name="${name}">
-                                                    <div class="text-white text-sm">${name}</div>
-                                                    <div class="text-gray-400 text-xs">ID: ${id}</div>
-                                                </div>
-                                            `).join('');
+                                        // Load categories qua AJAX
+                                        fetch(`{{ route('product-templates.search-categories') }}?q=${encodeURIComponent(query)}`, {
+                                            method: 'GET',
+                                            headers: {
+                                                'Accept': 'application/json',
+                                                'X-Requested-With': 'XMLHttpRequest'
+                                            },
+                                            credentials: 'same-origin'
+                                        })
+                                        .then(response => response.json())
+                                        .then(data => {
+                                            const categories = data.categories || {};
                                             
-                                            resultsCount.textContent = filtered.length;
-                                            resultsDiv.classList.remove('hidden');
-                                        } else {
+                                            // Cache results
+                                            Object.assign(categoriesCache, categories);
+                                            
+                                            // Filter and limit results
+                                            const filtered = Object.entries(categories).slice(0, 20);
+                                        
+                                            // Display results
+                                            if (filtered.length > 0) {
+                                                resultsList.innerHTML = filtered.map(([id, name]) => `
+                                                    <div class="category-result p-2 hover:bg-gray-700 cursor-pointer border-b border-gray-600 last:border-b-0" 
+                                                         data-id="${id}" data-name="${name}">
+                                                        <div class="text-white text-sm">${name}</div>
+                                                        <div class="text-gray-400 text-xs">ID: ${id}</div>
+                                                    </div>
+                                                `).join('');
+                                                
+                                                resultsCount.textContent = filtered.length;
+                                                resultsDiv.classList.remove('hidden');
+                                            } else {
+                                                resultsList.innerHTML = `
+                                                    <div class="p-3 text-gray-400 text-sm text-center">
+                                                        No categories found matching your search
+                                                    </div>
+                                                `;
+                                                resultsCount.textContent = '0';
+                                                resultsDiv.classList.remove('hidden');
+                                            }
+                                        })
+                                        .catch(error => {
+                                            console.error('Error searching categories:', error);
                                             resultsList.innerHTML = `
-                                                <div class="p-3 text-gray-400 text-sm text-center">
-                                                    Không tìm thấy danh mục nào phù hợp
+                                                <div class="p-3 text-red-400 text-sm text-center">
+                                                    Error searching categories
                                                 </div>
                                             `;
-                                            resultsCount.textContent = '0';
-                                            resultsDiv.classList.remove('hidden');
-                                        }
-                                    }, 300); // Debounce 300ms
+                                        });
+                                    }, 500); // Debounce 500ms
                                 });
                                 
                                 // Handle result selection
@@ -324,7 +351,7 @@
                                                         createAttributeInput(attr, true)
                                                     ).join('');
                                                 } else {
-                                                    requiredList.innerHTML = '<p class="text-gray-500 text-sm">Không có thuộc tính bắt buộc</p>';
+                                                            requiredList.innerHTML = '<p class="text-gray-500 text-sm">No required attributes found</p>';
                                                 }
 
                                                 // Display optional attributes
@@ -366,7 +393,7 @@
                                                     <button type="button" 
                                                             class="w-full bg-gray-700 border ${requiredClass} rounded-lg px-2 py-1 text-sm text-white focus:outline-none focus:border-blue-500 flex items-center justify-between"
                                                             onclick="toggleCheckboxDropdown('${attribute.attribute_id}')">
-                                                        <span id="selected-text-${attribute.attribute_id}">-- Chọn --</span>
+                                                        <span id="selected-text-${attribute.attribute_id}">-- Select --</span>
                                                         <i class="fas fa-chevron-down text-xs"></i>
                                                     </button>
                                                     <div id="checkbox-dropdown-${attribute.attribute_id}" 
@@ -391,7 +418,7 @@
                                                 <select name="attributes[${attribute.attribute_id}]" 
                                                         class="w-full bg-gray-700 border ${requiredClass} rounded-lg px-2 py-1 text-sm text-white focus:outline-none focus:border-blue-500"
                                                         ${isRequired ? 'required' : ''}>
-                                                    <option value="">-- Chọn --</option>
+                                                    <option value="">-- Select --</option>
                                                     ${attribute.values.map(value => 
                                                         `<option value="${value.id}">${value.name}</option>`
                                                     ).join('')}
@@ -403,7 +430,7 @@
                                         inputHtml = `
                                             <input type="text" 
                                                    name="attributes[${attribute.attribute_id}]" 
-                                                   placeholder="Nhập ${attribute.name}"
+                                                   placeholder="Enter ${attribute.name}"
                                                    class="w-full bg-gray-700 border ${requiredClass} rounded-lg px-2 py-1 text-sm text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
                                                    ${isRequired ? 'required' : ''}>
                                         `;
@@ -412,7 +439,7 @@
                                         inputHtml = `
                                             <input type="text" 
                                                    name="attributes[${attribute.attribute_id}]" 
-                                                   placeholder="Nhập ${attribute.name}"
+                                                   placeholder="Enter ${attribute.name}"
                                                    class="w-full bg-gray-700 border ${requiredClass} rounded-lg px-2 py-1 text-sm text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
                                                    ${isRequired ? 'required' : ''}>
                                         `;
@@ -429,7 +456,7 @@
                                                 `<p class="text-xs text-gray-500 mt-1">${attribute.value_data_format}</p>` : ''
                                             }
                                             ${attribute.is_multiple_selection ? 
-                                                '<p class="text-xs text-blue-400 mt-1">Nhiều giá trị</p>' : ''
+                                                '<p class="text-xs text-blue-400 mt-1">Multiple values</p>' : ''
                                             }
                                         </div>
                                     `;
@@ -466,11 +493,11 @@
                                 const selectedText = document.getElementById('selected-text-' + attributeId);
                                 
                                 if (checkboxes.length === 0) {
-                                    selectedText.textContent = '-- Chọn --';
+                                    selectedText.textContent = '-- Select --';
                                 } else if (checkboxes.length === 1) {
                                     selectedText.textContent = checkboxes[0].nextElementSibling.textContent;
                                 } else {
-                                    selectedText.textContent = `${checkboxes.length} mục đã chọn`;
+                                    selectedText.textContent = `${checkboxes.length} items selected`;
                                 }
                             };
 
@@ -487,12 +514,12 @@
                         </script>
                         
                         <div class="mt-4">
-                            <label for="description" class="block text-sm font-medium text-gray-300 mb-2">Mô tả</label>
+                            <label for="description" class="block text-sm font-medium text-gray-300 mb-2">Description</label>
                             <textarea id="description" name="description" rows="5" 
                                       class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 @error('description') border-red-500 @enderror whitespace-pre-wrap"
-                                      placeholder="Nhập mô tả sản phẩm...&#10;&#10;Ví dụ:&#10;• Chất liệu: 100% cotton&#10;• Kiểu dáng: Regular fit&#10;• Màu sắc: Đen, Trắng, Xanh">{{ old('description') }}</textarea>
+                                      placeholder="Enter product description...&#10;&#10;Example:&#10;• Material: 100% cotton&#10;• Style: Regular fit&#10;• Color: Black, White, Green">{{ old('description') }}</textarea>
                             <div class="mt-2 text-xs text-gray-400">
-                                <p>💡 <strong>Mẹo:</strong> Sử dụng Enter để xuống dòng, dấu • để tạo danh sách</p>
+                                <p>💡 <strong>Tip:</strong> Use Enter to create a new line, and • to create a list</p>
                             </div>
                             @error('description')
                                 <p class="text-red-400 text-sm mt-1">{{ $message }}</p>
@@ -506,12 +533,12 @@
                             <svg class="w-5 h-5 mr-2 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
                             </svg>
-                            Kích thước & Trọng lượng
+                                    Dimensions & Weight
                         </h3>
                         
                         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                             <div>
-                                <label for="weight" class="block text-sm font-medium text-gray-300 mb-2">Trọng lượng (kg)</label>
+                                <label for="weight" class="block text-sm font-medium text-gray-300 mb-2">Weight (kg)</label>
                                 <input type="number" id="weight" name="weight" step="0.01" value="{{ old('weight') }}"
                                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 @error('weight') border-red-500 @enderror">
                                 @error('weight')
@@ -520,7 +547,7 @@
                             </div>
                             
                             <div>
-                                <label for="height" class="block text-sm font-medium text-gray-300 mb-2">Chiều cao (cm)</label>
+                                <label for="height" class="block text-sm font-medium text-gray-300 mb-2">Height (cm)</label>
                                 <input type="number" id="height" name="height" step="0.01" value="{{ old('height') }}"
                                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 @error('height') border-red-500 @enderror">
                                 @error('height')
@@ -529,7 +556,7 @@
                             </div>
                             
                             <div>
-                                <label for="width" class="block text-sm font-medium text-gray-300 mb-2">Chiều rộng (cm)</label>
+                                <label for="width" class="block text-sm font-medium text-gray-300 mb-2">Width (cm)</label>
                                 <input type="number" id="width" name="width" step="0.01" value="{{ old('width') }}"
                                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 @error('width') border-red-500 @enderror">
                                 @error('width')
@@ -538,7 +565,7 @@
                             </div>
                             
                             <div>
-                                <label for="length" class="block text-sm font-medium text-gray-300 mb-2">Chiều dài (cm)</label>
+                                <label for="length" class="block text-sm font-medium text-gray-300 mb-2">Length (cm)</label>
                                 <input type="number" id="length" name="length" step="0.01" value="{{ old('length') }}"
                                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 @error('length') border-red-500 @enderror">
                                 @error('length')
@@ -554,7 +581,7 @@
                             <svg class="w-5 h-5 mr-2 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                             </svg>
-                            Hình ảnh & Video
+                            Images & Video
                         </h3>
                         
                         <div class="grid grid-cols-1 gap-4">
@@ -565,7 +592,7 @@
                                     :multiple="true"
                                     :maxFiles="10"
                                     :existingImages="old('images', [])"
-                                    label="Hình ảnh sản phẩm"
+                                    label="Product Images"
                                 />
                                 @error('images')
                                     <p class="text-red-400 text-sm mt-1">{{ $message }}</p>
@@ -575,7 +602,7 @@
                             <!-- Size Chart and Video -->
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label for="size_chart_file" class="block text-sm font-medium text-gray-300 mb-2">Bảng size</label>
+                                    <label for="size_chart_file" class="block text-sm font-medium text-gray-300 mb-2">Size Chart</label>
                                     <input type="file" id="size_chart_file" name="size_chart_files[]" accept="image/*"
                                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 @error('size_chart_files') border-red-500 @enderror">
                                     @error('size_chart_files')
@@ -584,7 +611,7 @@
                                 </div>
                                 
                                 <div>
-                                    <label for="product_video_file" class="block text-sm font-medium text-gray-300 mb-2">Video sản phẩm</label>
+                                    <label for="product_video_file" class="block text-sm font-medium text-gray-300 mb-2">Product Video</label>
                                     <input type="file" id="product_video_file" name="product_video_files[]" accept="video/*"
                                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 @error('product_video_files') border-red-500 @enderror">
                                     @error('product_video_files')
@@ -603,11 +630,11 @@
                             </svg>
                             Product Options Matrix
                         </h3>
-                        
+                       
                         <div class="bg-gray-700 rounded-lg p-4 mb-4">
                             <p class="text-gray-300 text-sm mb-4">
-                                <strong>Hướng dẫn:</strong> Thêm các thuộc tính phân loại (Color, Size, Type...) và các giá trị tương ứng. 
-                                Hệ thống sẽ tự động tạo các biến thể sản phẩm (variants) dựa trên tất cả các kết hợp có thể.
+                                <strong>Guide:</strong> Add classification attributes (Color, Size, Type...) and corresponding values. 
+                                The system will automatically create product variants (variants) based on all possible combinations.    
                             </p>
                         </div>
                         
@@ -619,7 +646,7 @@
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                             </svg>
-                            Thêm thuộc tính phân loại
+                            Add Classification Attribute
                         </button>
                     </div>
 
@@ -630,19 +657,19 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                             </svg>
-                            Quản lý Variants
+                                Manage Variants
                         </h3>
                         
                                                  <div class="bg-gray-700 rounded-lg p-4 mb-4">
                              <div class="flex items-center justify-between mb-4">
                                  <div>
                                      <p class="text-gray-300 text-sm">
-                                         Tổng số variants: <span id="totalVariants" class="font-bold text-yellow-400">0</span>
+                                         Total variants: <span id="totalVariants" class="font-bold text-yellow-400">0</span>
                                      </p>
-                                     <p class="text-gray-400 text-xs">Mỗi variant sẽ có thông tin riêng về giá và số lượng</p>
+                                     <p class="text-gray-400 text-xs">Each variant will have its own price and quantity information</p>
                                  </div>
                                  <button type="button" id="generateVariants" class="px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg text-sm transition-colors duration-200">
-                                     Tạo Variants
+                                     Create Variants
                                  </button>
                              </div>
                          </div>
@@ -653,31 +680,41 @@
                                   <svg class="w-4 h-4 mr-2 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                   </svg>
-                                  Chỉnh sửa thông minh
+                                  Smart Edit
                               </h4>
                               
                               <!-- Quick Selection Tools -->
                               <div class="bg-gray-600 rounded-lg p-3 mb-4">
-                                  <h5 class="text-white font-medium mb-3">Công cụ chọn nhanh</h5>
+                                  <h5 class="text-white font-medium mb-3">Quick Selection Tools</h5>
                                   <div class="flex flex-wrap gap-2">
                                       <button type="button" id="selectAllBtn" class="px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded text-sm transition-colors">
-                                          Chọn tất cả
+                                          Select All
                                       </button>
                                       <button type="button" id="selectNoneBtn" class="px-3 py-1 bg-gray-600 hover:bg-gray-500 text-white rounded text-sm transition-colors">
-                                          Bỏ chọn tất cả
+                                          Select None
                                       </button>
                                       <button type="button" id="selectInverseBtn" class="px-3 py-1 bg-purple-600 hover:bg-purple-500 text-white rounded text-sm transition-colors">
-                                          Đảo ngược lựa chọn
+                                          Inverse Selection
                                       </button>
                                       <span class="text-sm text-gray-300 ml-2">
-                                          Đã chọn: <span id="selectedCount" class="font-medium text-blue-400">0</span> variants
+                                          Selected: <span id="selectedCount" class="font-medium text-blue-400">0</span> variants
                                       </span>
                                   </div>
                               </div>
                               
                                                              <!-- Smart Filters -->
                                <div class="bg-gray-600 rounded-lg p-3 mb-4">
-                                   <h5 class="text-white font-medium mb-3">Bộ lọc thông minh</h5>
+                              <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
+                                  <h5 class="text-white font-medium">Smart Filters</h5>
+                                  <div class="flex items-center gap-2">
+                                      <button type="button" onclick="selectAllFilterValues()" class="px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded text-sm transition-colors">
+                                          Select all values
+                                      </button>
+                                      <button type="button" onclick="clearAllFilterValues()" class="px-3 py-1 bg-gray-600 hover:bg-gray-500 text-white rounded text-sm transition-colors">
+                                          Clear values
+                                      </button>
+                                  </div>
+                              </div>
                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3" id="smartFilters">
                                        <!-- Smart filters will be generated here -->
                                    </div>
@@ -695,43 +732,43 @@
                                             </div>
                                             <div class="flex space-x-2">
                                                 <button type="button" id="applyMultiSelection" class="px-3 py-1 bg-purple-600 hover:bg-purple-500 text-white rounded text-sm transition-colors">
-                                                    Áp dụng lựa chọn
+                                                        Apply Selection
                                                 </button>
                                                 <button type="button" id="clearMultiSelection" class="px-3 py-1 bg-gray-500 hover:bg-gray-400 text-white rounded text-sm transition-colors">
-                                                    Xóa lựa chọn
+                                                    Clear Selection
                                                 </button>
                                             </div>
                                         </div>
                                         <div class="text-sm text-gray-300">
-                                            Đã chọn: <span id="multiSelectionCount" class="font-medium text-purple-400">0</span> giá trị
+                                            Selected: <span id="multiSelectionCount" class="font-medium text-purple-400">0</span> values
                                         </div>
                                     </div>
                                </div>
                               
                               <!-- Bulk Edit Form -->
                               <div class="bg-gray-600 rounded-lg p-3 mb-4">
-                                  <h5 class="text-white font-medium mb-3">Chỉnh sửa hàng loạt</h5>
+                                  <h5 class="text-white font-medium mb-3">Bulk Edit</h5>
                                   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                                       <div>
-                                          <label class="block text-sm font-medium text-gray-300 mb-1">Giá bán (*)</label>
+                                          <label class="block text-sm font-medium text-gray-300 mb-1">Sale Price (*)</label>
                                           <input type="number" id="bulkPrice" step="0.01" 
                                                  class="w-full bg-gray-700 border border-gray-500 rounded px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
-                                                 placeholder="Nhập giá">
+                                                 placeholder="Enter price">
                                       </div>
                                       <div>
-                                          <label class="block text-sm font-medium text-gray-300 mb-1">Giá niêm yết </label>
+                                          <label class="block text-sm font-medium text-gray-300 mb-1">List Price (Optional) </label>
                                           <input type="number" id="bulkListPrice" step="0.01" 
                                                  class="w-full bg-gray-700 border border-gray-500 rounded px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
-                                                 placeholder="Nhập giá niêm yết">
+                                                 placeholder="Enter list price">
                                       </div>
                                       <div>
-                                          <label class="block text-sm font-medium text-gray-300 mb-1">Số lượng</label>
+                                          <label class="block text-sm font-medium text-gray-300 mb-1">Quantity</label>
                                           <input type="number" id="bulkQuantity" min="0" 
                                                  class="w-full bg-gray-700 border border-gray-500 rounded px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
-                                                 placeholder="Nhập số lượng">
+                                                 placeholder="Enter quantity">
                                       </div>
                                       <div>
-                                          <label class="block text-sm font-medium text-gray-300 mb-1">Hình ảnh bulk</label>
+                                          <label class="block text-sm font-medium text-gray-300 mb-1">Bulk Images</label>
                                           <input type="file" id="bulkImages" name="bulk_images_files[]" accept="image/*" multiple
                                                  class="w-full bg-gray-700 border border-gray-500 rounded px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500">
                                       </div>
@@ -740,14 +777,14 @@
                                   <div class="flex items-center justify-between mt-3 pt-3 border-t border-gray-500">
                                       <div class="flex space-x-2">
                                           <button type="button" id="applyBulkEdit" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded text-sm transition-colors" onclick="console.log('Button clicked directly!')">
-                                              Áp dụng cho variants đã chọn
+                                              Apply to selected variants
                                           </button>
                                           <button type="button" id="applyBulkEditAll" class="px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded text-sm transition-colors">
-                                              Áp dụng cho tất cả
+                                              Apply to all
                                           </button>
                                       </div>
                                       <button type="button" id="clearBulkForm" class="px-3 py-1 bg-gray-500 hover:bg-gray-400 text-white rounded text-sm transition-colors">
-                                          Xóa form
+                                            Clear Form
                                       </button>
                                   </div>
                               </div>
@@ -762,11 +799,11 @@
                     <div class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-700">
                         <a href="{{ route('product-templates.index') }}" 
                            class="px-6 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors duration-200">
-                            Hủy
+                            Cancel
                         </a>
                         <button type="submit" 
                                 class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors duration-200">
-                            Tạo Template
+                            Create Template
                         </button>
                     </div>
                 </form>
@@ -796,7 +833,7 @@
                 optionDiv.className = 'border border-gray-600 rounded-lg p-4 bg-gray-700';
                 optionDiv.innerHTML = `
                     <div class="flex justify-between items-center mb-4">
-                        <h4 class="font-medium text-white">Thuộc tính phân loại ${optionIndex + 1}</h4>
+                        <h4 class="font-medium text-white">Classification Attribute ${optionIndex + 1}</h4>
                         <button type="button" class="text-red-400 hover:text-red-300 transition-colors duration-200" onclick="removeOption(this);">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -805,13 +842,13 @@
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-300 mb-2">Tên thuộc tính (VD: Color, Size, Type)</label>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Attribute Name (e.g. Color, Size, Type)</label>
                             <input name="options[${optionIndex}][name]" type="text" required
                                    class="w-full bg-gray-600 border border-gray-500 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
                                    onchange="updateVariantsSection()">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-300 mb-2">Các giá trị (phân cách bằng dấu phẩy)</label>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">Values (separated by comma)</label>
                             <input name="options[${optionIndex}][values_string]" type="text" required
                                    class="w-full bg-gray-600 border border-gray-500 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500" 
                                    placeholder="Black, White, Red"
@@ -878,7 +915,6 @@
     function generateAllVariants() {
         const options = document.querySelectorAll('[name*="[name]"]');
         const valuesInputs = document.querySelectorAll('[name*="[values_string]"]');
-        const variantsContainer = document.getElementById('variantsContainer');
         
         // Collect all options and their values
         let allOptions = [];
@@ -898,25 +934,16 @@
         }
         
         if (allOptions.length === 0) {
-            alert('Vui lòng nhập ít nhất một thuộc tính phân loại và các giá trị tương ứng.');
+            alert('Please enter at least one classification attribute and corresponding values.');
             return;
         }
         
         // Generate Cartesian product
         allVariants = generateCartesianProduct(allOptions);
         
-        // Clear existing variants
-        variantsContainer.innerHTML = '';
-        variantIndex = 0;
-        
-        // Create variant inputs
-        allVariants.forEach((variant, index) => {
-            const variantDiv = createVariantInput(variant, index);
-            variantsContainer.appendChild(variantDiv);
-        });
-        
+        renderVariants();
                  // Show success message
-         showNotification(`Đã tạo ${allVariants.length} variants thành công!`, 'success');
+         showNotification(`Successfully created ${allVariants.length} variants!`, 'success');
          
          // Show bulk edit section
          document.getElementById('bulkEditSection').style.display = 'block';
@@ -949,48 +976,59 @@
     }
 
          // Create variant input form
-     function createVariantInput(variant, index) {
+     function createVariantInput(variant, index, savedValues = {}) {
          const variantDiv = document.createElement('div');
          variantDiv.className = 'border border-gray-600 rounded-lg p-4 bg-gray-700';
          
          // Create variant combination string
          const combinationString = variant.map(item => `${item.name}: ${item.value}`).join(' / ');
+         // Defaults: price = base_price, quantity = 100
+         const basePriceField = document.getElementById('base_price');
+         const basePriceValue = basePriceField ? parseFloat(basePriceField.value || '0') || '' : '';
+         const defaultPrice = savedValues.price ?? basePriceValue;
+         const defaultListPrice = savedValues.list_price ?? '';
+         const defaultQuantity = savedValues.quantity ?? 100;
          
          variantDiv.innerHTML = `
              <div class="flex justify-between items-center mb-4">
                  <div class="flex items-center space-x-3">
-                     <input type="checkbox" class="variant-checkbox mr-2 rounded border-gray-500 bg-gray-600 text-blue-500 focus:ring-blue-500" data-index="${index}">
+                     <input type="checkbox" class="variant-checkbox mr-2 rounded border-gray-500 bg-gray-600 text-blue-500 focus:ring-blue-500" data-index="${index}" ${savedValues.checked ? 'checked' : ''}>
                      <div>
                          <h4 class="font-medium text-white">Variant ${index + 1}</h4>
                          <p class="text-gray-400 text-sm">${combinationString}</p>
                      </div>
                  </div>
                  <div class="flex items-center space-x-2">
-                     <span class="text-green-400 text-sm font-medium">✓ Đã tạo</span>
+                     <span class="text-green-400 text-sm font-medium">✓ Created</span>
+                     <button type="button" class="text-red-400 hover:text-red-300 text-sm" onclick="removeVariant(${index})" title="Remove this variant">
+                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                         </svg>
+                     </button>
                  </div>
              </div>
              
              <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                  <div>
-                     <label class="block text-sm font-medium text-gray-300 mb-2">Giá bán (VNĐ) *</label>
+                     <label class="block text-sm font-medium text-gray-300 mb-2">Sale Price  *</label>
                      <input name="variants[${index}][price]" type="number" step="0.01" required
                             class="w-full bg-gray-600 border border-gray-500 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
-                            placeholder="0.00">
+                            placeholder="0.00" value="${defaultPrice}">
                  </div>
                  <div>
-                     <label class="block text-sm font-medium text-gray-300 mb-2">Giá niêm yết (VNĐ)</label>
+                     <label class="block text-sm font-medium text-gray-300 mb-2">List Price (Optional) </label>
                      <input name="variants[${index}][list_price]" type="number" step="0.01"
                             class="w-full bg-gray-600 border border-gray-500 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
-                            placeholder="0.00">
+                            placeholder="0.00" value="${defaultListPrice}">
                  </div>
                  <div>
-                     <label class="block text-sm font-medium text-gray-300 mb-2">Số lượng tồn kho *</label>
+                     <label class="block text-sm font-medium text-gray-300 mb-2">Quantity *</label>
                      <input name="variants[${index}][quantity]" type="number" min="0" required
                             class="w-full bg-gray-600 border border-gray-500 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
-                            placeholder="0">
+                            placeholder="0" value="${defaultQuantity}">
                  </div>
                  <div>
-                     <label class="block text-sm font-medium text-gray-300 mb-2">Hình ảnh</label>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Images</label>
                      <input name="variants[${index}][image_file]" type="file" accept="image/*"
                             class="w-full bg-gray-600 border border-gray-500 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500">
                  </div>
@@ -1002,6 +1040,50 @@
          `;
          
          return variantDiv;
+     }
+
+    // Lưu giá trị các input hiện tại của variants theo combination_string
+    function getVariantFormValues() {
+        const values = {};
+        document.querySelectorAll('.variant-checkbox').forEach(cb => {
+            const idx = parseInt(cb.dataset.index);
+            const comboInput = document.querySelector(`input[name="variants[${idx}][combination_string]"]`);
+            const key = comboInput ? comboInput.value : `idx-${idx}`;
+            const priceInput = document.querySelector(`input[name="variants[${idx}][price]"]`);
+            const listPriceInput = document.querySelector(`input[name="variants[${idx}][list_price]"]`);
+            const qtyInput = document.querySelector(`input[name="variants[${idx}][quantity]"]`);
+            values[key] = {
+                checked: cb.checked,
+                price: priceInput?.value ?? '',
+                list_price: listPriceInput?.value ?? '',
+                quantity: qtyInput?.value ?? '',
+            };
+        });
+        return values;
+    }
+
+    // Render variants list from allVariants, giữ lại giá trị đã nhập
+    function renderVariants(savedValues = {}) {
+        const variantsContainer = document.getElementById('variantsContainer');
+        variantsContainer.innerHTML = '';
+        variantIndex = 0;
+        allVariants.forEach((variant, index) => {
+            const combinationString = variant.map(item => `${item.name}: ${item.value}`).join(' / ');
+            const preset = savedValues[combinationString] || {};
+            variantsContainer.appendChild(createVariantInput(variant, index, preset));
+            variantIndex++;
+        });
+        document.getElementById('variantsSection').style.display = allVariants.length ? 'block' : 'none';
+        document.getElementById('totalVariants').textContent = allVariants.length;
+        updateSelectedCount();
+    }
+
+    // Remove a variant by index and re-render (giữ lại dữ liệu các variant còn lại)
+    function removeVariant(index) {
+        const savedValues = getVariantFormValues();
+        allVariants.splice(index, 1);
+        renderVariants(savedValues);
+        showNotification('Variant removed', 'info');
      }
 
     // Show notification
@@ -1038,6 +1120,7 @@
     // AJAX Form submission to prevent page reload
     document.getElementById('templateForm').addEventListener('submit', function(e) {
         e.preventDefault(); // Prevent normal form submission
+        collectAttributesForSubmit(this);
         
         // Clear previous errors
         clearValidationErrors();
@@ -1056,7 +1139,7 @@
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            Đang tạo template...
+            Creating template...
         `;
         
         // Prepare form data
@@ -1075,19 +1158,19 @@
         .then(data => {
             if (data.success) {
                 // Success - redirect to index page
-                showNotification(data.message || 'Template đã được tạo thành công!', 'success');
+                showNotification(data.message || 'Template created successfully!', 'success');
                 setTimeout(() => {
                     window.location.href = data.redirect || '/product-templates';
                 }, 1500);
             } else {
                 // Validation errors
                 showValidationErrors(data.errors || {});
-                showNotification(data.message || 'Có lỗi xảy ra, vui lòng kiểm tra lại!', 'error');
+                showNotification(data.message || 'An error occurred, please check again!', 'error');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            showNotification('Có lỗi xảy ra khi tạo template!', 'error');
+            showNotification('An error occurred when creating template!', 'error');
         })
         .finally(() => {
             // Reset submit button
@@ -1104,13 +1187,13 @@
         // Check required fields
         const name = document.getElementById('name');
         if (!name.value.trim()) {
-            showFieldError('name', 'Tên template sản phẩm là bắt buộc');
+            showFieldError('name', 'Product template name is required');
             isValid = false;
         }
         
         const basePrice = document.getElementById('base_price');
         if (!basePrice.value || parseFloat(basePrice.value) < 0) {
-            showFieldError('base_price', 'Giá cơ bản phải là số dương');
+            showFieldError('base_price', 'Base price must be a positive number');
             isValid = false;
         }
         
@@ -1122,12 +1205,12 @@
                 const quantityInput = variantContainer.querySelector('[name*="[quantity]"]');
                 
                 if (priceInput && (!priceInput.value || parseFloat(priceInput.value) < 0)) {
-                    showFieldError(`variants.${index}.price`, 'Giá bán phải là số dương');
+                    showFieldError(`variants.${index}.price`, 'Sale price must be a positive number');
                     isValid = false;
                 }
                 
                 if (quantityInput && (!quantityInput.value || parseInt(quantityInput.value) < 0)) {
-                    showFieldError(`variants.${index}.quantity`, 'Số lượng phải là số nguyên dương');
+                        showFieldError(`variants.${index}.quantity`, 'Quantity must be a positive integer');
                     isValid = false;
                 }
             });
@@ -1186,7 +1269,7 @@
             const errorContainer = document.createElement('div');
             errorContainer.className = 'validation-errors bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4';
             
-            let errorHtml = '<h4 class="font-bold mb-2">Có lỗi xảy ra:</h4><ul class="list-disc list-inside space-y-1">';
+                let errorHtml = '<h4 class="font-bold mb-2">An error occurred:</h4><ul class="list-disc list-inside space-y-1">';
             
             Object.values(errors).forEach(errorMessages => {
                 if (Array.isArray(errorMessages)) {
@@ -1254,6 +1337,23 @@
          // Get all options from the form
          const options = document.querySelectorAll('[name*="[name]"]');
          const valuesInputs = document.querySelectorAll('[name*="[values_string]"]');
+
+        // Helper buttons listener (attach once)
+        if (!window.smartFiltersListenerAttachedCreate) {
+            smartFilters.addEventListener('click', function(e) {
+                const selectAllBtn = e.target.closest('[data-action="select-attr-all"]');
+                const clearBtn = e.target.closest('[data-action="clear-attr"]');
+                if (selectAllBtn) {
+                    const attr = selectAllBtn.dataset.attribute;
+                    selectAllValuesForAttribute(attr);
+                }
+                if (clearBtn) {
+                    const attr = clearBtn.dataset.attribute;
+                    clearValuesForAttribute(attr);
+                }
+            });
+            window.smartFiltersListenerAttachedCreate = true;
+        }
          
          options.forEach((option, index) => {
              const optionName = option.value.trim();
@@ -1266,7 +1366,19 @@
                  const filterDiv = document.createElement('div');
                  filterDiv.className = 'bg-gray-700 rounded p-3';
                  filterDiv.innerHTML = `
-                     <h6 class="text-white font-medium mb-2 text-sm">${optionName}</h6>
+                    <div class="flex items-center justify-between mb-2">
+                        <h6 class="text-white font-medium text-sm">${optionName}</h6>
+                        <div class="flex items-center gap-2 text-xs">
+                            <button type="button" data-action="select-attr-all" data-attribute="${optionName}"
+                                    class="px-2 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded">
+                                Select all
+                            </button>
+                            <button type="button" data-action="clear-attr" data-attribute="${optionName}"
+                                    class="px-2 py-1 bg-gray-600 hover:bg-gray-500 text-white rounded">
+                                Clear
+                            </button>
+                        </div>
+                    </div>
                      <div class="space-y-1">
                          ${values.map(value => `
                              <label class="flex items-center text-sm text-gray-300 cursor-pointer hover:bg-gray-600 rounded px-2 py-1 transition-colors">
@@ -1287,6 +1399,20 @@
                  updateMultiSelectionCount();
              }
          });
+     }
+
+    // Select all values of a specific attribute
+    function selectAllValuesForAttribute(attributeName) {
+        document.querySelectorAll(`.multi-filter-checkbox[data-attribute="${attributeName}"]`).forEach(cb => cb.checked = true);
+        updateMultiSelectionCount();
+        showNotification(`Selected all values of ${attributeName}`, 'success');
+    }
+
+    // Clear values of a specific attribute
+    function clearValuesForAttribute(attributeName) {
+        document.querySelectorAll(`.multi-filter-checkbox[data-attribute="${attributeName}"]`).forEach(cb => cb.checked = false);
+        updateMultiSelectionCount();
+        showNotification(`Cleared values of ${attributeName}`, 'info');
      }
      
      // Count variants with specific attribute value
@@ -1313,13 +1439,73 @@
          const selectedCount = document.querySelectorAll('.multi-filter-checkbox:checked').length;
          document.getElementById('multiSelectionCount').textContent = selectedCount;
      }
+
+function selectAllFilterValues() {
+    document.querySelectorAll('.multi-filter-checkbox').forEach(cb => cb.checked = true);
+    updateMultiSelectionCount();
+    showNotification('Selected all attribute values', 'success');
+}
+
+function clearAllFilterValues() {
+    document.querySelectorAll('.multi-filter-checkbox').forEach(cb => cb.checked = false);
+    updateMultiSelectionCount();
+    showNotification('Cleared attribute selections', 'info');
+}
+
+// Collect attribute inputs into a JSON string (additional payload)
+function collectAttributesForSubmit(form) {
+    const payload = {};
+    const inputs = form.querySelectorAll('[name^="attributes["]');
+    inputs.forEach(el => {
+        const match = el.name.match(/^attributes\[(.+?)\](\[\])?$/);
+        if (!match) return;
+        const attrId = match[1];
+        const isArray = !!match[2];
+
+        if (el.type === 'checkbox') {
+            if (!el.checked) return;
+            payload[attrId] = payload[attrId] || [];
+            payload[attrId].push(el.value);
+        } else {
+            const val = el.value?.trim();
+            if (!val) return;
+            if (isArray) {
+                payload[attrId] = payload[attrId] || [];
+                payload[attrId].push(val);
+            } else {
+                payload[attrId] = val;
+            }
+        }
+    });
+
+    let hidden = form.querySelector('input[name="attributes_json"]');
+    if (!hidden) {
+        hidden = document.createElement('input');
+        hidden.type = 'hidden';
+        hidden.name = 'attributes_json';
+        form.appendChild(hidden);
+    }
+    hidden.value = JSON.stringify(payload);
+    console.log('[ATTR][submit] payload', payload);
+    return true;
+}
+
+// Inline handler fallback
+function handleAttributesSubmit(form) {
+    try {
+        collectAttributesForSubmit(form);
+    } catch (err) {
+        console.error('[ATTR] handleAttributesSubmit error', err);
+    }
+    return true;
+}
      
            // Select variants by multiple attribute values
       function selectVariantsByMultipleAttributeValues() {
           const selectedValues = getSelectedMultiFilterValues();
           
           if (selectedValues.length === 0) {
-              showNotification('Vui lòng chọn ít nhất một giá trị thuộc tính!', 'error');
+                showNotification('Please select at least one attribute value!', 'error');
               return;
           }
           
@@ -1375,7 +1561,7 @@
           updateSelectedCount();
           
           const selectedText = selectedValues.map(s => `${s.attribute}: ${s.value}`).join(', ');
-          showNotification(`Đã chọn variants có: ${selectedText} (Logic: ${selectedLogic})`, 'success');
+          showNotification(`Selected variants with: ${selectedText} (Logic: ${selectedLogic})`, 'success');
       }
      
      // Clear multi-selection
@@ -1386,7 +1572,7 @@
          });
          
          updateMultiSelectionCount();
-         showNotification('Đã xóa lựa chọn thuộc tính', 'info');
+         showNotification('Attribute selection cleared', 'info');
      }
      
      // Setup quick selection buttons
@@ -1399,21 +1585,21 @@
              const checkboxes = document.querySelectorAll('.variant-checkbox');
              checkboxes.forEach(checkbox => checkbox.checked = true);
              updateSelectedCount();
-             showNotification('Đã chọn tất cả variants', 'success');
+             showNotification('All variants selected', 'success');
          });
          
          selectNoneBtn.addEventListener('click', function() {
              const checkboxes = document.querySelectorAll('.variant-checkbox');
              checkboxes.forEach(checkbox => checkbox.checked = false);
              updateSelectedCount();
-             showNotification('Đã bỏ chọn tất cả variants', 'info');
+             showNotification('All variants unselected', 'info');
          });
          
          selectInverseBtn.addEventListener('click', function() {
              const checkboxes = document.querySelectorAll('.variant-checkbox');
              checkboxes.forEach(checkbox => checkbox.checked = !checkbox.checked);
              updateSelectedCount();
-             showNotification('Đã đảo ngược lựa chọn', 'info');
+             showNotification('Selection inverted', 'info');
          });
          
          // Update count when individual checkboxes change
@@ -1446,7 +1632,7 @@
              const selectedVariants = getSelectedVariants();
              console.log('Selected variants:', selectedVariants);
              if (selectedVariants.length === 0) {
-                 showNotification('Vui lòng chọn ít nhất một variant!', 'error');
+                 showNotification('Please select at least one variant!', 'error');
                  return;
              }
              applyBulkEdit(selectedVariants);
@@ -1463,7 +1649,7 @@
              document.getElementById('bulkListPrice').value = '';
              document.getElementById('bulkQuantity').value = '';
              document.getElementById('bulkImages').value = '';
-             showNotification('Đã xóa form', 'info');
+                showNotification('Form cleared', 'info');
          });
          
          // Multi-selection buttons
@@ -1496,7 +1682,7 @@
          const bulkImages = document.getElementById('bulkImages').files; // Sửa từ bulkImage thành bulkImages
          
          if (!bulkPrice && !bulkListPrice && !bulkQuantity && bulkImages.length === 0) {
-             showNotification('Vui lòng nhập ít nhất một thông tin để áp dụng!', 'error');
+             showNotification('Please enter at least one information to apply!', 'error');
              return;
          }
          
@@ -1556,7 +1742,7 @@
              }
          });
          
-         showNotification(`Đã áp dụng thông tin cho ${variantIndices.length} variants!`, 'success');
+                showNotification(`Information applied to ${variantIndices.length} variants!`, 'success');
          
          // Clear bulk edit inputs
          document.getElementById('bulkPrice').value = '';

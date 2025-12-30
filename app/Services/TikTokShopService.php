@@ -201,19 +201,6 @@ class TikTokShopService
         $signature = hash_hmac('sha256', $stringToSign, $appSecret, true);
         $hexSignature = bin2hex($signature);
 
-        // Debug logging
-        Log::info('Signature generation details', [
-            'api_path' => $apiPath,
-            'query_params' => $queryParams,
-            'filtered_params' => $filteredParams,
-            'param_string' => $paramString,
-            'input' => $input,
-            'string_to_sign' => $stringToSign,
-            'signature_hex' => $hexSignature,
-            'app_key' => $appKey,
-            'app_secret_length' => strlen($appSecret)
-        ]);
-
         return $hexSignature;
     }
 
@@ -872,42 +859,24 @@ class TikTokShopService
 
             // Detect region từ shop data
             $region = $this->detectShopRegion($shop);
-            Log::info('Detected shop region', ['region' => $region, 'shop_id' => $shop->shop_id]);
 
             // Generate signature với tất cả parameters cần thiết
+            // Category version: US = v2, UK và các region khác = v1
+            $categoryVersion = $integration->getCategoryVersion();
+
             $apiPath = '/product/' . self::API_VERSION . '/categories';
             $queryParams = [
                 'app_key' => $appKey,
                 'timestamp' => $timestamp,
                 'shop_cipher' => $shopCipher,
-                'category_version' => 'v1',
+                'category_version' => $categoryVersion,
                 'include_prohibited_categories' => 'false',
                 'listing_platform' => 'TIKTOK_SHOP',
                 'locale' => 'en-US',
                 'keyword' => '',
             ];
 
-            // Log trước khi tạo signature
-            Log::info('=== BEFORE SIGNATURE GENERATION ===', [
-                'api_path' => $apiPath,
-                'query_params' => $queryParams,
-                'app_key' => $appKey,
-                'app_secret_length' => strlen($appSecret),
-                'timestamp' => $timestamp,
-                'timestamp_human' => date('Y-m-d H:i:s', $timestamp),
-                'timestamp_utc' => gmdate('Y-m-d H:i:s', $timestamp),
-                'server_timezone' => date_default_timezone_get(),
-                'shop_cipher' => $shopCipher,
-                'shop_region' => $region
-            ]);
-
             $sign = $this->generateSignature($appKey, $appSecret, $apiPath, $queryParams);
-
-            // Log sau khi tạo signature
-            Log::info('=== AFTER SIGNATURE GENERATION ===', [
-                'signature' => $sign,
-                'signature_length' => strlen($sign)
-            ]);
 
             // Sử dụng URL cho region được detect
             $url = $this->getApiBaseUrl($region) . $apiPath;
@@ -916,7 +885,6 @@ class TikTokShopService
             // Thêm s_token nếu có trong access token data
             if (isset($integration->additional_data['s_token'])) {
                 $params['s_token'] = $integration->additional_data['s_token'];
-                Log::info('Added s_token to request', ['s_token' => substr($integration->additional_data['s_token'], 0, 10) . '...']);
             }
 
             $headers = [
@@ -924,52 +892,25 @@ class TikTokShopService
                 'x-tts-access-token' => $accessToken,
             ];
 
-            // Log chi tiết request cuối cùng
-            Log::info('=== FINAL REQUEST DETAILS ===', [
-                'url' => $url,
-                'params' => $params,
-                'headers' => array_merge($headers, ['x-tts-access-token' => '***HIDDEN***']),
-                'api_path' => $apiPath,
-                'query_params' => $queryParams,
-                'signature' => $sign,
-                'region' => $region,
-                'access_token_length' => strlen($accessToken)
-            ]);
-
             $response = Http::withHeaders($headers)->get($url, $params);
             $data = $response->json();
 
-            Log::info('TikTok Shop API Response - Get Categories', [
-                'status' => $response->status(),
-                'data' => $data,
-                'url_used' => $url
-            ]);
-
             // Nếu gặp lỗi 106008 (traffic go to wrong place), thử các region khác
             if (isset($data['code']) && $data['code'] === 106008) {
-                Log::info('Got 106008 error, trying different regions');
 
                 // Thử các region khác nhau
                 $regionsToTry = ['global', 'vn', 'cn', 'sg', 'uk'];
                 foreach ($regionsToTry as $tryRegion) {
                     if ($tryRegion === $region) continue; // Skip region đã thử
 
-                    Log::info("Trying region: {$tryRegion}");
                     $tryUrl = $this->getApiBaseUrl($tryRegion) . $apiPath;
                     $tryResponse = Http::withHeaders($headers)->get($tryUrl, $params);
                     $tryData = $tryResponse->json();
-
-                    Log::info("TikTok Shop API Response - Get Categories (Region: {$tryRegion})", [
-                        'status' => $tryResponse->status(),
-                        'data' => $tryData,
-                        'url_used' => $tryUrl
-                    ]);
 
                     // Nếu thành công, sử dụng response này
                     if ($tryResponse->successful() && isset($tryData['code']) && $tryData['code'] === 0) {
                         $response = $tryResponse;
                         $data = $tryData;
-                        Log::info("Successfully got categories using region: {$tryRegion}");
                         break;
                     }
                 }
@@ -980,33 +921,6 @@ class TikTokShopService
                     $categories = $data['data']['categories'] ?? [];
 
                     // Log chi tiết categories nhận được từ TikTok API
-                    Log::info('TikTok Shop Categories received from API', [
-                        'total_categories' => count($categories),
-                        'categories_sample' => array_slice($categories, 0, 10), // Log 10 categories đầu tiên
-                        'categories_structure' => [
-                            'sample_keys' => !empty($categories) ? array_keys($categories[0]) : [],
-                            'sample_values' => !empty($categories) ? array_values($categories[0]) : []
-                        ]
-                    ]);
-
-                    // Log tất cả categories nếu có ít hơn 50
-                    if (count($categories) <= 50) {
-                        Log::info('All TikTok categories received', [
-                            'categories' => $categories
-                        ]);
-                    } else {
-                        // Log categories theo nhóm nếu có nhiều
-                        $chunks = array_chunk($categories, 50);
-                        foreach ($chunks as $index => $chunk) {
-                            Log::info("TikTok categories chunk " . ($index + 1), [
-                                'chunk_number' => $index + 1,
-                                'total_chunks' => count($chunks),
-                                'categories_in_chunk' => count($chunk),
-                                'categories' => $chunk
-                            ]);
-                        }
-                    }
-
                     // Transform categories to a more usable format
                     $formattedCategories = [];
                     foreach ($categories as $category) {
@@ -1072,13 +986,6 @@ class TikTokShopService
      */
     public function getCategoryAttributes(TikTokShopIntegration $integration, string $categoryId, string $locale = 'en-US'): array
     {
-        Log::info('=== START GET CATEGORY ATTRIBUTES ===');
-        Log::info('Request info:', [
-            'integration_id' => $integration->id,
-            'category_id' => $categoryId,
-            'locale' => $locale
-        ]);
-
         try {
             if (!$integration->access_token) {
                 return [
@@ -1113,7 +1020,6 @@ class TikTokShopService
 
             // Detect region từ shop data
             $region = $this->detectShopRegion($shop);
-            Log::info('Detected shop region', ['region' => $region, 'shop_id' => $shop->shop_id]);
 
             // Sử dụng timestamp hiện tại (UTC) - phải nằm trong vòng 5 phút
             $timestamp = time();
@@ -1122,34 +1028,27 @@ class TikTokShopService
             $accessToken = $integration->access_token;
 
             // Generate signature với tất cả parameters cần thiết
+            // Category version: US = v2, UK và các region khác = v1
+            $categoryVersion = $integration->getCategoryVersion();
+
             $apiPath = "/product/" . self::API_VERSION . "/categories/{$categoryId}/attributes";
             $queryParams = [
                 'app_key' => $appKey,
                 'timestamp' => $timestamp,
                 'shop_cipher' => $shopCipher,
-                'category_version' => 'v1',
+                'category_version' => $categoryVersion,
                 'locale' => $locale
             ];
 
-            Log::info('=== BEFORE SIGNATURE GENERATION ===', [
-                'api_path' => $apiPath,
-                'query_params' => $queryParams,
-                'app_key' => $appKey,
-                'app_secret_length' => strlen($appSecret),
-                'timestamp' => $timestamp,
-                'timestamp_human' => date('Y-m-d H:i:s', $timestamp),
-                'timestamp_utc' => gmdate('Y-m-d H:i:s', $timestamp),
-                'server_timezone' => date_default_timezone_get(),
+            Log::info('TikTok API - Get Category Attributes Request', [
+                'category_id' => $categoryId,
+                'category_version' => $categoryVersion,
+                'integration_market' => $integration->market,
                 'shop_cipher' => $shopCipher,
-                'shop_region' => $region
+                'locale' => $locale
             ]);
 
             $sign = $this->generateSignature($appKey, $appSecret, $apiPath, $queryParams);
-
-            Log::info('=== AFTER SIGNATURE GENERATION ===', [
-                'signature' => $sign,
-                'signature_length' => strlen($sign)
-            ]);
 
             // Sử dụng URL cho region được detect
             $url = $this->getApiBaseUrl($region) . $apiPath;
@@ -1160,35 +1059,12 @@ class TikTokShopService
                 'x-tts-access-token' => $accessToken,
             ];
 
-            Log::info('=== FINAL REQUEST DETAILS ===', [
-                'url' => $url,
-                'params' => $params,
-                'headers' => array_merge($headers, ['x-tts-access-token' => '***HIDDEN***']),
-                'api_path' => $apiPath,
-                'query_params' => $queryParams,
-                'signature' => $sign,
-                'region' => $region,
-                'access_token_length' => strlen($accessToken)
-            ]);
-
             $response = Http::withHeaders($headers)->get($url, $params);
             $data = $response->json();
-
-            Log::info('TikTok Shop API Response - Get Category Attributes', [
-                'status' => $response->status(),
-                'data' => $data,
-                'url_used' => $url
-            ]);
 
             if ($response->successful()) {
                 if (isset($data['code']) && $data['code'] === 0) {
                     $attributes = $data['data']['attributes'] ?? [];
-
-                    Log::info('Category attributes retrieved successfully', [
-                        'category_id' => $categoryId,
-                        'total_attributes' => count($attributes),
-                        'sample_attributes' => array_slice($attributes, 0, 3)
-                    ]);
 
                     return [
                         'success' => true,
@@ -1536,12 +1412,6 @@ class TikTokShopService
      */
     public function getWarehousesWithCipher(TikTokShopIntegration $integration, string $shopCipher): array
     {
-        Log::info('=== START GET WAREHOUSES WITH CIPHER ===');
-        Log::info('Request info:', [
-            'integration_id' => $integration->id,
-            'shop_cipher' => $shopCipher
-        ]);
-
         try {
             if (!$integration->access_token) {
                 return [
@@ -1594,24 +1464,9 @@ class TikTokShopService
                 'x-tts-access-token' => $accessToken
             ];
 
-            Log::info('=== FINAL REQUEST DETAILS ===', [
-                'url' => $url,
-                'query_params' => $queryParams,
-                'headers' => array_merge($headers, ['x-tts-access-token' => '***HIDDEN***']),
-                'endpoint' => '/' . $endpoint,
-                'signature' => $sign,
-                'access_token_length' => strlen($accessToken),
-                'shop_cipher' => $shopCipher
-            ]);
-
             $response = Http::withHeaders($headers)->get($url, $queryParams);
             $data = $response->json();
 
-            Log::info('TikTok Shop API Response - Get Warehouses', [
-                'status' => $response->status(),
-                'data' => $data,
-                'url_used' => $url
-            ]);
 
             if ($response->successful()) {
                 // Kiểm tra nếu response không có code (có thể là data null)
@@ -1634,69 +1489,6 @@ class TikTokShopService
                         ];
                     }
 
-                    // Log chi tiết warehouses nhận được từ TikTok API
-                    Log::info('=== WAREHOUSES DATA FROM TIKTOK API ===');
-                    Log::info('Warehouses API Response (JSON): ' . json_encode([
-                        'shop_cipher' => $shopCipher,
-                        'total_warehouses' => count($warehouses),
-                        'raw_response_data' => $data['data'] ?? [],
-                        'request_id' => $data['request_id'] ?? null
-                    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-
-                    // Log tất cả warehouses nếu có ít hơn 20
-                    if (count($warehouses) <= 20) {
-                        Log::info('All warehouses received from TikTok API (JSON): ' . json_encode([
-                            'warehouses' => $warehouses
-                        ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-                    } else {
-                        // Log warehouses theo nhóm nếu có nhiều
-                        $chunks = array_chunk($warehouses, 20);
-                        foreach ($chunks as $index => $chunk) {
-                            Log::info("Warehouses chunk " . ($index + 1) . " (JSON): " . json_encode([
-                                'chunk_number' => $index + 1,
-                                'total_chunks' => count($chunks),
-                                'warehouses_in_chunk' => count($chunk),
-                                'warehouses' => $chunk
-                            ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-                        }
-                    }
-
-                    // Log structure của warehouse đầu tiên để kiểm tra format
-                    if (!empty($warehouses)) {
-                        $firstWarehouse = reset($warehouses); // Lấy phần tử đầu tiên an toàn
-                        Log::info('First warehouse structure analysis (JSON): ' . json_encode([
-                            'warehouse_keys' => array_keys($firstWarehouse),
-                            'warehouse_values' => array_values($firstWarehouse),
-                            'warehouse_data_types' => array_map('gettype', $firstWarehouse),
-                            'sample_warehouse' => $firstWarehouse
-                        ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-
-                        // Kiểm tra các trường quan trọng (theo cấu trúc thực tế từ TikTok API)
-                        $importantFields = ['id', 'name', 'type', 'sub_type', 'effect_status', 'is_default'];
-                        $availableFields = [];
-                        foreach ($importantFields as $field) {
-                            if (isset($firstWarehouse[$field])) {
-                                $availableFields[$field] = $firstWarehouse[$field];
-                            }
-                        }
-
-                        Log::info('Important warehouse fields found (JSON): ' . json_encode([
-                            'available_fields' => $availableFields,
-                            'missing_fields' => array_diff($importantFields, array_keys($firstWarehouse))
-                        ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-                    }
-
-                    // Log summary
-                    Log::info('Warehouses summary (JSON): ' . json_encode([
-                        'shop_cipher' => $shopCipher,
-                        'total_warehouses' => count($warehouses),
-                        'warehouse_ids' => array_column($warehouses, 'id'),
-                        'warehouse_names' => array_column($warehouses, 'name'),
-                        'warehouse_types' => array_column($warehouses, 'type'),
-                        'has_default_warehouse' => !empty(array_filter($warehouses, function ($w) {
-                            return isset($w['is_default']) && $w['is_default'];
-                        }))
-                    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 
                     return [
                         'success' => true,
@@ -1741,12 +1533,6 @@ class TikTokShopService
      */
     public function getWarehouses(TikTokShopIntegration $integration, int $shopId = null): array
     {
-        Log::info('=== START GET WAREHOUSES ===');
-        Log::info('Request info:', [
-            'integration_id' => $integration->id,
-            'shop_id' => $shopId
-        ]);
-
         try {
             if (!$integration->access_token) {
                 return [
@@ -1796,13 +1582,6 @@ class TikTokShopService
                 ];
             }
 
-            Log::info('Using shop cipher for warehouses API:', [
-                'shop_id' => $shop->id,
-                'shop_name' => $shop->shop_name,
-                'shop_cipher' => $shopCipher,
-                'cipher_source' => $shop->cipher ? 'shop.cipher' : ($shop->shop_data['cipher'] ? 'shop_data.cipher' : ($shop->shop_data['shop_cipher'] ? 'shop_data.shop_cipher' : 'shop_id'))
-            ]);
-
             // Sử dụng timestamp hiện tại (UTC) - phải nằm trong vòng 5 phút
             $timestamp = time();
             $appKey = $integration->getAppKey();
@@ -1835,24 +1614,9 @@ class TikTokShopService
                 'x-tts-access-token' => $accessToken
             ];
 
-            Log::info('=== FINAL REQUEST DETAILS ===', [
-                'url' => $url,
-                'query_params' => $queryParams,
-                'headers' => array_merge($headers, ['x-tts-access-token' => '***HIDDEN***']),
-                'endpoint' => '/' . $endpoint,
-                'signature' => $sign,
-                'access_token_length' => strlen($accessToken),
-                'shop_cipher' => $shopCipher
-            ]);
-
             $response = Http::withHeaders($headers)->get($url, $queryParams);
             $data = $response->json();
 
-            Log::info('TikTok Shop API Response - Get Warehouses', [
-                'status' => $response->status(),
-                'data' => $data,
-                'url_used' => $url
-            ]);
 
             if ($response->successful()) {
                 // Kiểm tra nếu response không có code (có thể là data null)
@@ -1877,71 +1641,6 @@ class TikTokShopService
                         ];
                     }
 
-                    // Log chi tiết warehouses nhận được từ TikTok API
-                    Log::info('=== WAREHOUSES DATA FROM TIKTOK API ===');
-                    Log::info('Warehouses API Response (JSON): ' . json_encode([
-                        'shop_id' => $shop->id,
-                        'shop_cipher' => $shopCipher,
-                        'total_warehouses' => count($warehouses),
-                        'raw_response_data' => $data['data'] ?? [],
-                        'request_id' => $data['request_id'] ?? null
-                    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-
-                    // Log tất cả warehouses nếu có ít hơn 20
-                    if (count($warehouses) <= 20) {
-                        Log::info('All warehouses received from TikTok API (JSON): ' . json_encode([
-                            'warehouses' => $warehouses
-                        ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-                    } else {
-                        // Log warehouses theo nhóm nếu có nhiều
-                        $chunks = array_chunk($warehouses, 20);
-                        foreach ($chunks as $index => $chunk) {
-                            Log::info("Warehouses chunk " . ($index + 1) . " (JSON): " . json_encode([
-                                'chunk_number' => $index + 1,
-                                'total_chunks' => count($chunks),
-                                'warehouses_in_chunk' => count($chunk),
-                                'warehouses' => $chunk
-                            ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-                        }
-                    }
-
-                    // Log structure của warehouse đầu tiên để kiểm tra format
-                    if (!empty($warehouses)) {
-                        $firstWarehouse = reset($warehouses); // Lấy phần tử đầu tiên an toàn
-                        Log::info('First warehouse structure analysis (JSON): ' . json_encode([
-                            'warehouse_keys' => array_keys($firstWarehouse),
-                            'warehouse_values' => array_values($firstWarehouse),
-                            'warehouse_data_types' => array_map('gettype', $firstWarehouse),
-                            'sample_warehouse' => $firstWarehouse
-                        ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-
-                        // Kiểm tra các trường quan trọng (theo cấu trúc thực tế từ TikTok API)
-                        $importantFields = ['id', 'name', 'type', 'sub_type', 'effect_status', 'is_default'];
-                        $availableFields = [];
-                        foreach ($importantFields as $field) {
-                            if (isset($firstWarehouse[$field])) {
-                                $availableFields[$field] = $firstWarehouse[$field];
-                            }
-                        }
-
-                        Log::info('Important warehouse fields found (JSON): ' . json_encode([
-                            'available_fields' => $availableFields,
-                            'missing_fields' => array_diff($importantFields, array_keys($firstWarehouse))
-                        ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-                    }
-
-                    // Log summary
-                    Log::info('Warehouses summary (JSON): ' . json_encode([
-                        'shop_id' => $shop->id,
-                        'shop_cipher' => $shopCipher,
-                        'total_warehouses' => count($warehouses),
-                        'warehouse_ids' => array_column($warehouses, 'id'),
-                        'warehouse_names' => array_column($warehouses, 'name'),
-                        'warehouse_types' => array_column($warehouses, 'type'),
-                        'has_default_warehouse' => !empty(array_filter($warehouses, function ($w) {
-                            return isset($w['is_default']) && $w['is_default'];
-                        }))
-                    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 
                     return [
                         'success' => true,

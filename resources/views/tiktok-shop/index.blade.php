@@ -7,11 +7,11 @@
         <div class="mb-8">
             <div class="flex justify-between items-center mb-6">
                 <div>
-                    <h1 class="text-3xl font-bold text-white mb-2">Quản lý tích hợp TikTok Shop</h1>
-                    <p class="text-gray-400">Quản lý tất cả tích hợp TikTok Shop cho các teams</p>
+                    <h1 class="text-3xl font-bold text-white mb-2">Manage TikTok Shop integrations</h1>
+                    <p class="text-gray-400">Manage all TikTok Shop integrations for teams</p>
                 </div>
                 <a href="{{ route('tiktok-shop.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200">
-                    Tạo tích hợp mới
+                    Create new integration
                 </a>
             </div>
         </div>
@@ -33,7 +33,7 @@
             <!-- Integrations List -->
             <div class="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-700">
-                    <h3 class="text-lg font-semibold text-white">Danh sách tích hợp TikTok Shop</h3>
+                    <h3 class="text-lg font-semibold text-white">List of TikTok Shop integrations</h3>
                 </div>
                 
                 <div class="overflow-x-auto">
@@ -41,11 +41,11 @@
                         <thead class="bg-gray-700">
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Team</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Trạng thái</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Status</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Shop</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Token</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Ngày tạo</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Thao tác</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Created at</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-700">
@@ -70,7 +70,7 @@
                                                     <div class="text-sm text-gray-400">{{ $shop->shop_id }}</div>
                                                 @endforeach
                                             @else
-                                                <div class="text-sm text-white">Chưa kết nối</div>
+                                                <div class="text-sm text-white">Not connected</div>
                                             @endif
                                         </div>
                                     </td>
@@ -79,12 +79,12 @@
                                             <div class="flex items-center">
                                                 <span class="text-gray-400">Access:</span>
                                                 <span class="ml-2 {{ $integration->isAccessTokenExpired() ? 'text-red-400' : 'text-green-400' }}">
-                                                    {{ $integration->isAccessTokenExpired() ? 'Hết hạn' : 'Còn hiệu lực' }}
+                                                    {{ $integration->isAccessTokenExpired() ? 'Expired' : 'Valid' }}
                                                 </span>
                                             </div>
                                             @if($integration->access_token_remaining_days > 0)
                                                 <div class="text-xs text-yellow-400 mt-1">
-                                                    Còn {{ $integration->access_token_remaining_days }} ngày
+                                                    Remaining {{ $integration->access_token_remaining_days }} days
                                                 </div>
                                             @endif
                                         </div>
@@ -94,7 +94,7 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <div class="flex items-center space-x-2">
-                                            <a href="{{ route('tiktok-shop.edit', $integration) }}" class="text-blue-400 hover:text-blue-300" title="Chỉnh sửa">
+                                            <a href="{{ route('tiktok-shop.edit', $integration) }}" class="text-blue-400 hover:text-blue-300" title="Edit">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                                 </svg>
@@ -122,7 +122,7 @@
                                                     </button>
                                                 </form>
                                             @endif
-                                            <form action="{{ route('tiktok-shop.destroy', $integration) }}" method="POST" class="inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa tích hợp này?')">
+                                                <form action="{{ route('tiktok-shop.destroy', $integration) }}" method="POST" class="inline" onsubmit="return confirm('Are
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="text-red-400 hover:text-red-300">
@@ -150,7 +150,7 @@
                             </svg>
                         </div>
                         <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-400">Tổng số tích hợp</p>
+                            <p class="text-sm font-medium text-gray-400">Total integrations</p>
                             <p class="text-2xl font-bold text-white">{{ $integrations->count() }}</p>
                         </div>
                     </div>
@@ -164,7 +164,7 @@
                             </svg>
                         </div>
                         <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-400">Đang hoạt động</p>
+                            <p class="text-sm font-medium text-gray-400">Active</p>
                             <p class="text-2xl font-bold text-white">{{ $integrations->where('status', 'active')->count() }}</p>
                         </div>
                     </div>
@@ -178,7 +178,7 @@
                             </svg>
                         </div>
                         <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-400">Chờ xác thực</p>
+                            <p class="text-sm font-medium text-gray-400">Waiting for verification</p>
                             <p class="text-2xl font-bold text-white">{{ $integrations->where('status', 'pending')->count() }}</p>
                         </div>
                     </div>
@@ -192,7 +192,7 @@
                             </svg>
                         </div>
                         <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-400">Có lỗi</p>
+                            <p class="text-sm font-medium text-gray-400">Error</p>
                             <p class="text-2xl font-bold text-white">{{ $integrations->whereIn('status', ['error', 'expired'])->count() }}</p>
                         </div>
                     </div>
@@ -207,10 +207,10 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                     </svg>
                 </div>
-                <h3 class="text-xl font-bold text-white mb-2">Chưa có tích hợp TikTok Shop nào</h3>
-                <p class="text-gray-400 mb-6">Bắt đầu tạo tích hợp TikTok Shop cho các teams.</p>
+                <h3 class="text-xl font-bold text-white mb-2">No TikTok Shop integrations found</h3>
+                <p class="text-gray-400 mb-6">Start creating TikTok Shop integrations for teams.</p>
                 <a href="{{ route('tiktok-shop.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200">
-                    Tạo tích hợp đầu tiên
+                    Create first integration
                 </a>
             </div>
         @endif

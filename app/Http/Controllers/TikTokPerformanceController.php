@@ -48,6 +48,11 @@ class TikTokPerformanceController extends Controller
                     $result = $this->performanceService->getShopPerformance($selectedShop, $filters);
                     if ($result['success']) {
                         $performanceData = $result['data'];
+                    } else {
+                        // Hiển thị thông báo lỗi nếu API fail
+                        return redirect()->back()
+                            ->with('error', 'Không thể lấy dữ liệu performance từ TikTok API: ' . ($result['message'] ?? 'Unknown error'))
+                            ->withInput();
                     }
                 }
             } else {
@@ -57,6 +62,11 @@ class TikTokPerformanceController extends Controller
                     $result = $this->performanceService->getShopPerformance($firstShop, $filters);
                     if ($result['success']) {
                         $performanceData = $result['data'];
+                    } else {
+                        // Hiển thị thông báo lỗi nếu API fail
+                        return redirect()->back()
+                            ->with('error', 'Không thể lấy dữ liệu performance từ TikTok API: ' . ($result['message'] ?? 'Unknown error'))
+                            ->withInput();
                     }
                 }
             }

@@ -165,16 +165,16 @@ TikTokCategoryAttribute::customizable()->get();
 
 ```php
 // Kiểm tra cần sync không
-TikTokCategoryAttribute::needsSync('600001', 24);
+TikTokCategoryAttribute::needsSync('600001', 24, 'v2', 'US');
 
 // Xóa attributes của category
-TikTokCategoryAttribute::clearCategoryAttributes('600001');
+TikTokCategoryAttribute::clearCategoryAttributes('600001', 'v2', 'US');
 
 // Tạo từ API data
-TikTokCategoryAttribute::createOrUpdateFromApiData('600001', $apiData);
+TikTokCategoryAttribute::createOrUpdateFromApiData('600001', $apiData, 'US', 'v2');
 
 // Lấy với phân loại
-TikTokCategoryAttribute::getByCategoryWithGrouping('600001');
+TikTokCategoryAttribute::getByCategoryWithGrouping('600001', 'v2', 'US');
 ```
 
 #### Accessors:

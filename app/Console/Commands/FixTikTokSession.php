@@ -158,7 +158,7 @@ echo '3. Kiểm tra log để xem chi tiết quá trình authorization\n';
                 'type' => 'customer_auth'
             ])),
             'redirect_uri' => route('public.customer-callback'),
-            'scope' => 'seller.authorization.info,seller.shop.info,seller.product.basic,seller.order.info,seller.fulfillment.basic,seller.logistics,seller.delivery.status.write,seller.finance.info,seller.product.delete,seller.product.write,seller.product.optimize',
+            'scope' => config('tiktok-shop.oauth.scope'),
         ];
 
         return 'https://auth.tiktok-shops.com/oauth/authorize?' . http_build_query($params);

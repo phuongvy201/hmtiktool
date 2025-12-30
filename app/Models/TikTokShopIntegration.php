@@ -22,6 +22,7 @@ class TikTokShopIntegration extends Model
 
     protected $fillable = [
         'team_id',
+        'market',
         'name',
         'description',
         'access_token',
@@ -37,6 +38,10 @@ class TikTokShopIntegration extends Model
         'access_token_expires_at' => 'integer',
         'refresh_token_expires_at' => 'integer',
         'additional_data' => 'array',
+    ];
+
+    protected $appends = [
+        'market',
     ];
 
     protected $hidden = [
@@ -58,6 +63,51 @@ class TikTokShopIntegration extends Model
     public function shops(): HasMany
     {
         return $this->hasMany(TikTokShop::class, 'tiktok_shop_integration_id');
+    }
+
+    /**
+     * Get market from additional data storage.
+     */
+    public function getMarketAttribute(): string
+    {
+        $defaultMarket = config('tiktok-shop.default_market', 'UK');
+        $additionalData = $this->additional_data ?? [];
+
+        if (!is_array($additionalData)) {
+            $additionalData = [];
+        }
+
+        $market = $additionalData['market'] ?? null;
+
+        return $market ? strtoupper($market) : $defaultMarket;
+    }
+
+    /**
+     * Persist market into additional data storage.
+     */
+    public function setMarketAttribute(?string $value): void
+    {
+        $additionalData = $this->additional_data ?? [];
+
+        if (!is_array($additionalData)) {
+            $additionalData = [];
+        }
+
+        if ($value === null || $value === '') {
+            unset($additionalData['market']);
+        } else {
+            $additionalData['market'] = strtoupper($value);
+        }
+
+        $this->additional_data = $additionalData;
+    }
+
+    /**
+     * Scope for filtering integrations by market stored in additional data.
+     */
+    public function scopeForMarket($query, string $market)
+    {
+        return $query->where('additional_data->market', strtoupper($market));
     }
 
     /**
@@ -360,28 +410,58 @@ class TikTokShopIntegration extends Model
             'app_key' => $this->getAppKey(),
             'state' => $this->team_id,
             'redirect_uri' => route('team.tiktok-shop.callback'),
-            'scope' => 'seller.authorization.info,seller.shop.info,seller.product.basic,seller.order.info,seller.fulfillment.basic,seller.logistics,seller.delivery.status.write,seller.finance.info,seller.product.delete,seller.product.write,seller.product.optimize',
+            'scope' => config('tiktok-shop.oauth.scope'),
         ];
 
         return 'https://auth.tiktok-shops.com/oauth/authorize?' . http_build_query($params);
     }
 
     /**
-     * Get App Key from system configuration
+     * Get App Key from system configuration based on market
      */
     public function getAppKey(): string
     {
-        // Lấy từ system configuration hoặc environment
+        $market = $this->market ?? 'US';
+
+        // Ưu tiên lấy từ market-specific config
+        $marketConfig = config("tiktok-shop.markets.{$market}");
+        if ($marketConfig && !empty($marketConfig['app_key'])) {
+            return $marketConfig['app_key'];
+        }
+
+        // Fallback về config chung
         return config('tiktok-shop.app_key') ?? env('TIKTOK_SHOP_APP_KEY');
     }
 
     /**
-     * Get App Secret from system configuration
+     * Get App Secret from system configuration based on market
      */
     public function getAppSecret(): string
     {
-        // Lấy từ system configuration hoặc environment
+        $market = $this->market ?? 'US';
+
+        // Ưu tiên lấy từ market-specific config
+        $marketConfig = config("tiktok-shop.markets.{$market}");
+        if ($marketConfig && !empty($marketConfig['app_secret'])) {
+            return $marketConfig['app_secret'];
+        }
+
+        // Fallback về config chung
         return config('tiktok-shop.app_secret') ?? env('TIKTOK_SHOP_APP_SECRET');
+    }
+
+    /**
+     * Get category version based on market
+     * US: v2 (7-level category tree)
+     * UK and other regions: v1 (3-level category tree)
+     * 
+     * @return string 'v1' for UK and other regions, 'v2' for US
+     */
+    public function getCategoryVersion(): string
+    {
+        // Chỉ US mới dùng v2, tất cả các market khác (UK, null, etc.) đều dùng v1
+        $market = strtoupper(trim($this->market ?? ''));
+        return $market === 'US' ? 'v2' : 'v1';
     }
 
     /**

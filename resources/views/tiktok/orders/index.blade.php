@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Danh sách đơn hàng TikTok')
+@section('title', 'TikTok Orders')
 
 @section('head')
 <style>
@@ -21,7 +21,7 @@
         <div class="px-6 py-4 border-b border-gray-700">
             <h2 class="text-2xl font-bold text-white flex items-center">
                 <i class="fas fa-shopping-cart mr-3 text-blue-400"></i>
-                Danh sách đơn hàng TikTok
+                TikTok Orders List  
             </h2>
         </div>
 
@@ -31,29 +31,29 @@
             <div class="flex flex-col lg:flex-row lg:items-center gap-4 mb-4">
                 <!-- Date Range Filter -->
                 <div class="flex flex-col w-full lg:w-auto">
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Khoảng thời gian:</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Date range:</label>
                     
                     <!-- Quick Date Buttons -->
                     <div class="flex flex-wrap gap-2 mb-3">
                         <button type="button" onclick="setQuickDate('today')" 
                                 class="px-3 py-1 text-xs bg-gray-700 text-gray-300 rounded-full hover:bg-gray-600 transition-colors">
-                            Hôm nay
+                            Today
                         </button>
                         <button type="button" onclick="setQuickDate('yesterday')" 
                                 class="px-3 py-1 text-xs bg-gray-700 text-gray-300 rounded-full hover:bg-gray-600 transition-colors">
-                            Hôm qua
+                            Yesterday
                         </button>
                         <button type="button" onclick="setQuickDate('week')" 
                                 class="px-3 py-1 text-xs bg-gray-700 text-gray-300 rounded-full hover:bg-gray-600 transition-colors">
-                            7 ngày
+                            Last 7 days
                         </button>
                         <button type="button" onclick="setQuickDate('month')" 
                                 class="px-3 py-1 text-xs bg-gray-700 text-gray-300 rounded-full hover:bg-gray-600 transition-colors">
-                            Tháng này
+                            This month
                         </button>
                         <button type="button" onclick="setQuickDate('lastMonth')" 
                                 class="px-3 py-1 text-xs bg-gray-700 text-gray-300 rounded-full hover:bg-gray-600 transition-colors">
-                            Tháng trước
+                            Last month
                         </button>
                     </div>
                     
@@ -68,7 +68,7 @@
                             </div>
                         </div>
                         <div class="flex items-center justify-center text-gray-400 text-sm">
-                            <span>đến</span>
+                            <span>to</span>
                         </div>
                         <div class="relative">
                             <input type="date" id="dateTo" name="date_to" 
@@ -85,7 +85,7 @@
                 <div class="flex flex-col sm:flex-row sm:items-center w-full lg:w-auto">
                     <label class="block text-sm font-medium text-gray-300 mb-1 sm:mb-0 sm:mr-2">Shop:</label>
                     <select class="block w-full sm:w-48 px-3 py-2 border border-gray-600 rounded-md shadow-sm bg-gray-800 text-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500" id="shopFilter">
-                        <option value="">Tất cả shops</option>
+                        <option value="">All shops</option>
                         @foreach($shops as $shop)
                             <option value="{{ $shop->id }}" {{ request('shop_id') == $shop->id ? 'selected' : '' }}>
                                 {{ $shop->shop_name }}
@@ -94,44 +94,28 @@
                     </select>
                 </div>
 
-                <!-- Display Options -->
-                <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 w-full lg:w-auto lg:ml-auto">
-                    <label class="flex items-center">
-                        <input type="checkbox" class="h-4 w-4 text-pink-600 focus:ring-pink-500 border-gray-600 rounded bg-gray-800" checked>
-                        <span class="ml-2 text-sm text-gray-300">Mới nhất trước</span>
-                    </label>
-                    <label class="flex items-center">
-                        <input type="checkbox" class="h-4 w-4 text-pink-600 focus:ring-pink-500 border-gray-600 rounded bg-gray-800" checked>
-                        <span class="ml-2 text-sm text-gray-300">Giao diện mới</span>
-                    </label>
-                </div>
+                
             </div>
 
             <!-- Action Buttons -->
             <div class="flex flex-wrap items-center gap-2 sm:gap-3">
-                <button class="px-3 py-2 sm:px-4 text-xs sm:text-sm bg-gray-700 text-gray-300 rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500">
-                    <span class="hidden sm:inline">Tạo nhãn hàng loạt</span>
-                    <span class="sm:hidden">Tạo nhãn</span>
-                </button>
-                <button class="px-3 py-2 sm:px-4 text-xs sm:text-sm bg-gray-700 text-gray-300 rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500">
-                    <span class="hidden sm:inline">Tạo nhãn + Xuất</span>
-                    <span class="sm:hidden">Nhãn + Xuất</span>
-                </button>
-                <button class="px-3 py-2 sm:px-4 text-xs sm:text-sm bg-gray-700 text-gray-300 rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500">
-                    Xuất Excel
+                <button type="button" id="exportSelectedBtn"
+                   class="px-3 py-2 sm:px-4 text-xs sm:text-sm bg-gray-700 text-gray-300 rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 inline-flex items-center">
+                    <i class="fas fa-file-excel mr-1 sm:mr-2"></i>
+                    Export Excel
                 </button>
                 <button class="px-3 py-2 sm:px-4 text-xs sm:text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <span class="hidden sm:inline">Tải lên Tracking</span>
+                    <span class="hidden sm:inline">Upload Tracking</span>
                     <span class="sm:hidden">Tracking</span>
                 </button>
                 <button class="px-3 py-2 sm:px-4 text-xs sm:text-sm bg-gray-700 text-gray-300 rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500">
-                    <span class="hidden sm:inline">Đẩy đến Fulfillment</span>
+                    <span class="hidden sm:inline">Push to Fulfillment</span>
                     <span class="sm:hidden">Fulfillment</span>
                 </button>
                 <button class="px-3 py-2 sm:px-4 text-xs sm:text-sm bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500" onclick="openSyncModal()">
                     <i class="fas fa-sync-alt mr-1 sm:mr-2"></i>
-                    <span class="hidden sm:inline">Đồng bộ đơn hàng</span>
-                    <span class="sm:hidden">Đồng bộ</span>
+                    <span class="hidden sm:inline">Sync orders</span>
+                    <span class="sm:hidden">Sync</span>
                 </button>
             </div>
         </div>
@@ -142,31 +126,31 @@
         <div class="hidden lg:grid lg:grid-cols-7 lg:gap-2">
             <a href="{{ route('tiktok.orders.index') }}" 
                class="px-3 py-2 text-sm font-medium text-center rounded-lg transition-colors duration-200 {{ !request('status') ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600' }}">
-                Tất cả
+                All
             </a>
             <a href="{{ route('tiktok.orders.index', ['status' => 'AWAITING_SHIPMENT']) }}" 
                class="px-3 py-2 text-sm font-medium text-center rounded-lg transition-colors duration-200 {{ request('status') == 'AWAITING_SHIPMENT' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600' }}">
-                Chờ giao hàng
+                Awaiting shipment
             </a>
             <a href="{{ route('tiktok.orders.index', ['status' => 'AWAITING_COLLECTION']) }}" 
                class="px-3 py-2 text-sm font-medium text-center rounded-lg transition-colors duration-200 {{ request('status') == 'AWAITING_COLLECTION' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600' }}">
-                Chờ lấy hàng
+                Awaiting pickup
             </a>
             <a href="{{ route('tiktok.orders.index', ['status' => 'IN_TRANSIT']) }}" 
                class="px-3 py-2 text-sm font-medium text-center rounded-lg transition-colors duration-200 {{ request('status') == 'IN_TRANSIT' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600' }}">
-                Đang vận chuyển
+                In transit
             </a>
             <a href="{{ route('tiktok.orders.index', ['status' => 'DELIVERED']) }}" 
                class="px-3 py-2 text-sm font-medium text-center rounded-lg transition-colors duration-200 {{ request('status') == 'DELIVERED' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600' }}">
-                Đã giao
+                Delivered
             </a>
             <a href="{{ route('tiktok.orders.index', ['status' => 'CANCELLED']) }}" 
                class="px-3 py-2 text-sm font-medium text-center rounded-lg transition-colors duration-200 {{ request('status') == 'CANCELLED' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600' }}">
-                Đã hủy
+                Cancelled
             </a>
             <a href="{{ route('tiktok.orders.index', ['status' => 'UNPAID']) }}" 
                class="px-3 py-2 text-sm font-medium text-center rounded-lg transition-colors duration-200 {{ request('status') == 'UNPAID' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600' }}">
-                Chưa thanh toán
+                Unpaid
             </a>
         </div>
 
@@ -174,31 +158,31 @@
         <div class="hidden md:grid lg:hidden md:grid-cols-4 md:gap-2 md:space-y-2">
             <a href="{{ route('tiktok.orders.index') }}" 
                class="px-3 py-2 text-sm font-medium text-center rounded-lg transition-colors duration-200 {{ !request('status') ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600' }}">
-                Tất cả
+                All
             </a>
             <a href="{{ route('tiktok.orders.index', ['status' => 'AWAITING_SHIPMENT']) }}" 
                class="px-3 py-2 text-sm font-medium text-center rounded-lg transition-colors duration-200 {{ request('status') == 'AWAITING_SHIPMENT' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600' }}">
-                Chờ giao hàng
+                Awaiting shipment
             </a>
             <a href="{{ route('tiktok.orders.index', ['status' => 'AWAITING_COLLECTION']) }}" 
                class="px-3 py-2 text-sm font-medium text-center rounded-lg transition-colors duration-200 {{ request('status') == 'AWAITING_COLLECTION' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600' }}">
-                Chờ lấy hàng
+                Awaiting pickup
             </a>
             <a href="{{ route('tiktok.orders.index', ['status' => 'IN_TRANSIT']) }}" 
                class="px-3 py-2 text-sm font-medium text-center rounded-lg transition-colors duration-200 {{ request('status') == 'IN_TRANSIT' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600' }}">
-                Đang vận chuyển
+                In transit
             </a>
             <a href="{{ route('tiktok.orders.index', ['status' => 'DELIVERED']) }}" 
                class="px-3 py-2 text-sm font-medium text-center rounded-lg transition-colors duration-200 {{ request('status') == 'DELIVERED' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600' }}">
-                Đã giao
+                Delivered
             </a>
             <a href="{{ route('tiktok.orders.index', ['status' => 'CANCELLED']) }}" 
                class="px-3 py-2 text-sm font-medium text-center rounded-lg transition-colors duration-200 {{ request('status') == 'CANCELLED' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600' }}">
-                Đã hủy
+                Cancelled
             </a>
             <a href="{{ route('tiktok.orders.index', ['status' => 'UNPAID']) }}" 
                class="px-3 py-2 text-sm font-medium text-center rounded-lg transition-colors duration-200 {{ request('status') == 'UNPAID' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600' }}">
-                Chưa thanh toán
+                Unpaid
             </a>
         </div>
 
@@ -207,31 +191,31 @@
             <div class="flex space-x-2 pb-2 overflow-x-auto scrollbar-hide">
                 <a href="{{ route('tiktok.orders.index') }}" 
                    class="px-4 py-2 text-xs font-medium whitespace-nowrap rounded-full transition-colors duration-200 {{ !request('status') ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600' }}">
-                    Tất cả
+                    All
                 </a>
                 <a href="{{ route('tiktok.orders.index', ['status' => 'AWAITING_SHIPMENT']) }}" 
                    class="px-4 py-2 text-xs font-medium whitespace-nowrap rounded-full transition-colors duration-200 {{ request('status') == 'AWAITING_SHIPMENT' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600' }}">
-                    Chờ giao
+                    Await ship
                 </a>
                 <a href="{{ route('tiktok.orders.index', ['status' => 'AWAITING_COLLECTION']) }}" 
                    class="px-4 py-2 text-xs font-medium whitespace-nowrap rounded-full transition-colors duration-200 {{ request('status') == 'AWAITING_COLLECTION' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600' }}">
-                    Chờ lấy
+                    Await pickup
                 </a>
                 <a href="{{ route('tiktok.orders.index', ['status' => 'IN_TRANSIT']) }}" 
                    class="px-4 py-2 text-xs font-medium whitespace-nowrap rounded-full transition-colors duration-200 {{ request('status') == 'IN_TRANSIT' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600' }}">
-                    Đang giao
+                    In transit
                 </a>
                 <a href="{{ route('tiktok.orders.index', ['status' => 'DELIVERED']) }}" 
                    class="px-4 py-2 text-xs font-medium whitespace-nowrap rounded-full transition-colors duration-200 {{ request('status') == 'DELIVERED' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600' }}">
-                    Đã giao
+                    Delivered
                 </a>
                 <a href="{{ route('tiktok.orders.index', ['status' => 'CANCELLED']) }}" 
                    class="px-4 py-2 text-xs font-medium whitespace-nowrap rounded-full transition-colors duration-200 {{ request('status') == 'CANCELLED' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600' }}">
-                    Đã hủy
+                    Cancelled
                 </a>
                 <a href="{{ route('tiktok.orders.index', ['status' => 'UNPAID']) }}" 
                    class="px-4 py-2 text-xs font-medium whitespace-nowrap rounded-full transition-colors duration-200 {{ request('status') == 'UNPAID' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600' }}">
-                    Chưa trả
+                    Unpaid
                 </a>
             </div>
         </div>
@@ -246,7 +230,7 @@
                         <thead class="bg-gray-900">
                             <tr>
                                 <th class="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                    <input type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-600 rounded bg-gray-800">
+                                    <input type="checkbox" id="selectAllOrders" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-600 rounded bg-gray-800">
                                 </th>
                                 <th class="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Order ID</th>
                                 <th class="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Tracking</th>
@@ -262,7 +246,7 @@
                                 <tr class="hover:bg-gray-700">
                                     <!-- Checkbox -->
                                     <td class="px-3 py-4 whitespace-nowrap">
-                                        <input type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-600 rounded bg-gray-800">
+                                        <input type="checkbox" name="selected_orders[]" value="{{ $order->id }}" class="order-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-600 rounded bg-gray-800">
                                     </td>
                                     
                                     <!-- Order ID & Product Info -->
@@ -272,7 +256,8 @@
                                             <div class="flex-shrink-0 h-10 w-10 bg-gray-700 rounded-md flex items-center justify-center">
                                                 @if(isset($order->order_data['line_items'][0]['sku_image']))
                                                     <img src="{{ $order->order_data['line_items'][0]['sku_image'] }}" 
-                                                         alt="Product" class="h-10 w-10 object-cover rounded-md">
+                                                         alt="Product" class="h-10 w-10 object-cover rounded-md cursor-pointer order-image"
+                                                         data-image="{{ $order->order_data['line_items'][0]['sku_image'] }}">
                                                 @else
                                                     <i class="fas fa-image text-gray-500 text-sm"></i>
                                                 @endif
@@ -290,10 +275,10 @@
                                                 <!-- SLA & Auto Cancel -->
                                                 <div class="flex items-center space-x-2 mt-1">
                                                     <span class="text-xs text-orange-400">
-                                                        SLA: {{ $order->create_time ? $order->create_time->addDays(3)->diffForHumans() : 'N/A' }}
+                                                        SLA: {{ $order->getSlaDate() ? $order->getSlaDate()->diffForHumans() : 'N/A' }}
                                                     </span>
                                                     <span class="text-xs text-red-400">
-                                                        Auto: {{ $order->create_time ? $order->create_time->addDays(10)->diffForHumans() : 'N/A' }}
+                                                        Auto: {{ $order->getAutoCancelDate() ? $order->getAutoCancelDate()->diffForHumans() : 'N/A' }}
                                                     </span>
                                                 </div>
                                             </div>
@@ -326,7 +311,7 @@
                                         @if($order->order_status == 'AWAITING_SHIPMENT' && ($order->shipping_type == 'SELLER' || !$order->shipping_type))
                                             <button onclick="openMarkShippedModal({{ $order->id }})" 
                                                     class="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500">
-                                                Thêm Tracking
+                                                Add tracking
                                             </button>
                                         @elseif($trackingNumber)
                                             <div class="flex flex-col">
@@ -341,13 +326,13 @@
                                             </div>
                                         @elseif($shippingProviderName && in_array($order->order_status, ['IN_TRANSIT', 'AWAITING_COLLECTION']))
                                             <div class="flex flex-col">
-                                                <span class="text-sm font-medium text-green-400">Đã gửi</span>
+                                                <span class="text-sm font-medium text-green-400">Shipped</span>
                                                 <span class="text-xs text-gray-400">
                                                     {{ $shippingProviderName }}
                                                 </span>
                                             </div>
                                         @elseif(in_array($order->order_status, ['IN_TRANSIT', 'AWAITING_COLLECTION']))
-                                            <span class="text-sm text-green-400">Đã gửi</span>
+                                            <span class="text-sm text-green-400">Shipped</span>
                                         @else
                                             <span class="text-sm text-gray-500">-</span>
                                         @endif
@@ -386,7 +371,7 @@
                                         <div class="flex items-center space-x-2">
                                             <a href="{{ route('tiktok.orders.show', $order->id) }}" 
                                                class="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500">
-                                                Chi tiết
+                                                Details
                                             </a>
                                         </div>
                                     </td>
@@ -404,13 +389,14 @@
                                 <!-- Header with checkbox and order info -->
                                 <div class="flex items-start justify-between mb-3">
                                     <div class="flex items-start space-x-3">
-                                        <input type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-600 rounded bg-gray-800 mt-1">
+                                        <input type="checkbox" name="selected_orders[]" value="{{ $order->id }}" class="order-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-600 rounded bg-gray-800 mt-1">
                                         <div class="flex items-start space-x-3">
                                             <!-- Product Image -->
                                             <div class="flex-shrink-0 h-12 w-12 bg-gray-600 rounded-md flex items-center justify-center">
                                                 @if(isset($order->order_data['line_items'][0]['sku_image']))
                                                     <img src="{{ $order->order_data['line_items'][0]['sku_image'] }}" 
-                                                         alt="Product" class="h-12 w-12 object-cover rounded-md">
+                                                         alt="Product" class="h-12 w-12 object-cover rounded-md cursor-pointer order-image"
+                                                         data-image="{{ $order->order_data['line_items'][0]['sku_image'] }}">
                                                 @else
                                                     <i class="fas fa-image text-gray-400"></i>
                                                 @endif
@@ -454,10 +440,10 @@
                                 <!-- SLA & Auto Cancel -->
                                 <div class="flex items-center justify-between mb-3 text-xs">
                                     <span class="text-orange-400">
-                                        SLA: {{ $order->create_time ? $order->create_time->addDays(3)->diffForHumans() : 'N/A' }}
+                                        SLA: {{ $order->getSlaDate() ? $order->getSlaDate()->diffForHumans() : 'N/A' }}
                                     </span>
                                     <span class="text-red-400">
-                                        Auto: {{ $order->create_time ? $order->create_time->addDays(10)->diffForHumans() : 'N/A' }}
+                                        Auto: {{ $order->getAutoCancelDate() ? $order->getAutoCancelDate()->diffForHumans() : 'N/A' }}
                                     </span>
                                 </div>
 
@@ -492,7 +478,7 @@
                                                 <p class="text-sm text-green-300">{{ $mobileTrackingNumber }}</p>
                                             @else
                                                 <p class="text-xs text-green-400 font-medium">Shipping Status</p>
-                                                <p class="text-sm text-green-300">Đã gửi</p>
+                                                <p class="text-sm text-green-300">Shipped</p>
                                             @endif
                                             @if($mobileShippingProviderName)
                                                 <p class="text-xs text-gray-400">{{ $mobileShippingProviderName }}</p>
@@ -508,16 +494,16 @@
                                     @if($order->order_status == 'AWAITING_SHIPMENT' && ($order->shipping_type == 'SELLER' || !$order->shipping_type))
                                         <button onclick="openMarkShippedModal({{ $order->id }})" 
                                                 class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500">
-                                            Thêm Tracking
+                                            Add tracking
                                         </button>
                                     @elseif(in_array($order->order_status, ['IN_TRANSIT', 'AWAITING_COLLECTION']))
-                                        <span class="text-sm text-green-400">Đã gửi</span>
+                                        <span class="text-sm text-green-400">Shipped</span>
                                     @else
                                         <span class="text-sm text-gray-500">-</span>
                                     @endif
                                     <a href="{{ route('tiktok.orders.show', $order->id) }}" 
                                        class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500">
-                                        Chi tiết
+                                        Details
                                     </a>
                                 </div>
                             </div>
@@ -529,8 +515,8 @@
                 <div class="px-3 sm:px-6 py-4 border-t border-gray-700 bg-gray-900">
                     <div class="flex flex-col sm:flex-row justify-between items-center gap-3">
                         <div class="text-xs sm:text-sm text-gray-300 text-center sm:text-left">
-                            Hiển thị {{ $orders->firstItem() }} - {{ $orders->lastItem() }} 
-                            trong tổng số {{ $orders->total() }} đơn hàng
+                            Showing {{ $orders->firstItem() }} - {{ $orders->lastItem() }} 
+                            of {{ $orders->total() }} orders
                         </div>
                         <div class="w-full sm:w-auto">
                             {{ $orders->links() }}
@@ -542,14 +528,14 @@
                     <div class="mb-4">
                         <i class="fas fa-shopping-cart text-4xl sm:text-6xl text-gray-600"></i>
                     </div>
-                    <h3 class="text-base sm:text-lg font-medium text-gray-200 mb-2">Không có đơn hàng nào</h3>
+                    <h3 class="text-base sm:text-lg font-medium text-gray-200 mb-2">No orders found</h3>
                     <p class="text-sm sm:text-base text-gray-400 mb-4 sm:mb-6 px-4">
-                        Chưa có đơn hàng nào phù hợp với bộ lọc của bạn.
+                        There are no orders matching your filters yet.
                     </p>
                     <button type="button" class="inline-flex items-center px-3 sm:px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-gray-800" onclick="openSyncModal()">
                         <i class="fas fa-sync-alt mr-1 sm:mr-2"></i>
-                        <span class="hidden sm:inline">Đồng bộ đơn hàng từ TikTok</span>
-                        <span class="sm:hidden">Đồng bộ đơn hàng</span>
+                        <span class="hidden sm:inline">Sync orders from TikTok</span>
+                        <span class="sm:hidden">Sync orders</span>
                     </button>
                 </div>
             @endif
@@ -564,7 +550,7 @@
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-lg font-medium text-white flex items-center">
                     <i class="fas fa-sync-alt mr-2 text-blue-400"></i>
-                    Đồng bộ đơn hàng từ TikTok
+                    Sync orders from TikTok
                 </h3>
                 <button type="button" class="text-gray-400 hover:text-gray-200" onclick="closeSyncModal()">
                     <i class="fas fa-times"></i>
@@ -573,16 +559,16 @@
             <form action="{{ route('tiktok.orders.sync') }}" method="POST" id="syncForm">
                 @csrf
                 <div class="mb-4">
-                    <label for="sync_shop_id" class="block text-sm font-medium text-gray-300 mb-2">Chọn shop để đồng bộ</label>
+                    <label for="sync_shop_id" class="block text-sm font-medium text-gray-300 mb-2">Select shop to sync</label>
                     <select class="block w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm bg-gray-700 text-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500" id="sync_shop_id" name="shop_id" required>
-                        <option value="">-- Chọn shop --</option>
+                        <option value="">-- Select shop --</option>
                         @foreach($shops as $shop)
                             <option value="{{ $shop->id }}">
                                 {{ $shop->shop_name }}
                                 @if($shop->integration && $shop->integration->status === 'active')
-                                    <span class="text-green-400">(Đang hoạt động)</span>
+                                    <span class="text-green-400">(Active)</span>
                                 @else
-                                    <span class="text-red-400">(Không hoạt động)</span>
+                                    <span class="text-red-400">(Inactive)</span>
                                 @endif
                             </option>
                         @endforeach
@@ -592,15 +578,15 @@
                     <div class="flex">
                         <i class="fas fa-info-circle text-blue-300 mr-2 mt-0.5"></i>
                         <p class="text-sm text-blue-200">
-                            Quá trình đồng bộ có thể mất vài phút tùy thuộc vào số lượng đơn hàng.
+                            Syncing may take a few minutes depending on the number of orders.
                         </p>
                     </div>
                 </div>
                 <div class="flex justify-end space-x-3">
-                    <button type="button" class="px-4 py-2 bg-gray-600 text-gray-200 rounded-md hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500" onclick="closeSyncModal()">Hủy</button>
+                    <button type="button" class="px-4 py-2 bg-gray-600 text-gray-200 rounded-md hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500" onclick="closeSyncModal()">Cancel</button>
                     <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <i class="fas fa-sync-alt mr-1"></i>
-                        Bắt đầu đồng bộ
+                        Start syncing
                     </button>
                 </div>
             </form>
@@ -615,7 +601,7 @@
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-lg font-medium text-white flex items-center">
                     <i class="fas fa-truck mr-2 text-teal-400"></i>
-                    Đánh dấu gói hàng đã gửi
+                    Mark package as shipped
                 </h3>
                 <button type="button" class="text-gray-400 hover:text-gray-200" onclick="closeMarkShippedModal()">
                     <i class="fas fa-times"></i>
@@ -633,31 +619,31 @@
                     <!-- Tracking Number -->
                     <div>
                         <label for="tracking_number" class="block text-sm font-medium text-gray-300 mb-2">
-                            Mã vận đơn <span class="text-red-400">*</span>
+                            Tracking number <span class="text-red-400">*</span>
                         </label>
                         <input type="text" id="tracking_number" name="tracking_number" required
                                class="block w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm bg-gray-700 text-gray-300 focus:outline-none focus:ring-teal-500 focus:border-teal-500"
-                               placeholder="Nhập mã vận đơn">
+                               placeholder="Enter tracking number">
                     </div>
                     
                     <!-- Shipping Provider -->
                     <div>
                         <label for="shipping_provider_id" class="block text-sm font-medium text-gray-300 mb-2">
-                            Đơn vị vận chuyển <span class="text-red-400">*</span>
+                            Shipping provider <span class="text-red-400">*</span>
                         </label>
                         <select id="shipping_provider_id" name="shipping_provider_id" required
                                 class="block w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm bg-gray-700 text-gray-300 focus:outline-none focus:ring-teal-500 focus:border-teal-500">
-                            <option value="">-- Chọn đơn vị vận chuyển --</option>
+                            <option value="">-- Select provider --</option>
                         </select>
                         <div id="loadingProviders" class="text-sm text-gray-400 mt-1 hidden">
-                            <i class="fas fa-spinner fa-spin mr-1"></i>Đang tải danh sách đơn vị vận chuyển...
+                            <i class="fas fa-spinner fa-spin mr-1"></i>Loading shipping providers...
                         </div>
                     </div>
                 </div>
                 
                 <!-- Line Items Selection -->
                 <div id="lineItemsSection" class="mb-4">
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Sản phẩm trong đơn hàng:</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Items in this order:</label>
                     <div id="lineItemsList" class="space-y-2">
                         <!-- Line items will be loaded here -->
                     </div>
@@ -667,22 +653,32 @@
                     <div class="flex">
                         <i class="fas fa-info-circle text-blue-300 mr-2 mt-0.5"></i>
                         <p class="text-sm text-blue-200">
-                            Sau khi đánh dấu gói hàng đã gửi, trạng thái đơn hàng sẽ chuyển thành "Đang vận chuyển".
+                            After marking as shipped, the order status will change to "In transit".
                         </p>
                     </div>
                 </div>
                 
                 <div class="flex justify-end space-x-3">
                     <button type="button" class="px-4 py-2 bg-gray-600 text-gray-200 rounded-md hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500" onclick="closeMarkShippedModal()">
-                        Hủy
+                        Cancel
                     </button>
                     <button type="submit" class="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500">
                         <i class="fas fa-truck mr-1"></i>
-                        Đánh dấu đã gửi
+                        Mark as shipped
                     </button>
                 </div>
             </form>
         </div>
+    </div>
+</div>
+
+<!-- Image Preview Modal -->
+<div id="imagePreviewModal" class="fixed inset-0 bg-black bg-opacity-80 items-center justify-center z-50 hidden">
+    <div class="relative max-w-3xl w-full px-4">
+        <button type="button" class="absolute top-2 right-2 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-70" onclick="closeImageModal()">
+            <i class="fas fa-times"></i>
+        </button>
+        <img id="imagePreview" src="" alt="Order item image" class="w-full h-auto rounded-lg shadow-lg border border-gray-600">
     </div>
 </div>
 
@@ -702,7 +698,7 @@ function closeSyncModal() {
     document.getElementById('syncModal').classList.add('hidden');
 }
 
-// Auto submit form khi thay đổi shop filter
+// Auto submit when shop filter changes
 document.getElementById('shopFilter').addEventListener('change', function() {
     const shopId = this.value;
     const url = new URL(window.location);
@@ -730,7 +726,7 @@ function updateDateFilter() {
     // Validate date range
     if (dateFrom && dateTo) {
         if (new Date(dateFrom) > new Date(dateTo)) {
-            alert('Ngày bắt đầu không thể lớn hơn ngày kết thúc!');
+            alert('Start date cannot be later than end date!');
             return;
         }
         
@@ -752,6 +748,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const oneYearAgo = new Date();
     oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
     dateFromInput.setAttribute('min', oneYearAgo.toISOString().split('T')[0]);
+
+    bindImagePreview();
 });
 
 // Quick date selection functions
@@ -805,7 +803,7 @@ document.getElementById('syncForm').addEventListener('submit', function(e) {
     const originalText = submitBtn.innerHTML;
     
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Đang đồng bộ...';
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Syncing...';
     
     // Re-enable button after 30 seconds
     setTimeout(() => {
@@ -841,13 +839,66 @@ function updateBulkActions() {
 }
 
 // Select all functionality
-document.querySelector('thead input[type="checkbox"]').addEventListener('change', function() {
-    const tbodyCheckboxes = document.querySelectorAll('tbody input[type="checkbox"]');
-    tbodyCheckboxes.forEach(checkbox => {
-        checkbox.checked = this.checked;
+const selectAllCheckbox = document.getElementById('selectAllOrders');
+if (selectAllCheckbox) {
+    selectAllCheckbox.addEventListener('change', function() {
+        const orderCheckboxes = document.querySelectorAll('.order-checkbox');
+        orderCheckboxes.forEach(checkbox => {
+            checkbox.checked = this.checked;
+        });
+        updateBulkActions();
     });
-    updateBulkActions();
-});
+}
+
+// Export selected orders
+const exportSelectedBtn = document.getElementById('exportSelectedBtn');
+if (exportSelectedBtn) {
+    exportSelectedBtn.addEventListener('click', function() {
+        const selectedOrders = Array.from(document.querySelectorAll('.order-checkbox:checked')).map(cb => cb.value);
+        
+        if (selectedOrders.length === 0) {
+            alert('Please select at least one order to export');
+            return;
+        }
+        
+        // Tạo form để submit với selected order IDs
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{{ route("tiktok.orders.export") }}';
+        
+        // Thêm CSRF token
+        const csrfToken = document.createElement('input');
+        csrfToken.type = 'hidden';
+        csrfToken.name = '_token';
+        csrfToken.value = '{{ csrf_token() }}';
+        form.appendChild(csrfToken);
+        
+        // Thêm selected order IDs
+        selectedOrders.forEach(orderId => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'selected_orders[]';
+            input.value = orderId;
+            form.appendChild(input);
+        });
+        
+        // Thêm các query parameters hiện tại
+        const currentParams = new URLSearchParams(window.location.search);
+        currentParams.forEach((value, key) => {
+            if (key !== 'selected_orders') {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = key;
+                input.value = value;
+                form.appendChild(input);
+            }
+        });
+        
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+    });
+}
 
 // Mark as Shipped Modal Functions
 let currentOrderId = null;
@@ -899,17 +950,17 @@ async function loadOrderShippingInfo(orderId) {
             if (orderInfo.delivery_option_id) {
                 await loadShippingProviders(orderId, orderInfo.delivery_option_id);
             } else {
-                showError('Không tìm thấy delivery_option_id trong đơn hàng');
+                showError('delivery_option_id not found in this order');
             }
             
             // Load line items
             loadLineItems(orderData.data.line_items);
         } else {
-            showError('Không thể tải thông tin đơn hàng: ' + orderData.error);
+            showError('Unable to load order info: ' + orderData.error);
         }
     } catch (error) {
         console.error('Error loading order info:', error);
-        showError('Có lỗi xảy ra khi tải thông tin đơn hàng');
+        showError('An error occurred while loading order info');
     } finally {
         document.getElementById('loadingProviders').classList.add('hidden');
     }
@@ -922,7 +973,7 @@ async function loadShippingProviders(orderId, deliveryOptionId) {
         
         if (data.success) {
             const select = document.getElementById('shipping_provider_id');
-            select.innerHTML = '<option value="">-- Chọn đơn vị vận chuyển --</option>';
+            select.innerHTML = '<option value="">-- Select provider --</option>';
             
             if (data.data.shipping_providers && data.data.shipping_providers.length > 0) {
                 data.data.shipping_providers.forEach(provider => {
@@ -932,14 +983,14 @@ async function loadShippingProviders(orderId, deliveryOptionId) {
                     select.appendChild(option);
                 });
             } else {
-                showError('Không tìm thấy đơn vị vận chuyển nào');
+                showError('No shipping providers found');
             }
         } else {
-            showError('Không thể tải danh sách đơn vị vận chuyển: ' + data.error);
+            showError('Unable to load shipping providers: ' + data.error);
         }
     } catch (error) {
         console.error('Error loading shipping providers:', error);
-        showError('Có lỗi xảy ra khi tải danh sách đơn vị vận chuyển');
+        showError('An error occurred while loading shipping providers');
     }
 }
 
@@ -955,13 +1006,13 @@ function loadLineItems(lineItems) {
                 <input type="checkbox" id="line_item_${index}" name="order_line_item_ids[]" value="${item.id || index}" checked
                        class="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-600 rounded bg-gray-700">
                 <label for="line_item_${index}" class="ml-2 text-sm text-gray-300">
-                    ${item.product_name || 'Sản phẩm'} - Số lượng: ${item.quantity || 1}
+                    ${item.product_name || 'Product'} - Qty: ${item.quantity || 1}
                 </label>
             `;
             container.appendChild(itemDiv);
         });
     } else {
-        container.innerHTML = '<p class="text-sm text-gray-400">Không có sản phẩm nào trong đơn hàng</p>';
+        container.innerHTML = '<p class="text-sm text-gray-400">No items in this order</p>';
     }
 }
 
@@ -970,7 +1021,7 @@ document.getElementById('markShippedForm').addEventListener('submit', async func
     e.preventDefault();
     
     if (!currentOrderId) {
-        showError('Không tìm thấy ID đơn hàng');
+        showError('Order ID not found');
         return;
     }
     
@@ -980,7 +1031,7 @@ document.getElementById('markShippedForm').addEventListener('submit', async func
     
     // Disable submit button
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Đang xử lý...';
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Processing...';
     
     try {
         const response = await fetch(`/tiktok/shipping/orders/${currentOrderId}/mark-shipped`, {
@@ -1000,15 +1051,15 @@ document.getElementById('markShippedForm').addEventListener('submit', async func
         const data = await response.json();
         
         if (data.success) {
-            let successMessage = '✅ Đã đánh dấu gói hàng đã gửi thành công!';
+            let successMessage = '✅ Marked package as shipped successfully!';
             
             if (data.data.synced) {
-                successMessage += ' Đã đồng bộ thông tin từ TikTok.';
+                successMessage += ' Synced data from TikTok.';
                 if (data.data.status_changed) {
-                    successMessage += ` Trạng thái đã thay đổi thành: ${data.data.new_status}`;
+                    successMessage += ` Status changed to: ${data.data.new_status}`;
                 }
             } else {
-                successMessage += ' (Không thể đồng bộ từ TikTok)';
+                successMessage += ' (Could not sync from TikTok)';
                 if (data.data.sync_message) {
                     successMessage += ` - ${data.data.sync_message}`;
                 }
@@ -1022,11 +1073,11 @@ document.getElementById('markShippedForm').addEventListener('submit', async func
                 window.location.reload();
             }, 2000);
         } else {
-            showError('❌ Lỗi: ' + data.error);
+            showError('❌ Error: ' + data.error);
         }
     } catch (error) {
         console.error('Error marking as shipped:', error);
-        showError('Có lỗi xảy ra khi đánh dấu gói hàng đã gửi');
+        showError('An error occurred while marking as shipped');
     } finally {
         // Re-enable submit button
         submitBtn.disabled = false;
@@ -1038,6 +1089,37 @@ document.getElementById('markShippedForm').addEventListener('submit', async func
 document.getElementById('markShippedModal').addEventListener('click', function(e) {
     if (e.target === this) {
         closeMarkShippedModal();
+    }
+});
+
+// Image preview
+function bindImagePreview() {
+    const images = document.querySelectorAll('.order-image');
+    images.forEach(img => {
+        img.addEventListener('click', () => openImageModal(img.dataset.image || img.src));
+    });
+}
+
+function openImageModal(src) {
+    if (!src) return;
+    const modal = document.getElementById('imagePreviewModal');
+    const preview = document.getElementById('imagePreview');
+    preview.src = src;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeImageModal() {
+    const modal = document.getElementById('imagePreviewModal');
+    const preview = document.getElementById('imagePreview');
+    preview.src = '';
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+
+document.getElementById('imagePreviewModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeImageModal();
     }
 });
 

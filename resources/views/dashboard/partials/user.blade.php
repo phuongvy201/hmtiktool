@@ -3,7 +3,7 @@
 <div class="mb-8">
     <h2 class="text-xl font-semibold text-white mb-6 flex items-center">
         <i class="fas fa-eye mr-2 text-blue-400"></i>
-        Xem Thông tin
+        View Information
     </h2>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <!-- Team & Organization -->
@@ -15,14 +15,18 @@
                     </div>
                     <h3 class="text-lg font-semibold text-white">Team & Organization</h3>
                 </div>
-                <p class="text-gray-400 mb-4">Xem thông tin team và tổ chức</p>
+                <p class="text-gray-400 mb-4">View team and organization details</p>
                 <div class="space-y-2">
+                    @can('view-teams')
                     <a href="{{ route('teams.index') }}" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">
-                        <i class="fas fa-building mr-2"></i>Xem Teams
+                        <i class="fas fa-building mr-2"></i>View Teams
                     </a>
+                    @endcan
+                    @can('view-users')
                     <a href="{{ route('users.index') }}" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">
-                        <i class="fas fa-user-friends mr-2"></i>Xem Users
+                        <i class="fas fa-user-friends mr-2"></i>View Users
                     </a>
+                    @endcan
                 </div>
             </div>
         </div>
@@ -36,13 +40,13 @@
                     </div>
                     <h3 class="text-lg font-semibold text-white">Business Operations</h3>
                 </div>
-                <p class="text-gray-400 mb-4">Xem hoạt động kinh doanh</p>
+                <p class="text-gray-400 mb-4">View business operations</p>
                 <div class="space-y-2">
                     <a href="{{ route('sales.index') }}" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">
-                        <i class="fas fa-chart-line mr-2"></i>Xem Sales
+                        <i class="fas fa-chart-line mr-2"></i>View Sales
                     </a>
                     <a href="{{ route('fulfillment.index') }}" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">
-                        <i class="fas fa-box mr-2"></i>Xem Fulfillment
+                        <i class="fas fa-box mr-2"></i>View Fulfillment
                     </a>
                 </div>
             </div>
@@ -57,7 +61,7 @@
                     </div>
                     <h3 class="text-lg font-semibold text-white">Reports & Analytics</h3>
                 </div>
-                <p class="text-gray-400 mb-4">Xem báo cáo và phân tích</p>
+                <p class="text-gray-400 mb-4">View reports and analytics</p>
                 <div class="space-y-2">
                     <a href="{{ route('financial.reports') }}" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">
                         <i class="fas fa-dollar-sign mr-2"></i>Financial Reports
@@ -75,7 +79,7 @@
 <div class="mb-8">
     <h2 class="text-xl font-semibold text-white mb-6 flex items-center">
         <i class="fas fa-user mr-2 text-indigo-400"></i>
-        Cá nhân
+        Personal
     </h2>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <!-- My Profile -->
@@ -87,9 +91,9 @@
                     </div>
                     <h3 class="text-lg font-semibold text-white">My Profile</h3>
                 </div>
-                <p class="text-gray-400 mb-4">Quản lý thông tin cá nhân</p>
+                <p class="text-gray-400 mb-4">Manage personal information</p>
                 <a href="{{ route('profile.edit') }}" class="block w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center">
-                    <i class="fas fa-edit mr-2"></i>Chỉnh sửa Profile
+                    <i class="fas fa-edit mr-2"></i>Edit Profile
                 </a>
             </div>
         </div>

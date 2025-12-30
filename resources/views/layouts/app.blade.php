@@ -117,57 +117,112 @@
                     <!-- Guest Navigation -->
                     @guest
                         <a href="/" class="nav-link">
-                            <i class="fas fa-home mr-1"></i>
-                            Trang chủ
+                            <i class="fas fa-house mr-2 text-sm w-4"></i>
+                            Home
                         </a>
                         <a href="{{ route('login') }}" class="nav-link">
-                            <i class="fas fa-sign-in-alt mr-1"></i>
-                            Đăng nhập
+                            <i class="fas fa-right-to-bracket mr-2 text-sm w-4"></i>
+                            Log in
                         </a>
                     @endguest
                     
                     @auth
                         <!-- Dashboard -->
                         <a href="{{ route('dashboard') }}" class="nav-link">
-                            <i class="fas fa-tachometer-alt mr-1"></i>
+                            <i class="fas fa-gauge mr-2 text-sm w-4"></i>
                             Dashboard
                         </a>
 
-                        <!-- Management Dropdown -->
-                        @canany(['view-users', 'view-teams', 'view-service-packages'])
+                        <!-- Management Dropdown - Only show if user has at least one visible item -->
+                        @php
+                            $hasManagementItems = false;
+                            if (auth()->user()->can('view-users') && !auth()->user()->hasRole('seller')) {
+                                $hasManagementItems = true;
+                            }
+                            if (auth()->user()->can('view-teams') && !auth()->user()->hasRole('seller')) {
+                                $hasManagementItems = true;
+                            }
+                            if (auth()->user()->hasRole('system-admin')) {
+                                $hasManagementItems = true;
+                            }
+                            if (auth()->user()->can('view-service-packages')) {
+                                $hasManagementItems = true;
+                            }
+                        @endphp
+                        
+                        @if($hasManagementItems)
                         <div class="relative group">
                             <button class="nav-link">
-                                <i class="fas fa-cogs mr-1"></i>
-                                Quản lý
+                                <i class="fas fa-sliders mr-2 text-sm w-4"></i>
+                                Management
                                 <i class="fas fa-chevron-down ml-1 text-xs"></i>
                             </button>
                             <div class="dropdown-menu">
                                 <div class="py-2">
                                     @can('view-users')
+                                    @unless(auth()->user()->hasRole('seller'))
                                     <a href="{{ auth()->user()->hasRole('team-admin') ? route('team-admin.users.index') : route('users.index') }}" class="dropdown-item">
-                                        <i class="fas fa-users mr-2"></i>
-                                        Người dùng
+                                        <i class="fas fa-users mr-2 w-4 text-sm"></i>
+                                        Users
                                     </a>
+                                    @endunless
                                     @endcan
                                     
                                     @can('view-teams')
+                                    @unless(auth()->user()->hasRole('seller') || auth()->user()->hasRole('team-admin'))
                                     <a href="{{ route('teams.index') }}" class="dropdown-item">
-                                        <i class="fas fa-users-cog mr-2"></i>
+                                        <i class="fas fa-people-group mr-2 w-4 text-sm"></i>
                                         Teams
                                     </a>
+                                    @endunless
                                     @endcan
                                     
                                     @if(auth()->user()->hasRole('system-admin'))
                                     <a href="{{ route('roles.index') }}" class="dropdown-item">
-                                        <i class="fas fa-shield-alt mr-2"></i>
-                                        Vai trò
+                                        <i class="fas fa-shield-halved mr-2 w-4 text-sm"></i>
+                                        Roles
                                     </a>
                                     @endif
                                     
                                     @can('view-service-packages')
                                     <a href="{{ route('service-packages.index') }}" class="dropdown-item">
-                                        <i class="fas fa-box mr-2"></i>
-                                        Gói dịch vụ
+                                        <i class="fas fa-box-open mr-2 w-4 text-sm"></i>
+                                        Service Packages
+                                    </a>
+                                    @endcan
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+
+                        <!-- Products Dropdown -->
+                        @canany(['view-products', 'view-product-templates'])
+                        <div class="relative group">
+                            <button class="nav-link">
+                                <i class="fas fa-boxes-stacked mr-2 text-sm w-4"></i>
+                                Products
+                                <i class="fas fa-chevron-down ml-1 text-xs"></i>
+                            </button>
+                            <div class="dropdown-menu">
+                                <div class="py-2">
+                                    @can('view-product-templates')
+                                    <a href="{{ route('product-templates.index') }}" class="dropdown-item">
+                                        <i class="fas fa-layer-group mr-2 w-4 text-indigo-400"></i>
+                                        Templates
+                                    </a>
+                                    @endcan
+                                    
+                                    @can('view-products')
+                                    <a href="{{ route('products.index') }}" class="dropdown-item">
+                                        <i class="fas fa-box mr-2 w-4 text-blue-400"></i>
+                                        Product List
+                                    </a>
+                                    @endcan
+                                    
+                                    @can('create-products')
+                                    <a href="{{ route('products.create') }}" class="dropdown-item">
+                                        <i class="fas fa-plus mr-2 w-4 text-green-400"></i>
+                                        Create Product
                                     </a>
                                     @endcan
                                 </div>
@@ -178,35 +233,35 @@
                         <!-- TikTok Shop -->
                         @if(auth()->user()->hasRole('system-admin'))
                         <a href="{{ route('tiktok-shop.index') }}" class="nav-link">
-                            <i class="fab fa-tiktok mr-1"></i>
+                            <i class="fab fa-tiktok mr-2 text-sm w-4"></i>
                             TikTok Shop
                         </a>
                         @elseif(auth()->user()->hasRole('team-admin'))
                         <a href="{{ route('team.tiktok-shop.index') }}" class="nav-link">
-                            <i class="fab fa-tiktok mr-1"></i>
-                            Kết nối TikTok
+                            <i class="fab fa-tiktok mr-2 text-sm w-4"></i>
+                            Connect TikTok
                         </a>
                         @endif
 
                         <!-- TikTok Analytics Dropdown -->
                         <div class="relative group">
                             <button class="nav-link">
-                                <i class="fas fa-chart-bar mr-1"></i>
+                                <i class="fas fa-chart-line mr-2 text-sm w-4"></i>
                                 Analytics
                                 <i class="fas fa-chevron-down ml-1 text-xs"></i>
                             </button>
                             <div class="dropdown-menu">
                                 <div class="py-2">
                                     <a href="{{ route('tiktok.analytics.index') }}" class="dropdown-item">
-                                        <i class="fas fa-chart-line mr-2 text-purple-400"></i>
+                                        <i class="fas fa-chart-line mr-2 w-4 text-purple-400"></i>
                                         Shop Analytics
                                     </a>
                                     <a href="{{ route('tiktok.finance.index') }}" class="dropdown-item">
-                                        <i class="fas fa-dollar-sign mr-2 text-yellow-400"></i>
+                                        <i class="fas fa-coins mr-2 w-4 text-yellow-400"></i>
                                         Finance
                                     </a>
                                     <a href="{{ route('tiktok.performance.index') }}" class="dropdown-item">
-                                        <i class="fas fa-chart-area mr-2 text-pink-400"></i>
+                                        <i class="fas fa-chart-area mr-2 w-4 text-pink-400"></i>
                                         Performance
                                     </a>
                                 </div>
@@ -215,8 +270,8 @@
 
                         <!-- Orders -->
                         <a href="{{ route('tiktok.orders.index') }}" class="nav-link">
-                            <i class="fas fa-shopping-bag mr-1"></i>
-                            Đơn hàng
+                            <i class="fas fa-cart-shopping mr-2 text-sm w-4"></i>
+                            Orders
                         </a>
                     @endauth
                 </div>
@@ -250,34 +305,29 @@
                                         <p class="text-xs text-gray-400">{{ auth()->user()->primary_role_name }}</p>
                                     </div>
                                     <a href="{{ route('profile.edit') }}" class="block px-4 py-2 text-gray-300 hover:bg-slate-600 hover:text-white transition-colors duration-200">
-                                        <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                                        </svg>
+                                        <i class="fas fa-user mr-2 w-4 text-sm"></i>
                                         Profile
                                     </a>
+                                    @can('view-system-settings')
                                     <a href="{{ route('system.settings') }}" class="block px-4 py-2 text-gray-300 hover:bg-slate-600 hover:text-white transition-colors duration-200">
-                                        <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                        </svg>
-                                        Cài đặt hệ thống
+                                        <i class="fas fa-gear mr-2 w-4 text-sm"></i>
+                                        System Settings
                                     </a>
+                                    @endcan
                                     <div class="border-t border-slate-600 my-1"></div>
                                     <form method="POST" action="{{ route('logout') }}" class="block">
                                         @csrf
                                         <button type="submit" class="w-full text-left px-4 py-2 text-gray-300 hover:bg-slate-600 hover:text-white transition-colors duration-200">
-                                            <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                                            </svg>
-                                            Đăng xuất
+                                            <i class="fas fa-right-from-bracket mr-2 w-4 text-sm"></i>
+                                            Logout
                                         </button>
                                     </form>
                                 </div>
                             </div>
                         </div>
                     @else
-                        <a href="{{ route('login') }}" class="text-gray-300 hover:text-white transition-colors duration-200">Đăng nhập</a>
-                        <a href="{{ route('register') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200">Đăng ký</a>
+                        <a href="{{ route('login') }}" class="text-gray-300 hover:text-white transition-colors duration-200">Login</a>
+                        <a href="{{ route('register') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200">Register</a>
                     @endauth
                 </div>
 
@@ -299,40 +349,81 @@
                 <div class="px-4 py-3 space-y-2">
                     @auth
                         <a href="{{ route('dashboard') }}" class="mobile-menu-item">
-                            <i class="fas fa-tachometer-alt mr-2"></i>
+                            <i class="fas fa-gauge mr-2 text-sm w-4"></i>
                             Dashboard
                         </a>
 
-                        @canany(['view-users', 'view-teams', 'view-service-packages'])
+                        @php
+                            $hasManagementItems = false;
+                            if (auth()->user()->can('view-users') && !auth()->user()->hasRole('seller')) {
+                                $hasManagementItems = true;
+                            }
+                            if (auth()->user()->can('view-teams') && !auth()->user()->hasRole('seller')) {
+                                $hasManagementItems = true;
+                            }
+                            if (auth()->user()->hasRole('system-admin')) {
+                                $hasManagementItems = true;
+                            }
+                            if (auth()->user()->can('view-service-packages')) {
+                                $hasManagementItems = true;
+                            }
+                        @endphp
+                        
+                        @if($hasManagementItems)
                         <div class="border-t border-slate-600 pt-2 mt-2">
-                            <div class="text-gray-400 text-xs uppercase tracking-wider mb-2">Quản lý</div>
+                            <div class="text-gray-400 text-xs uppercase tracking-wider mb-2">Management</div>
                             @can('view-users')
+                            @unless(auth()->user()->hasRole('seller'))
                             <a href="{{ auth()->user()->hasRole('team-admin') ? route('team-admin.users.index') : route('users.index') }}" class="mobile-menu-item">
-                                <i class="fas fa-users mr-2"></i>
-                                Người dùng
+                                <i class="fas fa-users mr-2 w-4 text-sm"></i>
+                                Users
                             </a>
+                            @endunless
                             @endcan
                             
                             @can('view-teams')
+                            @unless(auth()->user()->hasRole('seller'))
                             <a href="{{ route('teams.index') }}" class="mobile-menu-item">
-                                <i class="fas fa-users-cog mr-2"></i>
+                                <i class="fas fa-people-group mr-2 w-4 text-sm"></i>
                                 Teams
                             </a>
+                            @endunless
                             @endcan
                             
                             @if(auth()->user()->hasRole('system-admin'))
                             <a href="{{ route('roles.index') }}" class="mobile-menu-item">
-                                <i class="fas fa-shield-alt mr-2"></i>
-                                Vai trò
+                                <i class="fas fa-shield-halved mr-2 w-4 text-sm"></i>
+                                Roles
                             </a>
                             @endif
                             
                             @can('view-service-packages')
                             <a href="{{ route('service-packages.index') }}" class="mobile-menu-item">
-                                <i class="fas fa-box mr-2"></i>
-                                Gói dịch vụ
+                                <i class="fas fa-box-open mr-2 w-4 text-sm"></i>
+                                Service Packages
                             </a>
                             @endcan
+                        </div>
+                        @endif
+
+                        @canany(['view-products', 'view-product-templates'])
+                        <div class="border-t border-slate-600 pt-2 mt-2">
+                            <div class="text-gray-400 text-xs uppercase tracking-wider mb-2">Products</div>
+                            @can('view-product-templates')
+                            <a href="{{ route('product-templates.index') }}" class="mobile-menu-item">
+                                <i class="fas fa-layer-group mr-2 w-4 text-indigo-400"></i>
+                                Templates
+                            </a>
+                            @endcan
+                            
+                            @can('view-products')
+                            <a href="{{ route('products.index') }}" class="mobile-menu-item">
+                                <i class="fas fa-box mr-2 w-4 text-blue-400"></i>
+                                Products
+                            </a>
+                            @endcan
+                            
+                    
                         </div>
                         @endcanany
 
@@ -340,56 +431,56 @@
                             <div class="text-gray-400 text-xs uppercase tracking-wider mb-2">TikTok</div>
                             @if(auth()->user()->hasRole('system-admin'))
                             <a href="{{ route('tiktok-shop.index') }}" class="mobile-menu-item">
-                                <i class="fab fa-tiktok mr-2"></i>
+                                <i class="fab fa-tiktok mr-2 w-4 text-sm"></i>
                                 TikTok Shop
                             </a>
                             @elseif(auth()->user()->hasRole('team-admin'))
                             <a href="{{ route('team.tiktok-shop.index') }}" class="mobile-menu-item">
-                                <i class="fab fa-tiktok mr-2"></i>
-                                Kết nối TikTok
+                                <i class="fab fa-tiktok mr-2 w-4 text-sm"></i>
+                                Connect TikTok
                             </a>
                             @endif
 
                             <a href="{{ route('tiktok.analytics.index') }}" class="mobile-menu-item">
-                                <i class="fas fa-chart-line mr-2 text-purple-400"></i>
+                                <i class="fas fa-chart-line mr-2 w-4 text-purple-400"></i>
                                 Shop Analytics
                             </a>
                             <a href="{{ route('tiktok.finance.index') }}" class="mobile-menu-item">
-                                <i class="fas fa-dollar-sign mr-2 text-yellow-400"></i>
+                                <i class="fas fa-coins mr-2 w-4 text-yellow-400"></i>
                                 Finance
                             </a>
                             <a href="{{ route('tiktok.performance.index') }}" class="mobile-menu-item">
-                                <i class="fas fa-chart-area mr-2 text-pink-400"></i>
+                                <i class="fas fa-chart-area mr-2 w-4 text-pink-400"></i>
                                 Performance
                             </a>
                             <a href="{{ route('tiktok.orders.index') }}" class="mobile-menu-item">
-                                <i class="fas fa-shopping-bag mr-2"></i>
-                                Đơn hàng
+                                <i class="fas fa-cart-shopping mr-2 w-4 text-sm"></i>
+                                Orders
                             </a>
                         </div>
 
                         <div class="border-t border-slate-600 pt-2 mt-2">
-                            <div class="text-gray-400 text-xs uppercase tracking-wider mb-2">Tài khoản</div>
+                            <div class="text-gray-400 text-xs uppercase tracking-wider mb-2">Account</div>
                             <a href="{{ route('profile.edit') }}" class="mobile-menu-item">
-                                <i class="fas fa-user mr-2"></i>
+                                <i class="fas fa-user mr-2 w-4 text-sm"></i>
                                 Profile
                             </a>
                             <form method="POST" action="{{ route('logout') }}" class="block">
                                 @csrf
                                 <button type="submit" class="mobile-menu-item w-full text-left">
-                                    <i class="fas fa-sign-out-alt mr-2"></i>
-                                    Đăng xuất
+                                    <i class="fas fa-right-from-bracket mr-2 w-4 text-sm"></i>
+                                    Logout
                                 </button>
                             </form>
                         </div>
                     @else
                         <a href="{{ route('login') }}" class="mobile-menu-item">
-                            <i class="fas fa-sign-in-alt mr-2"></i>
-                            Đăng nhập
+                            <i class="fas fa-right-to-bracket mr-2 text-sm w-4"></i>
+                            Log in
                         </a>
                         <a href="{{ route('register') }}" class="mobile-menu-item bg-blue-600 text-white">
-                            <i class="fas fa-user-plus mr-2"></i>
-                            Đăng ký
+                            <i class="fas fa-user-plus mr-2 text-sm w-4"></i>
+                            Register
                         </a>
                     @endauth
                 </div>

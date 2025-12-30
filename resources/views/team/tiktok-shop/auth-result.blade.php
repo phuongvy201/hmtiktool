@@ -10,14 +10,14 @@
                     <div class="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
                         <i class="fas fa-check-circle text-green-400 text-4xl"></i>
                     </div>
-                    <h1 class="text-3xl font-bold text-white mb-2">Authorization Thành công!</h1>
-                    <p class="text-gray-400">Bạn đã lấy được authorization code từ TikTok Shop</p>
+                    <h1 class="text-3xl font-bold text-white mb-2">Authorization        Successful!</h1>
+                    <p class="text-gray-400">You have obtained the authorization code from TikTok Shop</p>
                 @else
                     <div class="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
                         <i class="fas fa-times-circle text-red-400 text-4xl"></i>
                     </div>
-                    <h1 class="text-3xl font-bold text-white mb-2">Authorization Thất bại</h1>
-                    <p class="text-gray-400">Có lỗi xảy ra trong quá trình authorization</p>
+                    <h1 class="text-3xl font-bold text-white mb-2">Authorization Failed</h1>
+                    <p class="text-gray-400">An error occurred during the authorization process</p>
                 @endif
             </div>
         </div>
@@ -31,8 +31,8 @@
             </h3>
             
             <div class="bg-green-500/10 border border-green-500/20 rounded-lg p-4 mb-6">
-                <h4 class="text-sm font-medium text-green-400 mb-2">Thành công!</h4>
-                <p class="text-sm text-gray-300">Bạn đã lấy được authorization code. Hãy copy code này và gửi cho team admin để hoàn tất kết nối.</p>
+                <h4 class="text-sm font-medium text-green-400 mb-2">Successful!</h4>
+                    <p class="text-sm text-gray-300">You have obtained the authorization code. Please copy this code and send it to the team admin to complete the connection.</p>
             </div>
 
             <div class="space-y-4">
@@ -53,7 +53,7 @@
 
                 @if(isset($appKey) || isset($locale) || isset($shopRegion))
                 <div class="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
-                    <h4 class="text-sm font-medium text-blue-400 mb-2">Thông tin từ TikTok:</h4>
+                    <h4 class="text-sm font-medium text-blue-400 mb-2">Information from TikTok:</h4>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                         @if(isset($appKey))
                         <div>
@@ -78,12 +78,12 @@
                 @endif
 
                 <div class="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
-                    <h4 class="text-sm font-medium text-blue-400 mb-2">Bước tiếp theo:</h4>
+                            <h4 class="text-sm font-medium text-blue-400 mb-2">Next step:</h4>
                     <ol class="text-sm text-gray-300 space-y-1 list-decimal list-inside">
-                        <li>Copy authorization code ở trên</li>
-                        <li>Gửi code này cho team admin</li>
-                        <li>Team admin sẽ sử dụng code để hoàn tất kết nối TikTok Shop</li>
-                        <li>Bạn sẽ được thông báo khi kết nối thành công</li>
+                        <li>Copy authorization code above</li>
+                        <li>Send this code to the team admin</li>
+                        <li>The team admin will enter this code to complete the connection to TikTok Shop</li>
+                        <li>You will be notified when the connection is successful</li>
                     </ol>
                 </div>
             </div>
@@ -93,30 +93,30 @@
         <div class="bg-gray-800 rounded-xl border border-gray-700 p-6 mb-8">
             <h3 class="text-lg font-semibold text-white mb-4 flex items-center">
                 <i class="fas fa-share mr-2 text-blue-400"></i>
-                Chia sẻ Code
+                Share Code
             </h3>
             
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Tin nhắn mẫu:</label>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Message template:</label>
                     <textarea readonly 
                               class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm"
                               rows="4"
-                              id="messageTemplate">Xin chào,
+                              id="messageTemplate">Hello,
 
-Tôi đã lấy được authorization code từ TikTok Shop:
+You have obtained the authorization code from TikTok Shop:
 
 {{ $authCode }}
 
-Vui lòng sử dụng code này để hoàn tất kết nối TikTok Shop.
+Please use this code to complete the connection to TikTok Shop.
 
-Cảm ơn!</textarea>
+Thank you!</textarea>
                 </div>
                 
                 <div class="flex space-x-2">
                     <button onclick="copyToClipboard('messageTemplate')" 
                             class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200">
-                        <i class="fas fa-copy mr-1"></i>Copy Tin nhắn
+                            <i class="fas fa-copy mr-1"></i>Copy Message
                     </button>
                     <button onclick="copyToClipboard('authCode')" 
                             class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200">
@@ -131,22 +131,22 @@ Cảm ơn!</textarea>
         <div class="bg-gray-800 rounded-xl border border-gray-700 p-6 mb-8">
             <h3 class="text-lg font-semibold text-white mb-4 flex items-center">
                 <i class="fas fa-exclamation-triangle mr-2 text-red-400"></i>
-                Lỗi Authorization
+                Authorization Error
             </h3>
             
             <div class="bg-red-500/10 border border-red-500/20 rounded-lg p-4 mb-6">
-                <h4 class="text-sm font-medium text-red-400 mb-2">Lỗi:</h4>
+                <h4 class="text-sm font-medium text-red-400 mb-2">Error:</h4>
                 <p class="text-sm text-gray-300">{{ $message }}</p>
             </div>
 
             <div class="space-y-4">
                 <div class="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
-                    <h4 class="text-sm font-medium text-yellow-400 mb-2">Có thể thử lại:</h4>
+                    <h4 class="text-sm font-medium text-yellow-400 mb-2">Possible to try again:</h4>
                     <ul class="text-sm text-gray-300 space-y-1 list-disc list-inside">
-                        <li>Yêu cầu team admin tạo link authorization mới</li>
-                        <li>Đảm bảo bạn đã đăng nhập đúng tài khoản TikTok Shop</li>
-                        <li>Kiểm tra kết nối internet</li>
-                        <li>Thử lại sau vài phút</li>
+                        <li>Request the team admin to create a new authorization link</li>
+                        <li>Ensure you are logged in to the correct TikTok Shop account</li>
+                        <li>Check internet connection</li>
+                        <li>Try again in a few minutes</li>
                     </ul>
                 </div>
             </div>
@@ -159,13 +159,13 @@ Cảm ơn!</textarea>
                 <a href="{{ route('team.tiktok-shop.index') }}" 
                    class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 inline-flex items-center mr-4">
                     <i class="fas fa-check mr-2"></i>
-                    Hoàn thành
+                    Complete
                 </a>
             @else
                 <a href="{{ route('team.tiktok-shop.index') }}" 
                    class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 inline-flex items-center">
                     <i class="fas fa-arrow-left mr-2"></i>
-                    Quay lại
+                    Back
                 </a>
             @endif
         </div>
@@ -201,7 +201,7 @@ function copyToClipboard(elementId) {
         
     } catch (err) {
         console.error('Failed to copy: ', err);
-        alert('Không thể copy. Vui lòng copy thủ công.');
+        alert('Cannot copy. Please copy manually.');
     }
 }
 </script>

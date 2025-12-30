@@ -12,8 +12,8 @@
                     </svg>
                 </a>
                 <div>
-                    <h1 class="text-3xl font-bold text-white mb-2">Bảo mật tài khoản</h1>
-                    <p class="text-gray-400">Quản lý cài đặt bảo mật và xác thực</p>
+                    <h1 class="text-3xl font-bold text-white mb-2">Security</h1>
+                    <p class="text-gray-400">Manage security settings and verification</p>
                 </div>
             </div>
         </div>
@@ -36,7 +36,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                         </div>
-                        <h2 class="text-xl font-semibold text-white">Trạng thái tài khoản</h2>
+                        <h2 class="text-xl font-semibold text-white">Account status</h2>
                     </div>
 
                     <div class="space-y-4">
@@ -54,16 +54,16 @@
                                     @endif
                                 </div>
                                 <div>
-                                    <h3 class="text-white font-medium">Xác thực email</h3>
+                                    <h3 class="text-white font-medium">Email verification</h3>
                                     <p class="text-gray-400 text-sm">
-                                        {{ $securityInfo['email_verified'] ? 'Đã xác thực' : 'Chưa xác thực' }}
+                                        {{ $securityInfo['email_verified'] ? 'Verified' : 'Not verified' }}
                                     </p>
                                 </div>
                             </div>
                             @if(!$securityInfo['email_verified'])
                                 <a href="{{ route('verification.notice') }}" 
                                    class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors duration-200">
-                                    Xác thực
+                                    Verify
                                 </a>
                             @endif
                         </div>
@@ -82,9 +82,9 @@
                                     @endif
                                 </div>
                                 <div>
-                                    <h3 class="text-white font-medium">Xác thực 2 yếu tố</h3>
+                                    <h3 class="text-white font-medium">Two-factor authentication</h3>
                                     <p class="text-gray-400 text-sm">
-                                        {{ $securityInfo['two_factor_enabled'] ? 'Đã bật' : 'Chưa bật' }}
+                                        {{ $securityInfo['two_factor_enabled'] ? 'Enabled' : 'Not enabled' }}
                                     </p>
                                 </div>
                             </div>
@@ -92,7 +92,7 @@
                                 @csrf
                                 <button type="submit" 
                                         class="px-3 py-1 {{ $securityInfo['two_factor_enabled'] ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700' }} text-white text-sm rounded-lg transition-colors duration-200">
-                                    {{ $securityInfo['two_factor_enabled'] ? 'Tắt' : 'Bật' }}
+                                    {{ $securityInfo['two_factor_enabled'] ? 'Disable' : 'Enable' }}
                                 </button>
                             </form>
                         </div>
@@ -107,17 +107,17 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                             </svg>
                         </div>
-                        <h2 class="text-xl font-semibold text-white">Lịch sử đăng nhập</h2>
+                        <h2 class="text-xl font-semibold text-white">Login history</h2>
                     </div>
 
                     <div class="space-y-4">
                         <div class="grid grid-cols-2 gap-4">
                             <div class="bg-gray-700 rounded-lg p-4 text-center">
                                 <div class="text-2xl font-bold text-blue-400">{{ $securityInfo['login_count'] }}</div>
-                                <div class="text-sm text-gray-400">Tổng lần đăng nhập</div>
+                                <div class="text-sm text-gray-400">Total login count</div>
                             </div>
                             <div class="bg-gray-700 rounded-lg p-4 text-center">
-                                <div class="text-sm text-gray-400">Lần đăng nhập cuối</div>
+                                <div class="text-sm text-gray-400">Last login</div>
                                 <div class="text-sm text-white">{{ $securityInfo['last_login'] }}</div>
                             </div>
                         </div>
@@ -135,47 +135,47 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                             </svg>
                         </div>
-                        <h2 class="text-xl font-semibold text-white">Cài đặt mật khẩu</h2>
+                        <h2 class="text-xl font-semibold text-white">Password settings</h2>
                     </div>
 
                     <div class="space-y-4">
                         <div class="p-4 bg-gray-700 rounded-lg">
-                            <h3 class="text-white font-medium mb-2">Độ mạnh mật khẩu</h3>
+                            <h3 class="text-white font-medium mb-2">Password strength</h3>
                             <div class="flex items-center space-x-2">
                                 <div class="flex-1 bg-gray-600 rounded-full h-2">
                                     <div class="bg-green-500 h-2 rounded-full" style="width: 75%"></div>
                                 </div>
-                                <span class="text-sm text-gray-400">Mạnh</span>
+                                <span class="text-sm text-gray-400">Strong</span>
                             </div>
                         </div>
 
                         <div class="p-4 bg-gray-700 rounded-lg">
-                            <h3 class="text-white font-medium mb-2">Yêu cầu mật khẩu</h3>
+                            <h3 class="text-white font-medium mb-2">Password requirements</h3>
                             <ul class="text-sm text-gray-400 space-y-1">
                                 <li class="flex items-center">
                                     <svg class="w-4 h-4 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                     </svg>
-                                    Ít nhất 8 ký tự
+                                    At least 8 characters
                                 </li>
                                 <li class="flex items-center">
                                     <svg class="w-4 h-4 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                     </svg>
-                                    Bao gồm chữ hoa và chữ thường
+                                    Include uppercase and lowercase letters
                                 </li>
                                 <li class="flex items-center">
                                     <svg class="w-4 h-4 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                     </svg>
-                                    Bao gồm số và ký tự đặc biệt
+                                    Include numbers and special characters
                                 </li>
                             </ul>
                         </div>
 
                         <a href="{{ route('profile.edit') }}" 
                            class="block w-full text-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200">
-                            Đổi mật khẩu
+                            Change password
                         </a>
                     </div>
                 </div>
@@ -188,12 +188,12 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
                             </svg>
                         </div>
-                        <h2 class="text-xl font-semibold text-white">Quản lý phiên đăng nhập</h2>
+                        <h2 class="text-xl font-semibold text-white">Session management</h2>
                     </div>
 
                     <div class="space-y-4">
                         <div class="p-4 bg-gray-700 rounded-lg">
-                            <h3 class="text-white font-medium mb-2">Phiên hiện tại</h3>
+                            <h3 class="text-white font-medium mb-2">Current session</h3>
                             <p class="text-sm text-gray-400 mb-3">Thiết bị này</p>
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center">
@@ -204,10 +204,10 @@
                                     </div>
                                     <div>
                                         <p class="text-white text-sm">Desktop - Windows</p>
-                                        <p class="text-gray-400 text-xs">Hoạt động</p>
+                                                <p class="text-gray-400 text-xs">Active</p>
                                     </div>
                                 </div>
-                                <span class="text-green-400 text-sm">Hiện tại</span>
+                                <span class="text-green-400 text-sm">Current</span>
                             </div>
                         </div>
 
@@ -215,7 +215,7 @@
                             @csrf
                             <button type="submit" 
                                     class="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200">
-                                Đăng xuất tất cả thiết bị
+                                Log out all devices
                             </button>
                         </form>
                     </div>
@@ -229,13 +229,13 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                         </div>
-                        <h3 class="text-lg font-semibold text-white">Mẹo bảo mật</h3>
+                            <h3 class="text-lg font-semibold text-white">Security tips</h3>
                     </div>
                     <ul class="text-sm text-gray-300 space-y-2">
-                        <li>• Sử dụng mật khẩu mạnh và không chia sẻ với ai</li>
-                        <li>• Bật xác thực 2 yếu tố để tăng cường bảo mật</li>
-                        <li>• Đăng xuất khi sử dụng thiết bị công cộng</li>
-                        <li>• Thường xuyên kiểm tra hoạt động đăng nhập</li>
+                        <li>• Use a strong password and do not share it with anyone</li>
+                        <li>• Enable two-factor authentication to enhance security</li>
+                        <li>• Log out when using public devices</li>
+                        <li>• Regularly check login activity</li>
                     </ul>
                 </div>
             </div>

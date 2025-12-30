@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\SystemSetting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -50,12 +51,45 @@ class SystemSettingController extends Controller
         ]);
 
         try {
+            $maintenanceModeChanged = false;
+            $oldMaintenanceMode = SystemSetting::getValue('maintenance_mode', false);
+
             foreach ($request->settings as $settingData) {
                 $setting = SystemSetting::where('key', $settingData['key'])->first();
 
                 if ($setting) {
+                    // Check if maintenance_mode is being changed
+                    if ($setting->key === 'maintenance_mode') {
+                        $newMaintenanceMode = filter_var($settingData['value'] ?? '0', FILTER_VALIDATE_BOOLEAN);
+                        if ($oldMaintenanceMode != $newMaintenanceMode) {
+                            $maintenanceModeChanged = true;
+                        }
+                    }
+
                     $setting->typed_value = $settingData['value'] ?? null;
                     $setting->save();
+                }
+            }
+
+            // Handle maintenance mode change
+            if ($maintenanceModeChanged) {
+                $newMaintenanceMode = SystemSetting::getValue('maintenance_mode', false);
+                try {
+                    if ($newMaintenanceMode) {
+                        // Enable maintenance mode
+                        Artisan::call('down', [
+                            '--retry' => 60, // Retry after 60 seconds
+                            '--secret' => env('MAINTENANCE_SECRET', 'maintenance-secret-key'),
+                        ]);
+                        Log::info('Maintenance mode enabled by user: ' . Auth::user()->id);
+                    } else {
+                        // Disable maintenance mode
+                        Artisan::call('up');
+                        Log::info('Maintenance mode disabled by user: ' . Auth::user()->id);
+                    }
+                } catch (\Exception $e) {
+                    Log::error('Error toggling maintenance mode: ' . $e->getMessage());
+                    // Continue with the update even if maintenance mode toggle fails
                 }
             }
 
@@ -64,7 +98,15 @@ class SystemSettingController extends Controller
 
             Log::info('System settings updated by user: ' . Auth::user()->id);
 
-            return redirect()->back()->with('success', 'Cấu hình hệ thống đã được cập nhật thành công.');
+            $message = 'Cấu hình hệ thống đã được cập nhật thành công.';
+            if ($maintenanceModeChanged) {
+                $newMaintenanceMode = SystemSetting::getValue('maintenance_mode', false);
+                $message .= $newMaintenanceMode
+                    ? ' Chế độ bảo trì đã được bật. Hệ thống hiện đang trong chế độ bảo trì.'
+                    : ' Chế độ bảo trì đã được tắt. Hệ thống đã hoạt động bình thường.';
+            }
+
+            return redirect()->back()->with('success', $message);
         } catch (\Exception $e) {
             Log::error('Error updating system settings: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Có lỗi xảy ra khi cập nhật cấu hình hệ thống.');
