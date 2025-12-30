@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Team;
 use App\Models\User;
 use App\Helpers\TeamPermissionHelper;
+use App\Models\TeamTikTokMarket;
 use Illuminate\Http\Request;
 
 class TeamController extends Controller
@@ -98,6 +99,8 @@ class TeamController extends Controller
             'status' => 'required|in:active,inactive,suspended',
             'members' => 'nullable|array',
             'members.*' => 'exists:users,id',
+            'markets' => 'nullable|array',
+            'markets.*' => 'in:US,UK',
         ]);
 
         $team = Team::create([
@@ -109,6 +112,19 @@ class TeamController extends Controller
         // Assign members to team
         if (!empty($validated['members'])) {
             User::whereIn('id', $validated['members'])->update(['team_id' => $team->id]);
+        }
+
+        // Assign TikTok markets
+        if (!empty($validated['markets'])) {
+            $payload = collect($validated['markets'])->unique()->map(function ($market) use ($team) {
+                return [
+                    'team_id' => $team->id,
+                    'market' => $market,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            })->toArray();
+            TeamTikTokMarket::insert($payload);
         }
 
         return redirect()->route('teams.index')->with('success', 'Team đã được tạo thành công.');
@@ -164,6 +180,8 @@ class TeamController extends Controller
             'status' => 'required|in:active,inactive,suspended',
             'members' => 'nullable|array',
             'members.*' => 'exists:users,id',
+            'markets' => 'nullable|array',
+            'markets.*' => 'in:US,UK',
         ]);
 
         $team->update([
@@ -181,6 +199,20 @@ class TeamController extends Controller
             if (!empty($validated['members'])) {
                 User::whereIn('id', $validated['members'])->update(['team_id' => $team->id]);
             }
+        }
+
+        // Update TikTok markets
+        $team->tiktokMarkets()->delete();
+        if (!empty($validated['markets'])) {
+            $payload = collect($validated['markets'])->unique()->map(function ($market) use ($team) {
+                return [
+                    'team_id' => $team->id,
+                    'market' => $market,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            })->toArray();
+            TeamTikTokMarket::insert($payload);
         }
 
         return redirect()->route('teams.index')->with('success', 'Team đã được cập nhật thành công.');

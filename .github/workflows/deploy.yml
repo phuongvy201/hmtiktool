@@ -1,0 +1,61 @@
+name: Deploy Laravel to EC2
+
+# Chạy khi push lên main
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Setup PHP 8.4 với các extension cần thiết
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, xml, bcmath, zip, intl, gd
+
+      # Cài composer dependencies
+      - name: Install Composer dependencies
+        run: composer install --no-dev --optimize-autoloader --no-interaction
+
+      # Deploy qua SSH
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            # Di chuyển vào thư mục Laravel
+            cd /var/www/hmtiktool
+
+            # Pull code mới
+            git reset --hard
+            git clean -df
+            git pull origin main
+
+            # Cài composer dependencies trên server
+            composer install --no-dev --optimize-autoloader --no-interaction
+
+            # Chạy migration
+            php artisan migrate --force
+
+            # Clear & cache Laravel
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+            php artisan optimize
+
+            # Chỉnh quyền storage & bootstrap (nếu cần)
+            sudo chown -R apache:apache storage bootstrap/cache
+            sudo chmod -R 775 storage bootstrap/cache
+
+            # Reload PHP-FPM & Apache
+            sudo systemctl reload php-fpm
+            sudo systemctl reload httpd

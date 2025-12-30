@@ -62,6 +62,23 @@ class Team extends Model
     }
 
     /**
+     * TikTok markets assigned to this team.
+     */
+    public function tiktokMarkets()
+    {
+        return $this->hasMany(TeamTikTokMarket::class);
+    }
+
+    /**
+     * Get primary / first market.
+     */
+    public function getPrimaryMarket(): ?string
+    {
+        $market = $this->tiktokMarkets()->first();
+        return $market?->market;
+    }
+
+    /**
      * Get the subscriptions for the team.
      */
     public function subscriptions(): HasMany

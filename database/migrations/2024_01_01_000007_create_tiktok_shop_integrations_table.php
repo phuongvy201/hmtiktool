@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('tiktok_shop_int egrations', function (Blueprint $table) {
+        Schema::create('tiktok_shop_integrations', function (Blueprint $table) {
             $table->id();
             $table->foreignId('team_id')->constrained()->onDelete('cascade');
             $table->text('access_token')->nullable();

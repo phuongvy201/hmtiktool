@@ -71,6 +71,37 @@
                         </div>
                     </div>
 
+                    <!-- TikTok Markets -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-white mb-3 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m-4 4h12M9 9v2m-4 4h12M9 15v2m7-6h5m-2-2v4"></path>
+                            </svg>
+                            TikTok Markets (select one or both)
+                        </h3>
+                        @php
+                            $selectedMarkets = old('markets', $team->tiktokMarkets->pluck('market')->toArray());
+                        @endphp
+                        <div class="bg-gray-700 rounded-lg p-4 space-y-2">
+                            <label class="flex items-center text-sm text-gray-200">
+                                <input type="checkbox" name="markets[]" value="US"
+                                       class="w-4 h-4 text-blue-600 bg-gray-600 border-gray-500 rounded focus:ring-blue-500"
+                                       {{ in_array('US', $selectedMarkets) ? 'checked' : '' }}>
+                                <span class="ml-2">🇺🇸 United States (US)</span>
+                            </label>
+                            <label class="flex items-center text-sm text-gray-200">
+                                <input type="checkbox" name="markets[]" value="UK"
+                                       class="w-4 h-4 text-blue-600 bg-gray-600 border-gray-500 rounded focus:ring-blue-500"
+                                       {{ in_array('UK', $selectedMarkets) ? 'checked' : '' }}>
+                                <span class="ml-2">🇬🇧 United Kingdom (UK)</span>
+                            </label>
+                            <p class="text-xs text-gray-400 mt-1">Market access for this team when connecting TikTok Shop.</p>
+                        </div>
+                        @error('markets')
+                            <p class="text-red-400 text-sm mt-2">{{ $message }}</p>
+                        @enderror
+                    </div>
+
                     <!-- Team Members -->
                     <div class="mb-6">
                         <h3 class="text-lg font-semibold text-white mb-4 flex items-center">
