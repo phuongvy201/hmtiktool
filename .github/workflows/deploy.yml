@@ -20,7 +20,7 @@ jobs:
           php-version: '8.4'
           extensions: mbstring, xml, bcmath, zip, intl, gd
 
-      # Cài composer dependencies
+      # Cài composer dependencies trên runner CI
       - name: Install Composer dependencies
         run: composer install --no-dev --optimize-autoloader --no-interaction
 
@@ -40,22 +40,33 @@ jobs:
             git clean -df
             git pull origin main
 
+            # Xóa cache cũ Laravel
+            rm -f bootstrap/cache/*.php
+            php artisan config:clear
+            php artisan route:clear
+            php artisan view:clear
+
             # Cài composer dependencies trên server
             composer install --no-dev --optimize-autoloader --no-interaction
 
             # Chạy migration
             php artisan migrate --force
 
-            # Clear & cache Laravel
+            # Cache lại config, route, view
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
             php artisan optimize
 
-            # Chỉnh quyền storage & bootstrap (nếu cần)
+            # Chỉnh quyền storage & bootstrap cache
             sudo chown -R apache:apache storage bootstrap/cache
             sudo chmod -R 775 storage bootstrap/cache
 
-            # Reload PHP-FPM & Apache
-            sudo systemctl reload php-fpm
-            sudo systemctl reload httpd
+            # Reload PHP-FPM & web server
+            if systemctl list-units --type=service | grep -q nginx; then
+              sudo systemctl reload php8.4-fpm
+              sudo systemctl reload nginx
+            else
+              sudo systemctl reload php8.4-fpm
+              sudo systemctl reload httpd
+            fi
