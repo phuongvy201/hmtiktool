@@ -25,16 +25,10 @@ return new class extends Migration
         );
 
         // Tạo index phục vụ truy vấn theo market + version + attribute
+        // Sử dụng prefix index để tránh lỗi "key was too long" (max 3072 bytes với utf8mb4)
         $existingIndex = collect(DB::select("SHOW INDEXES FROM `tik_tok_category_attributes` WHERE Key_name = 'tiktok_cat_attr_market_idx'"));
         if ($existingIndex->isEmpty()) {
-            Schema::table('tik_tok_category_attributes', function (Blueprint $table) {
-                $table->index([
-                    'category_id',
-                    'category_version',
-                    'market',
-                    'attribute_id'
-                ], 'tiktok_cat_attr_market_idx');
-            });
+            DB::statement('ALTER TABLE `tik_tok_category_attributes` ADD INDEX `tiktok_cat_attr_market_idx` (`category_id`(100), `category_version`(50), `market`, `attribute_id`(100))');
         }
     }
 

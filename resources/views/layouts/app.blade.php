@@ -101,7 +101,7 @@
     @yield('head')
 </head>
 
-<body class="bg-gray-100 font-product-sans">
+<body class="bg-slate-900 font-product-sans min-h-screen">
     <nav class="bg-slate-800 border-b border-slate-700">
         <div class="container mx-auto px-4">
             <div class="flex justify-between items-center h-16">
@@ -488,8 +488,10 @@
         </div>
     </nav>
 
-    <main class="container bg-gray-900 mx-auto p-4">
-        @yield('content')
+    <main class="min-h-[calc(100vh-4rem)]">
+        <div class="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            @yield('content')
+        </div>
     </main>
     
     @stack('scripts')
