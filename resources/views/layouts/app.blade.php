@@ -196,7 +196,7 @@
                         @endif
 
                         <!-- Products Dropdown -->
-                        @canany(['view-products', 'view-product-templates'])
+                        @if(auth()->user()->hasAnyRole(['system-admin', 'team-admin', 'seller']) || auth()->user()->canany(['view-products', 'view-product-templates']))
                         <div class="relative group">
                             <button class="nav-link">
                                 <i class="fas fa-boxes-stacked mr-2 text-sm w-4"></i>
@@ -205,30 +205,22 @@
                             </button>
                             <div class="dropdown-menu">
                                 <div class="py-2">
-                                    @can('view-product-templates')
                                     <a href="{{ route('product-templates.index') }}" class="dropdown-item">
                                         <i class="fas fa-layer-group mr-2 w-4 text-indigo-400"></i>
                                         Templates
                                     </a>
-                                    @endcan
-                                    
-                                    @can('view-products')
                                     <a href="{{ route('products.index') }}" class="dropdown-item">
                                         <i class="fas fa-box mr-2 w-4 text-blue-400"></i>
                                         Product List
                                     </a>
-                                    @endcan
-                                    
-                                    @can('create-products')
                                     <a href="{{ route('products.create') }}" class="dropdown-item">
                                         <i class="fas fa-plus mr-2 w-4 text-green-400"></i>
                                         Create Product
                                     </a>
-                                    @endcan
                                 </div>
                             </div>
                         </div>
-                        @endcanany
+                        @endif
 
                         <!-- TikTok Shop -->
                         @if(auth()->user()->hasRole('system-admin'))
@@ -406,26 +398,23 @@
                         </div>
                         @endif
 
-                        @canany(['view-products', 'view-product-templates'])
+                        @if(auth()->user()->hasAnyRole(['system-admin', 'team-admin', 'seller']) || auth()->user()->canany(['view-products', 'view-product-templates']))
                         <div class="border-t border-slate-600 pt-2 mt-2">
                             <div class="text-gray-400 text-xs uppercase tracking-wider mb-2">Products</div>
-                            @can('view-product-templates')
                             <a href="{{ route('product-templates.index') }}" class="mobile-menu-item">
                                 <i class="fas fa-layer-group mr-2 w-4 text-indigo-400"></i>
                                 Templates
                             </a>
-                            @endcan
-                            
-                            @can('view-products')
                             <a href="{{ route('products.index') }}" class="mobile-menu-item">
                                 <i class="fas fa-box mr-2 w-4 text-blue-400"></i>
                                 Products
                             </a>
-                            @endcan
-                            
-                    
+                            <a href="{{ route('products.create') }}" class="mobile-menu-item">
+                                <i class="fas fa-plus mr-2 w-4 text-green-400"></i>
+                                Create Product
+                            </a>
                         </div>
-                        @endcanany
+                        @endif
 
                         <div class="border-t border-slate-600 pt-2 mt-2">
                             <div class="text-gray-400 text-xs uppercase tracking-wider mb-2">TikTok</div>

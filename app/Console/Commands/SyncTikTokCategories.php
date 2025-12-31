@@ -197,10 +197,10 @@ class SyncTikTokCategories extends Command
                     'level' => $level,
                     'is_leaf' => $isLeaf,
                     'is_active' => true,
-                    'category_data' => [
+                    'category_data' => json_encode([
                         'original_data' => $category,
                         'parsed_at' => $timestampIso
-                    ],
+                    ]),
                     'last_synced_at' => $timestamp,
                     'created_at' => $timestamp,
                     'updated_at' => $timestamp,
@@ -235,7 +235,7 @@ class SyncTikTokCategories extends Command
                     'level' => $categoryData['level'],
                     'is_leaf' => $categoryData['is_leaf'],
                     'is_active' => true,
-                    'category_data' => $categoryData['metadata'],
+                    'category_data' => json_encode($categoryData['metadata']),
                     'last_synced_at' => $timestamp,
                     'created_at' => $timestamp,
                     'updated_at' => $timestamp,
