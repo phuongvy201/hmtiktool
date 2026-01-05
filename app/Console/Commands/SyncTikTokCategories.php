@@ -225,24 +225,36 @@ class SyncTikTokCategories extends Command
             $this->info("Marked {$inactiveCount} stale categories as inactive for {$market} ({$categoryVersion})");
         }
 
-        TikTokShopCategory::upsert(
-            $records,
-            ['category_id', 'market'],
-            [
-                'category_name',
-                'parent_category_id',
-                'level',
-                'is_leaf',
-                'is_active',
-                'category_version',
-                'category_data',
-                'last_synced_at',
-                'updated_at',
-            ]
-        );
+        // Chia nhỏ thành batches để tránh lỗi max_allowed_packet
+        $batchSize = 500;
+        $batches = array_chunk($records, $batchSize);
+        $totalBatches = count($batches);
+        
+        $this->info("Saving " . count($records) . " categories in {$totalBatches} batches...");
+        
+        foreach ($batches as $index => $batch) {
+            TikTokShopCategory::upsert(
+                $batch,
+                ['category_id', 'market'],
+                [
+                    'category_name',
+                    'parent_category_id',
+                    'level',
+                    'is_leaf',
+                    'is_active',
+                    'category_version',
+                    'category_data',
+                    'last_synced_at',
+                    'updated_at',
+                ]
+            );
+            
+            $batchNum = $index + 1;
+            $this->line("  Batch {$batchNum}/{$totalBatches}: " . count($batch) . " categories saved");
+        }
 
         $savedCount = count($records);
-        $this->info("Saved {$savedCount} categories to database");
+        $this->info("✅ Total saved: {$savedCount} categories to database");
 
         $this->triggerAttributeSync($market, $categoryVersion, $force, $hours);
 
