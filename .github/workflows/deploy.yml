@@ -57,15 +57,13 @@ jobs:
             echo "=== Fix permissions for runtime directories ==="
             sudo chown -R apache:apache storage bootstrap/cache
             sudo chmod -R 775 storage bootstrap/cache
-
             echo "=== Restart services (RESET OPCACHE) ==="
             if systemctl list-units --type=service | grep -q nginx; then
-              sudo systemctl restart php8.4-fpm
+              sudo systemctl restart php-fpm
               sudo systemctl restart nginx
             else
-              sudo systemctl restart php8.4-fpm
+              sudo systemctl restart php-fpm
               sudo systemctl restart httpd
             fi
-
             echo "=== Bring app back online ==="
             php artisan up
