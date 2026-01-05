@@ -30,6 +30,70 @@
         @endif
 
         @if($integrations->count() > 0)
+            <!-- Filter and Search Section -->
+            <div class="bg-gray-800 rounded-xl border border-gray-700 p-6 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <!-- Search -->
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-300 mb-2">
+                            <i class="fas fa-search mr-2"></i>Search
+                        </label>
+                        <input 
+                            type="text" 
+                            id="search-input" 
+                            placeholder="Search by team name, shop name, shop ID..." 
+                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        >
+                    </div>
+
+                    <!-- Market Filter -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">
+                            <i class="fas fa-globe mr-2"></i>Market
+                        </label>
+                        <select 
+                            id="market-filter" 
+                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        >
+                            <option value="">All Markets</option>
+                            <option value="UK">🇬🇧 UK</option>
+                            <option value="US">🇺🇸 US</option>
+                        </select>
+                    </div>
+
+                    <!-- Status Filter -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">
+                            <i class="fas fa-filter mr-2"></i>Status
+                        </label>
+                        <select 
+                            id="status-filter" 
+                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        >
+                            <option value="">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="pending">Pending</option>
+                            <option value="error">Error</option>
+                            <option value="expired">Expired</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Results Count -->
+                <div class="mt-4 flex items-center justify-between">
+                    <div class="text-sm text-gray-400">
+                        Showing <span id="results-count" class="font-semibold text-white">{{ $integrations->count() }}</span> of {{ $integrations->count() }} integrations
+                    </div>
+                    <button 
+                        id="clear-filters" 
+                        class="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                        style="display: none;"
+                    >
+                        <i class="fas fa-times mr-1"></i>Clear filters
+                    </button>
+                </div>
+            </div>
+
             <!-- Integrations List -->
             <div class="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-700">
@@ -41,6 +105,7 @@
                         <thead class="bg-gray-700">
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Team</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Market</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Status</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Shop</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Token</th>
@@ -48,13 +113,43 @@
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-700">
+                        <tbody class="divide-y divide-gray-700" id="integrations-table-body">
                             @foreach($integrations as $integration)
-                                <tr class="hover:bg-gray-700/50">
+                                <tr 
+                                    class="hover:bg-gray-700/50 integration-row"
+                                    data-team-name="{{ strtolower($integration->team->name) }}"
+                                    data-market="{{ $integration->market ?? '' }}"
+                                    data-status="{{ $integration->status }}"
+                                    data-shop-name="{{ strtolower($integration->activeShops->pluck('shop_name')->join(' ')) }}"
+                                    data-shop-id="{{ strtolower($integration->activeShops->pluck('shop_id')->join(' ')) }}"
+                                >
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div>
                                             <div class="text-sm font-medium text-white">{{ $integration->team->name }}</div>
                                             <div class="text-sm text-gray-400">ID: {{ $integration->team->id }}</div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        @php
+                                            $market = $integration->market ?? 'N/A';
+                                            $categoryVersion = $integration->getCategoryVersion() ?? '';
+                                            $marketColors = [
+                                                'UK' => 'bg-blue-500/20 text-blue-400 border-blue-500/50',
+                                                'US' => 'bg-red-500/20 text-red-400 border-red-500/50',
+                                                'default' => 'bg-gray-500/20 text-gray-400 border-gray-500/50'
+                                            ];
+                                            $marketFlags = [
+                                                'UK' => '🇬🇧',
+                                                'US' => '🇺🇸',
+                                            ];
+                                        @endphp
+                                        <div class="flex flex-col items-start gap-1">
+                                            <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium border {{ $marketColors[$market] ?? $marketColors['default'] }}">
+                                                {{ $marketFlags[$market] ?? '🌐' }} {{ $market }}
+                                            </span>
+                                            @if($categoryVersion)
+                                            <span class="text-xs text-gray-500">{{ $categoryVersion }}</span>
+                                            @endif
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
@@ -216,4 +311,94 @@
         @endif
     </div>
 </div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('search-input');
+    const marketFilter = document.getElementById('market-filter');
+    const statusFilter = document.getElementById('status-filter');
+    const clearFiltersBtn = document.getElementById('clear-filters');
+    const resultsCount = document.getElementById('results-count');
+    const rows = document.querySelectorAll('.integration-row');
+    const totalCount = rows.length;
+
+    function filterTable() {
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        const selectedMarket = marketFilter.value.toLowerCase();
+        const selectedStatus = statusFilter.value.toLowerCase();
+
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            const teamName = row.getAttribute('data-team-name') || '';
+            const market = (row.getAttribute('data-market') || '').toLowerCase();
+            const status = (row.getAttribute('data-status') || '').toLowerCase();
+            const shopName = row.getAttribute('data-shop-name') || '';
+            const shopId = row.getAttribute('data-shop-id') || '';
+
+            // Search filter
+            const matchesSearch = !searchTerm || 
+                teamName.includes(searchTerm) || 
+                shopName.includes(searchTerm) || 
+                shopId.includes(searchTerm);
+
+            // Market filter
+            const matchesMarket = !selectedMarket || market === selectedMarket;
+
+            // Status filter
+            const matchesStatus = !selectedStatus || status === selectedStatus;
+
+            // Show/hide row
+            if (matchesSearch && matchesMarket && matchesStatus) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        // Update results count
+        resultsCount.textContent = visibleCount;
+
+        // Show/hide clear filters button
+        if (searchTerm || selectedMarket || selectedStatus) {
+            clearFiltersBtn.style.display = 'block';
+        } else {
+            clearFiltersBtn.style.display = 'none';
+        }
+    }
+
+    // Event listeners
+    searchInput.addEventListener('input', filterTable);
+    marketFilter.addEventListener('change', filterTable);
+    statusFilter.addEventListener('change', filterTable);
+
+    // Clear filters
+    clearFiltersBtn.addEventListener('click', function() {
+        searchInput.value = '';
+        marketFilter.value = '';
+        statusFilter.value = '';
+        filterTable();
+    });
+
+    // Preserve filter values from URL params (if needed)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('market')) {
+        marketFilter.value = urlParams.get('market');
+    }
+    if (urlParams.get('status')) {
+        statusFilter.value = urlParams.get('status');
+    }
+    if (urlParams.get('search')) {
+        searchInput.value = urlParams.get('search');
+    }
+    
+    // Apply filters on page load if URL params exist
+    if (urlParams.get('market') || urlParams.get('status') || urlParams.get('search')) {
+        filterTable();
+    }
+});
+</script>
+@endpush
 @endsection

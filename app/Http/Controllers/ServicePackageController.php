@@ -10,11 +10,21 @@ use Illuminate\Validation\Rule;
 class ServicePackageController extends Controller
 {
     /**
+     * Check authorization, but allow system-admin to bypass
+     */
+    private function authorizeOrSystemAdmin(string $permission): void
+    {
+        if (!auth()->user()->hasRole('system-admin')) {
+            $this->authorize($permission);
+        }
+    }
+
+    /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        $this->authorize('view-service-packages');
+        $this->authorizeOrSystemAdmin('view-service-packages');
 
         $query = ServicePackage::query();
 
@@ -51,7 +61,7 @@ class ServicePackageController extends Controller
      */
     public function create()
     {
-        $this->authorize('create-service-packages');
+        $this->authorizeOrSystemAdmin('create-service-packages');
 
         return view('service-packages.create');
     }
@@ -61,7 +71,7 @@ class ServicePackageController extends Controller
      */
     public function store(Request $request)
     {
-        $this->authorize('create-service-packages');
+        $this->authorizeOrSystemAdmin('create-service-packages');
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -103,7 +113,7 @@ class ServicePackageController extends Controller
      */
     public function show(ServicePackage $servicePackage)
     {
-        $this->authorize('view-service-packages');
+        $this->authorizeOrSystemAdmin('view-service-packages');
 
         $servicePackage->load(['subscriptions.user', 'activeSubscriptions.user']);
 
@@ -115,7 +125,7 @@ class ServicePackageController extends Controller
      */
     public function edit(ServicePackage $servicePackage)
     {
-        $this->authorize('edit-service-packages');
+        $this->authorizeOrSystemAdmin('edit-service-packages');
 
         return view('service-packages.edit', compact('servicePackage'));
     }
@@ -125,7 +135,7 @@ class ServicePackageController extends Controller
      */
     public function update(Request $request, ServicePackage $servicePackage)
     {
-        $this->authorize('edit-service-packages');
+        $this->authorizeOrSystemAdmin('edit-service-packages');
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -172,7 +182,7 @@ class ServicePackageController extends Controller
      */
     public function destroy(ServicePackage $servicePackage)
     {
-        $this->authorize('delete-service-packages');
+        $this->authorizeOrSystemAdmin('delete-service-packages');
 
         // Check if package has active subscriptions
         if ($servicePackage->activeSubscriptions()->exists()) {
@@ -191,7 +201,7 @@ class ServicePackageController extends Controller
      */
     public function toggleActive(ServicePackage $servicePackage)
     {
-        $this->authorize('edit-service-packages');
+        $this->authorizeOrSystemAdmin('edit-service-packages');
 
         $servicePackage->update(['is_active' => !$servicePackage->is_active]);
 
@@ -206,7 +216,7 @@ class ServicePackageController extends Controller
      */
     public function toggleFeatured(ServicePackage $servicePackage)
     {
-        $this->authorize('edit-service-packages');
+        $this->authorizeOrSystemAdmin('edit-service-packages');
 
         $servicePackage->update(['is_featured' => !$servicePackage->is_featured]);
 

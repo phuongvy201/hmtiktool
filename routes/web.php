@@ -85,16 +85,18 @@ Route::middleware('auth')->group(function () {
     });
 
     // System level routes
+    // System Settings routes
+    Route::middleware('permission:view-system-settings')->prefix('system')->name('system.')->group(function () {
+        Route::get('settings', [SystemSettingController::class, 'index'])->name('settings');
+        Route::post('settings/update', [SystemSettingController::class, 'update'])->name('settings.update');
+        Route::post('settings/reset', [SystemSettingController::class, 'reset'])->name('settings.reset');
+        Route::get('settings/export', [SystemSettingController::class, 'export'])->name('settings.export');
+        Route::post('settings/import', [SystemSettingController::class, 'import'])->name('settings.import');
+        Route::get('settings/info', [SystemSettingController::class, 'systemInfo'])->name('settings.info');
+    });
+
+    // Service Packages & Backup routes
     Route::middleware('permission:view-service-packages')->group(function () {
-        // System Settings routes
-        Route::prefix('system')->name('system.')->group(function () {
-            Route::get('settings', [SystemSettingController::class, 'index'])->name('settings');
-            Route::post('settings/update', [SystemSettingController::class, 'update'])->name('settings.update');
-            Route::post('settings/reset', [SystemSettingController::class, 'reset'])->name('settings.reset');
-            Route::get('settings/export', [SystemSettingController::class, 'export'])->name('settings.export');
-            Route::post('settings/import', [SystemSettingController::class, 'import'])->name('settings.import');
-            Route::get('settings/info', [SystemSettingController::class, 'systemInfo'])->name('settings.info');
-        });
 
         // Backup & Restore routes
         Route::prefix('backups')->name('backups.')->group(function () {
@@ -112,12 +114,14 @@ Route::middleware('auth')->group(function () {
         });
     });
 
-    // Service Package management routes (temporarily without middleware for testing)
-    Route::resource('service-packages', ServicePackageController::class);
-    Route::patch('/service-packages/{servicePackage}/toggle-active', [ServicePackageController::class, 'toggleActive'])
-        ->name('service-packages.toggle-active');
-    Route::patch('/service-packages/{servicePackage}/toggle-featured', [ServicePackageController::class, 'toggleFeatured'])
-        ->name('service-packages.toggle-featured');
+    // Service Package management routes
+    Route::middleware('role:system-admin|permission:view-service-packages')->group(function () {
+        Route::resource('service-packages', ServicePackageController::class);
+        Route::patch('/service-packages/{servicePackage}/toggle-active', [ServicePackageController::class, 'toggleActive'])
+            ->name('service-packages.toggle-active');
+        Route::patch('/service-packages/{servicePackage}/toggle-featured', [ServicePackageController::class, 'toggleFeatured'])
+            ->name('service-packages.toggle-featured');
+    });
 
     // Team Subscription management routes
     Route::resource('team-subscriptions', TeamSubscriptionController::class);
