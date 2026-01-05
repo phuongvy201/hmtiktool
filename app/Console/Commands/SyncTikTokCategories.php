@@ -6,7 +6,6 @@ use App\Models\TikTokShopCategory;
 use App\Models\TikTokShopIntegration;
 use App\Services\TikTokShopService;
 use Illuminate\Console\Command;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Artisan;
 
@@ -136,24 +135,11 @@ class SyncTikTokCategories extends Command
 
         $this->info("Retrieved " . count($categories) . " categories from TikTok Shop API for {$market} ({$categoryVersion})");
 
-        Log::info('SyncTikTokCategories: Categories retrieved from API', [
-            'market' => $market,
-            'category_version' => $categoryVersion,
-            'formatted_count' => count($categories),
-            'raw_count' => count($rawCategories),
-            'formatted_sample' => array_slice($categories, 0, 5, true),
-            'raw_sample' => array_slice($rawCategories, 0, 3)
-        ]);
-
         $timestamp = now();
         $timestampIso = $timestamp->toISOString();
         $records = [];
 
         if (!empty($rawCategories)) {
-            Log::info('SyncTikTokCategories: Using raw data from API', [
-                'raw_categories_count' => count($rawCategories),
-                'processing_method' => 'raw_data'
-            ]);
 
             foreach ($rawCategories as $index => $category) {
                 $categoryId = (string) ($category['id'] ?? '');
@@ -166,26 +152,7 @@ class SyncTikTokCategories extends Command
                 $isLeaf = array_key_exists('is_leaf', $category) ? (bool) $category['is_leaf'] : true;
 
                 if ($categoryId === '' || $categoryName === '') {
-                    Log::warning('SyncTikTokCategories: Skipping invalid category', [
-                        'index' => $index,
-                        'market' => $market,
-                        'category_version' => $categoryVersion,
-                        'category_data' => $category
-                    ]);
                     continue;
-                }
-
-                if (count($records) % 100 === 0) {
-                    Log::info('SyncTikTokCategories: Processing progress', [
-                        'processed_count' => count($records),
-                        'current_category' => [
-                            'id' => $categoryId,
-                            'name' => $categoryName,
-                            'parent_id' => $parentId,
-                            'level' => $level,
-                            'is_leaf' => $isLeaf
-                        ]
-                    ]);
                 }
 
                 $records[] = [
@@ -207,24 +174,8 @@ class SyncTikTokCategories extends Command
                 ];
             }
         } else {
-            Log::info('SyncTikTokCategories: Using formatted data (fallback)', [
-                'formatted_categories_count' => count($categories),
-                'processing_method' => 'formatted_data'
-            ]);
-
             foreach ($categories as $categoryId => $categoryName) {
                 $categoryData = $this->parseCategoryData($categoryId, $categoryName);
-
-                if (count($records) % 100 === 0) {
-                    Log::info('SyncTikTokCategories: Processing progress (formatted)', [
-                        'processed_count' => count($records),
-                        'current_category' => [
-                            'id' => $categoryId,
-                            'name' => $categoryName,
-                            'parsed_data' => $categoryData
-                        ]
-                    ]);
-                }
 
                 $records[] = [
                     'market' => $market,
@@ -293,50 +244,9 @@ class SyncTikTokCategories extends Command
         $savedCount = count($records);
         $this->info("Saved {$savedCount} categories to database");
 
-        $this->logCategorySyncSummary($market, $categoryVersion, $timestamp, $savedCount, $inactiveCount);
-
         $this->triggerAttributeSync($market, $categoryVersion, $force, $hours);
 
         return true;
-    }
-
-    private function logCategorySyncSummary(string $market, string $categoryVersion, Carbon $timestamp, int $savedCount, int $inactiveCount): void
-    {
-        $leafCount = TikTokShopCategory::where('market', $market)
-            ->where('category_version', $categoryVersion)
-            ->where('is_leaf', true)
-            ->count();
-
-        $rootCount = TikTokShopCategory::where('market', $market)
-            ->where('category_version', $categoryVersion)
-            ->where('level', 1)
-            ->count();
-
-        $maxLevel = TikTokShopCategory::where('market', $market)
-            ->where('category_version', $categoryVersion)
-            ->max('level');
-
-        Log::info('TikTok categories synced successfully', [
-            'market' => $market,
-            'category_version' => $categoryVersion,
-            'total_categories' => $savedCount,
-            'inactive_categories_marked' => $inactiveCount,
-            'leaf_categories' => $leafCount,
-            'root_categories' => $rootCount,
-            'max_level' => $maxLevel,
-            'synced_at' => $timestamp->toISOString(),
-        ]);
-
-        $sampleCategories = TikTokShopCategory::where('market', $market)
-            ->where('category_version', $categoryVersion)
-            ->take(10)
-            ->get(['category_id', 'category_name', 'level', 'is_leaf']);
-
-        Log::info('Sample categories saved to database', [
-            'market' => $market,
-            'category_version' => $categoryVersion,
-            'sample_categories' => $sampleCategories->toArray()
-        ]);
     }
 
     private function triggerAttributeSync(string $market, string $categoryVersion, bool $force, int $hours): void
@@ -402,7 +312,7 @@ class SyncTikTokCategories extends Command
             $isLeaf = false;
         }
 
-        $parsedData = [
+        return [
             'category_id' => $categoryId,
             'category_name' => $categoryName,
             'parent_category_id' => $parentCategoryId,
@@ -414,22 +324,6 @@ class SyncTikTokCategories extends Command
                 'parsed_at' => now()->toISOString()
             ]
         ];
-
-        // Log parsing details cho categories đặc biệt
-        if ($level > 1 || !$isLeaf || $parentCategoryId) {
-            Log::info('SyncTikTokCategories: Parsed category with special structure', [
-                'original_id' => $categoryId,
-                'original_name' => $categoryName,
-                'parsed_data' => $parsedData,
-                'parsing_logic' => [
-                    'has_hierarchy' => str_contains($categoryId, '.'),
-                    'is_non_leaf' => !$isLeaf,
-                    'level_determined' => $level > 1
-                ]
-            ]);
-        }
-
-        return $parsedData;
     }
 
     /**
