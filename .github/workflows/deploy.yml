@@ -12,7 +12,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Deploy qua SSH
       - name: Deploy via SSH
         uses: appleboy/ssh-action@master
         with:
@@ -21,6 +20,9 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             set -e
+
+            echo "=== Ensure correct permissions for git ==="
+            sudo chown -R ec2-user:ec2-user /var/www/hmtiktool
 
             cd /var/www/hmtiktool
 
@@ -32,35 +34,36 @@ jobs:
             echo "=== Install composer dependencies ==="
             composer install --no-dev --optimize-autoloader --no-interaction
 
-            echo "=== Clear Laravel cache ==="
+            echo "=== Put app into maintenance mode ==="
             php artisan down || true
-            php artisan cache:clear
-            php artisan config:clear
-            php artisan route:clear
-            php artisan view:clear
-            php artisan event:clear
-            php artisan optimize:clear
+
+            echo "=== Clear Laravel caches ==="
+            php artisan cache:clear || true
+            php artisan config:clear || true
+            php artisan route:clear || true
+            php artisan view:clear || true
+            php artisan event:clear || true
+            php artisan optimize:clear || true
 
             echo "=== Run migrations ==="
             php artisan migrate --force
 
-            echo "=== Rebuild cache ==="
+            echo "=== Rebuild Laravel caches ==="
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
             php artisan optimize
 
-            echo "=== Fix permissions ==="
+            echo "=== Fix permissions for runtime directories ==="
             sudo chown -R apache:apache storage bootstrap/cache
             sudo chmod -R 775 storage bootstrap/cache
-
-            echo "=== Restart services (IMPORTANT) ==="
+            echo "=== Restart services (RESET OPCACHE) ==="
             if systemctl list-units --type=service | grep -q nginx; then
-              sudo systemctl restart php8.4-fpm
+              sudo systemctl restart php-fpm
               sudo systemctl restart nginx
             else
-              sudo systemctl restart php8.4-fpm
+              sudo systemctl restart php-fpm
               sudo systemctl restart httpd
             fi
-
+            echo "=== Bring app back online ==="
             php artisan up
