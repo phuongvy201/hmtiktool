@@ -1,6 +1,5 @@
 name: Deploy Laravel to EC2
 
-# Chạy khi push lên main
 on:
   push:
     branches: [ main ]
@@ -8,21 +7,10 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
-      # Checkout code
       - name: Checkout code
         uses: actions/checkout@v4
-
-      # Setup PHP 8.4 với các extension cần thiết
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.4'
-          extensions: mbstring, xml, bcmath, zip, intl, gd
-
-      # Cài composer dependencies trên runner CI
-      - name: Install Composer dependencies
-        run: composer install --no-dev --optimize-autoloader --no-interaction
 
       # Deploy qua SSH
       - name: Deploy via SSH
@@ -32,41 +20,47 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # Di chuyển vào thư mục Laravel
+            set -e
+
             cd /var/www/hmtiktool
 
-            # Pull code mới
-            git reset --hard
+            echo "=== Pull latest code ==="
+            git fetch origin
+            git reset --hard origin/main
             git clean -df
-            git pull origin main
 
-            # Xóa cache cũ Laravel
-            rm -f bootstrap/cache/*.php
+            echo "=== Install composer dependencies ==="
+            composer install --no-dev --optimize-autoloader --no-interaction
+
+            echo "=== Clear Laravel cache ==="
+            php artisan down || true
+            php artisan cache:clear
             php artisan config:clear
             php artisan route:clear
             php artisan view:clear
+            php artisan event:clear
+            php artisan optimize:clear
 
-            # Cài composer dependencies trên server
-            composer install --no-dev --optimize-autoloader --no-interaction
-
-            # Chạy migration
+            echo "=== Run migrations ==="
             php artisan migrate --force
 
-            # Cache lại config, route, view
+            echo "=== Rebuild cache ==="
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
             php artisan optimize
 
-            # Chỉnh quyền storage & bootstrap cache
+            echo "=== Fix permissions ==="
             sudo chown -R apache:apache storage bootstrap/cache
             sudo chmod -R 775 storage bootstrap/cache
 
-            # Reload PHP-FPM & web server
+            echo "=== Restart services (IMPORTANT) ==="
             if systemctl list-units --type=service | grep -q nginx; then
-              sudo systemctl reload php8.4-fpm
-              sudo systemctl reload nginx
+              sudo systemctl restart php8.4-fpm
+              sudo systemctl restart nginx
             else
-              sudo systemctl reload php8.4-fpm
-              sudo systemctl reload httpd
+              sudo systemctl restart php8.4-fpm
+              sudo systemctl restart httpd
             fi
+
+            php artisan up
