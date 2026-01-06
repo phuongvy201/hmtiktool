@@ -94,6 +94,31 @@
                     </select>
                 </div>
 
+                @if(auth()->user()->hasAnyRole(['system-admin', 'team-admin']))
+                <!-- Market Filter -->
+                <div class="flex flex-col sm:flex-row sm:items-center w-full lg:w-auto">
+                    <label class="block text-sm font-medium text-gray-300 mb-1 sm:mb-0 sm:mr-2">Market:</label>
+                    <select name="market" id="marketFilter" class="block w-full sm:w-32 px-3 py-2 border border-gray-600 rounded-md shadow-sm bg-gray-800 text-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">All Markets</option>
+                        @foreach($markets ?? [] as $market)
+                            <option value="{{ $market }}" {{ request('market') == $market ? 'selected' : '' }}>{{ $market }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                @endif
+
+                @if(auth()->user()->hasRole('system-admin'))
+                <!-- Team Filter -->
+                <div class="flex flex-col sm:flex-row sm:items-center w-full lg:w-auto">
+                    <label class="block text-sm font-medium text-gray-300 mb-1 sm:mb-0 sm:mr-2">Team:</label>
+                    <select name="team_id" id="teamFilter" class="block w-full sm:w-48 px-3 py-2 border border-gray-600 rounded-md shadow-sm bg-gray-800 text-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">All Teams</option>
+                        @foreach($teams ?? [] as $team)
+                            <option value="{{ $team->id }}" {{ request('team_id') == $team->id ? 'selected' : '' }}>{{ $team->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                @endif
                 
             </div>
 
@@ -235,6 +260,12 @@
                                 <th class="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Order ID</th>
                                 <th class="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Tracking</th>
                                 <th class="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Shop</th>
+                                @if(auth()->user()->hasAnyRole(['system-admin', 'team-admin']))
+                                <th class="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Market</th>
+                                @endif
+                                @if(auth()->user()->hasRole('system-admin'))
+                                <th class="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Team</th>
+                                @endif
                                 <th class="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Status</th>
                                 <th class="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Total</th>
                                 <th class="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Shipping</th>
@@ -343,6 +374,25 @@
                                         <div class="text-sm text-gray-200">{{ $order->shop->shop_name ?? 'N/A' }}</div>
                                     </td>
                                     
+                                    @if(auth()->user()->hasAnyRole(['system-admin', 'team-admin']))
+                                    <!-- Market -->
+                                    <td class="px-3 py-4 whitespace-nowrap">
+                                        @php
+                                            $market = $order->shop->integration->market ?? 'N/A';
+                                        @endphp
+                                        <span class="px-2 py-1 rounded text-xs font-semibold {{ $market == 'US' ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' : 'bg-purple-500/20 text-purple-300 border border-purple-500/30' }}">
+                                            {{ $market }}
+                                        </span>
+                                    </td>
+                                    @endif
+                                    
+                                    @if(auth()->user()->hasRole('system-admin'))
+                                    <!-- Team -->
+                                    <td class="px-3 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-200">{{ $order->shop->team->name ?? 'N/A' }}</div>
+                                    </td>
+                                    @endif
+                                    
                                     <!-- Status -->
                                     <td class="px-3 py-4 whitespace-nowrap">
                                         <span class="inline-flex items-center px-3 py-2 rounded-full text-sm font-medium {{ $order->getStatusClasses() }}">
@@ -427,6 +477,23 @@
                                             {{ number_format($order->order_amount ?? 0, 2) }} {{ $order->currency ?? 'GBP' }}
                                         </p>
                                     </div>
+                                    @if(auth()->user()->hasAnyRole(['system-admin', 'team-admin']))
+                                    <div>
+                                        <p class="text-xs text-gray-400">Market</p>
+                                        @php
+                                            $market = $order->shop->integration->market ?? 'N/A';
+                                        @endphp
+                                        <span class="inline-block px-2 py-1 rounded text-xs font-semibold {{ $market == 'US' ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' : 'bg-purple-500/20 text-purple-300 border border-purple-500/30' }}">
+                                            {{ $market }}
+                                        </span>
+                                    </div>
+                                    @endif
+                                    @if(auth()->user()->hasRole('system-admin'))
+                                    <div>
+                                        <p class="text-xs text-gray-400">Team</p>
+                                        <p class="text-sm text-gray-200">{{ $order->shop->team->name ?? 'N/A' }}</p>
+                                    </div>
+                                    @endif
                                     <div>
                                         <p class="text-xs text-gray-400">Shipping</p>
                                         <p class="text-sm text-gray-200">{{ $order->shipping_type ?? 'SELLER' }}</p>
@@ -709,6 +776,36 @@ document.getElementById('shopFilter').addEventListener('change', function() {
     }
     window.location.href = url.toString();
 });
+
+// Auto submit when market filter changes
+const marketFilter = document.getElementById('marketFilter');
+if (marketFilter) {
+    marketFilter.addEventListener('change', function() {
+        const market = this.value;
+        const url = new URL(window.location);
+        if (market) {
+            url.searchParams.set('market', market);
+        } else {
+            url.searchParams.delete('market');
+        }
+        window.location.href = url.toString();
+    });
+}
+
+// Auto submit when team filter changes
+const teamFilter = document.getElementById('teamFilter');
+if (teamFilter) {
+    teamFilter.addEventListener('change', function() {
+        const teamId = this.value;
+        const url = new URL(window.location);
+        if (teamId) {
+            url.searchParams.set('team_id', teamId);
+        } else {
+            url.searchParams.delete('team_id');
+        }
+        window.location.href = url.toString();
+    });
+}
 
 // Date picker functionality
 document.getElementById('dateFrom').addEventListener('change', function() {

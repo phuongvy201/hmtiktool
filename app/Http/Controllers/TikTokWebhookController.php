@@ -26,9 +26,15 @@ class TikTokWebhookController extends Controller
 
         try {
             // Verify webhook signature (nếu TikTok có cung cấp)
-            if (!$this->verifyWebhookSignature($request)) {
-                Log::warning('Invalid webhook signature');
-                return response()->json(['error' => 'Invalid signature'], 403);
+            // Trong production, nên bật verification này
+            // Trong development, có thể tạm thời comment để test
+            if (config('app.env') === 'production') {
+                if (!$this->verifyWebhookSignature($request)) {
+                    Log::warning('Invalid webhook signature');
+                    return response()->json(['error' => 'Invalid signature'], 403);
+                }
+            } else {
+                Log::info('Skipping webhook signature verification in ' . config('app.env') . ' environment');
             }
 
             $payload = $request->all();
@@ -95,6 +101,11 @@ class TikTokWebhookController extends Controller
 
         if (!$signature) {
             Log::warning('No signature found in webhook request');
+            // Trong development, nếu không có signature thì vẫn cho phép (để test)
+            if (config('app.env') !== 'production') {
+                Log::info('Allowing webhook without signature in ' . config('app.env') . ' environment');
+                return true;
+            }
             return false;
         }
 
@@ -104,6 +115,11 @@ class TikTokWebhookController extends Controller
 
         if (!$secret) {
             Log::warning('Webhook secret not configured');
+            // Trong development, nếu không có secret thì vẫn cho phép (để test)
+            if (config('app.env') !== 'production') {
+                Log::info('Allowing webhook without secret in ' . config('app.env') . ' environment');
+                return true;
+            }
             return false;
         }
 

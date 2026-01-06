@@ -30,25 +30,46 @@ class TikTokOrderController extends Controller
     {
         try {
             $user = Auth::user();
-            $team = $user->team;
-
-            if (!$team) {
-                return redirect()->back()->with('error', 'Bạn không thuộc team nào');
+            
+            // System-admin không cần team
+            if (!$user->hasRole('system-admin')) {
+                $team = $user->team;
+                if (!$team) {
+                    return redirect()->back()->with('error', 'Bạn không thuộc team nào');
+                }
+            } else {
+                $team = null;
             }
 
             // Lấy filters từ request
             $filters = $this->buildFilters($request);
+            
+            // Lấy filter Market và Team
+            $marketFilter = $request->get('market');
+            $teamFilter = $request->get('team_id');
 
             // Xác định shops có thể xem được
-            $shops = $this->getAccessibleShops($user, $team);
+            $shops = $this->getAccessibleShops($user, $team, $marketFilter, $teamFilter);
 
             if ($shops->isEmpty()) {
+                // Lấy danh sách teams và markets cho filter
+                $teams = [];
+                $markets = ['US', 'UK'];
+                
+                if ($user->hasRole('system-admin')) {
+                    $teams = \App\Models\Team::orderBy('name')->get();
+                } elseif ($user->hasRole('team-admin')) {
+                    $markets = ['US', 'UK'];
+                }
+
                 return view('tiktok.orders.index', [
                     'orders' => collect(),
                     'shops' => collect(),
                     'filters' => $filters,
                     'totalCount' => 0,
-                    'userRole' => $user->primary_role_name
+                    'userRole' => $user->primary_role_name,
+                    'teams' => $teams,
+                    'markets' => $markets
                 ]);
             }
 
@@ -59,12 +80,24 @@ class TikTokOrderController extends Controller
             $perPage = $request->get('per_page', 20);
             $orders = $orders->paginate($perPage)->withQueryString();
 
+            // Lấy danh sách teams và markets cho filter
+            $teams = [];
+            $markets = ['US', 'UK'];
+            
+            if ($user->hasRole('system-admin')) {
+                $teams = \App\Models\Team::orderBy('name')->get();
+            } elseif ($user->hasRole('team-admin')) {
+                $markets = ['US', 'UK'];
+            }
+
             return view('tiktok.orders.index', [
                 'orders' => $orders,
                 'shops' => $shops,
                 'filters' => $filters,
                 'totalCount' => $orders->total(),
-                'userRole' => $user->primary_role_name
+                'userRole' => $user->primary_role_name,
+                'teams' => $teams,
+                'markets' => $markets
             ]);
         } catch (\Exception $e) {
             Log::error('Error loading orders page', [
@@ -202,23 +235,65 @@ class TikTokOrderController extends Controller
     /**
      * Lấy danh sách shops có thể truy cập
      */
-    private function getAccessibleShops($user, $team)
+    private function getAccessibleShops($user, $team = null, $marketFilter = null, $teamFilter = null)
     {
-        if ($user->hasRole('team-admin')) {
+        if ($user->hasRole('system-admin')) {
+            // System admin xem tất cả shops
+            $query = TikTokShop::where('status', 'active')
+                ->with(['integration', 'team']);
+
+            // Filter theo market nếu có
+            if ($marketFilter) {
+                $query->whereHas('integration', function ($q) use ($marketFilter) {
+                    $q->where('additional_data->market', strtoupper($marketFilter));
+                });
+            }
+
+            // Filter theo team nếu có
+            if ($teamFilter) {
+                $query->where('team_id', $teamFilter);
+            }
+
+            return $query->get();
+        } elseif ($user->hasRole('team-admin')) {
             // Team admin có thể xem tất cả shops trong team
-            return TikTokShop::where('team_id', $team->id)
+            if (!$team) {
+                return collect();
+            }
+            
+            $query = TikTokShop::where('team_id', $team->id)
                 ->where('status', 'active')
-                ->with('integration')
-                ->get();
+                ->with(['integration', 'team']);
+
+            // Filter theo market nếu có
+            if ($marketFilter) {
+                $query->whereHas('integration', function ($q) use ($marketFilter) {
+                    $q->where('additional_data->market', strtoupper($marketFilter));
+                });
+            }
+
+            return $query->get();
         } else {
             // Seller chỉ xem được shops của mình
-            return TikTokShop::where('team_id', $team->id)
+            if (!$team) {
+                return collect();
+            }
+            
+            $query = TikTokShop::where('team_id', $team->id)
                 ->where('status', 'active')
-                ->whereHas('teamMembers', function ($query) use ($user) {
-                    $query->where('user_id', $user->id);
+                ->whereHas('teamMembers', function ($q) use ($user) {
+                    $q->where('user_id', $user->id);
                 })
-                ->with('integration')
-                ->get();
+                ->with(['integration', 'team']);
+
+            // Filter theo market nếu có
+            if ($marketFilter) {
+                $query->whereHas('integration', function ($q) use ($marketFilter) {
+                    $q->where('additional_data->market', strtoupper($marketFilter));
+                });
+            }
+
+            return $query->get();
         }
     }
 
@@ -229,7 +304,7 @@ class TikTokOrderController extends Controller
     {
         $shopIds = $shops->pluck('id')->toArray();
 
-        $query = TikTokOrder::with(['shop', 'shop.integration'])
+        $query = TikTokOrder::with(['shop', 'shop.integration', 'shop.team'])
             ->whereIn('tiktok_shop_id', $shopIds);
 
         // Filter theo shop

@@ -18,6 +18,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'team.admin' => \App\Http\Middleware\TeamAdminMiddleware::class,
             'product.template.access' => \App\Http\Middleware\CheckProductTemplateAccess::class,
         ]);
+        
+        // Exclude webhook routes from CSRF protection
+        $middleware->validateCsrfTokens(except: [
+            'tiktok/webhook/*',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
