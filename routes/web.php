@@ -35,6 +35,13 @@ Route::get('/contact', function () {
 // Public customer callback route (không cần authentication)
 Route::get('/public/customer-callback', [TeamTikTokShopController::class, 'customerCallback'])->name('public.customer-callback');
 
+// TikTok Webhook routes (không cần authentication)
+Route::prefix('tiktok/webhook')->name('tiktok.webhook.')->group(function () {
+    Route::post('/handle', [App\Http\Controllers\TikTokWebhookController::class, 'handleWebhook'])->name('handle');
+    Route::post('/order-status', [App\Http\Controllers\TikTokWebhookController::class, 'handleOrderStatusChange'])->name('order-status');
+    Route::get('/test', [App\Http\Controllers\TikTokWebhookController::class, 'testWebhook'])->name('test');
+});
+
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth'])->name('dashboard');
 
 // Email Verification Routes (custom implementation)
@@ -265,13 +272,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/orders/{orderId}/providers', [App\Http\Controllers\TikTokShippingController::class, 'getShippingProviders'])->name('providers');
         Route::get('/orders/{orderId}/info', [App\Http\Controllers\TikTokShippingController::class, 'getOrderShippingInfo'])->name('order.info');
         Route::post('/orders/{orderId}/mark-shipped', [App\Http\Controllers\TikTokShippingController::class, 'markAsShipped'])->name('mark.shipped');
-    });
-
-    // TikTok Webhook routes (không cần authentication)
-    Route::prefix('tiktok/webhook')->name('tiktok.webhook.')->group(function () {
-        Route::post('/handle', [App\Http\Controllers\TikTokWebhookController::class, 'handleWebhook'])->name('handle');
-        Route::post('/order-status', [App\Http\Controllers\TikTokWebhookController::class, 'handleOrderStatusChange'])->name('order-status');
-        Route::get('/test', [App\Http\Controllers\TikTokWebhookController::class, 'testWebhook'])->name('test');
     });
     Route::post('/products/{product}/upload-images-to-tiktok', [ProductController::class, 'uploadImagesToTikTok'])->name('products.upload-images-to-tiktok');
     Route::post('/products/bulk-upload-to-tiktok', [ProductController::class, 'bulkUploadToTikTok'])->name('products.bulk-upload-to-tiktok');
