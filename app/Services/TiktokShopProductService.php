@@ -215,11 +215,35 @@ class TikTokShopProductService
             $productData['product_attributes'] = $productAttributes;
         }
 
+        // Thêm size chart nếu có (từ product hoặc template)
+        $sizeChart = $product->size_chart ?? ($template ? $template->size_chart : null) ?? null;
+        if ($sizeChart) {
+            $sizeChartUri = $this->ensureSizeChartHasTikTokUri($sizeChart, $shop);
+            if ($sizeChartUri) {
+                $productData['size_chart'] = [
+                    'uri' => $sizeChartUri
+                ];
+            }
+        }
+
+        // Thêm product video nếu có (từ product hoặc template)
+        $productVideo = $product->product_video ?? ($template ? $template->product_video : null) ?? null;
+        if ($productVideo) {
+            $videoUri = $this->ensureVideoHasTikTokUri($productVideo, $shop);
+            if ($videoUri) {
+                $productData['video'] = [
+                    'uri' => $videoUri
+                ];
+            }
+        }
+
         Log::info('Prepared product data', [
             'product_id' => $product->id,
             'title' => $productData['title'],
             'main_images_count' => count($mainImages),
             'has_dimensions' => isset($productData['package_dimensions']),
+            'has_size_chart' => isset($productData['size_chart']),
+            'has_video' => isset($productData['video']),
             'warehouse_id' => $warehouseId,
             'sku_inventory' => $skus[0]['inventory'],
             'idempotency_key' => $productData['idempotency_key']
@@ -1136,5 +1160,76 @@ class TikTokShopProductService
             'response_data' => $responseData,
             'uploaded_at' => now(),
         ]);
+    }
+
+    /**
+     * Đảm bảo size chart đã có TikTok URI (upload nếu chưa có)
+     */
+    private function ensureSizeChartHasTikTokUri(string $sizeChartUrl, TikTokShop $shop): ?string
+    {
+        try {
+            // Size chart là image, upload như image bình thường
+            $imageUploadService = new \App\Services\TikTokImageUploadService($shop->integration);
+            
+            // Upload size chart image
+            $result = $this->uploadImageToTikTok($imageUploadService, $sizeChartUrl, 'MAIN_IMAGE');
+            
+            if ($result['success'] && isset($result['data']['uri'])) {
+                Log::info('Size chart uploaded to TikTok successfully', [
+                    'size_chart_url' => $sizeChartUrl,
+                    'tiktok_uri' => $result['data']['uri']
+                ]);
+                return $result['data']['uri'];
+            } else {
+                Log::warning('Failed to upload size chart to TikTok', [
+                    'size_chart_url' => $sizeChartUrl,
+                    'error' => $result['message'] ?? 'Unknown error'
+                ]);
+                return null;
+            }
+        } catch (\Exception $e) {
+            Log::error('Error uploading size chart to TikTok', [
+                'size_chart_url' => $sizeChartUrl,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+
+    /**
+     * Đảm bảo video đã có TikTok URI (upload nếu chưa có)
+     */
+    private function ensureVideoHasTikTokUri(string $videoUrl, TikTokShop $shop): ?string
+    {
+        try {
+            // Tạo Product tạm thời để sử dụng uploadProductVideo
+            $tempProduct = new \App\Models\Product();
+            $tempProduct->id = 0;
+            
+            $imageUploadService = new \App\Services\TikTokImageUploadService($shop->integration);
+            
+            // Upload video
+            $result = $imageUploadService->uploadProductVideo($tempProduct, $videoUrl);
+            
+            if ($result['success'] && isset($result['data']['uri'])) {
+                Log::info('Product video uploaded to TikTok successfully', [
+                    'video_url' => $videoUrl,
+                    'tiktok_uri' => $result['data']['uri']
+                ]);
+                return $result['data']['uri'];
+            } else {
+                Log::warning('Failed to upload product video to TikTok', [
+                    'video_url' => $videoUrl,
+                    'error' => $result['message'] ?? 'Unknown error'
+                ]);
+                return null;
+            }
+        } catch (\Exception $e) {
+            Log::error('Error uploading product video to TikTok', [
+                'video_url' => $videoUrl,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
     }
 }

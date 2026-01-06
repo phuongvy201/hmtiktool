@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
         // Run role and permission seeder first
         $this->call([
             RolePermissionSeeder::class,
+            ProductPermissionsSeeder::class, // Product permissions (view-products, create-products, update-products, etc.)
             TeamSeeder::class,
             SystemSettingSeeder::class,
             ServicePackageSeeder::class,
