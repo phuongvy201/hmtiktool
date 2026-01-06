@@ -32,6 +32,10 @@ Route::get('/contact', function () {
     return view('contact');
 })->name('contact');
 
+Route::get('/security-policy', function () {
+    return view('security-policy');
+})->name('security-policy');
+
 // Public customer callback route (không cần authentication)
 Route::get('/public/customer-callback', [TeamTikTokShopController::class, 'customerCallback'])->name('public.customer-callback');
 

@@ -103,6 +103,7 @@ class TikTokWebhookController extends Controller
         $newStatus = $payload['order_status'] ?? $payload['status'] ?? null;
         $shopId = $payload['shop_id'] ?? null;
         $updateTime = $payload['update_time'] ?? null;
+        $isOnHold = $payload['is_on_hold_order'] ?? false;
 
         if (!$orderId || !$newStatus) {
             Log::warning('Missing order_id or order_status in webhook payload', [
@@ -113,30 +114,77 @@ class TikTokWebhookController extends Controller
             return;
         }
 
+        Log::info('Looking for order in database', [
+            'order_id' => $orderId,
+            'shop_id' => $shopId,
+            'new_status' => $newStatus
+        ]);
+
         // Tìm order trong database
         $order = TikTokOrder::where('order_id', $orderId)->first();
 
         if (!$order) {
-            Log::warning('Order not found in database, attempting to sync', ['order_id' => $orderId]);
+            Log::warning('Order not found in database, attempting to sync', [
+                'order_id' => $orderId,
+                'shop_id' => $shopId
+            ]);
 
             // Nếu không tìm thấy order, thử sync từ API
             if ($shopId) {
                 $shop = TikTokShop::where('shop_id', $shopId)->first();
                 if ($shop) {
-                    $orderService = new TikTokOrderService();
-                    $orderService->syncSingleOrder($shop, $orderId);
-                    $order = TikTokOrder::where('order_id', $orderId)->first();
+                    Log::info('Syncing order from TikTok API', [
+                        'order_id' => $orderId,
+                        'shop_id' => $shopId,
+                        'shop_name' => $shop->shop_name
+                    ]);
+                    
+                    try {
+                        $orderService = new TikTokOrderService();
+                        $orderService->syncSingleOrder($shop, $orderId);
+                        $order = TikTokOrder::where('order_id', $orderId)->first();
+                        
+                        if ($order) {
+                            Log::info('Order synced successfully from API', ['order_id' => $orderId]);
+                        } else {
+                            Log::error('Order sync failed - order still not found after sync', ['order_id' => $orderId]);
+                        }
+                    } catch (\Exception $e) {
+                        Log::error('Error syncing order from API', [
+                            'order_id' => $orderId,
+                            'error' => $e->getMessage()
+                        ]);
+                    }
+                } else {
+                    Log::warning('Shop not found for order sync', [
+                        'order_id' => $orderId,
+                        'shop_id' => $shopId
+                    ]);
                 }
+            } else {
+                Log::warning('Cannot sync order - shop_id missing', ['order_id' => $orderId]);
             }
 
             if (!$order) {
-                Log::error('Failed to find or sync order', ['order_id' => $orderId]);
+                Log::error('Failed to find or sync order - webhook update skipped', [
+                    'order_id' => $orderId,
+                    'shop_id' => $shopId,
+                    'new_status' => $newStatus
+                ]);
                 return;
             }
         }
 
         // Lưu status cũ để log
         $oldStatus = $order->order_status;
+
+        // Nếu status không thay đổi, vẫn cập nhật để đảm bảo dữ liệu mới nhất
+        Log::info('Updating order status', [
+            'order_id' => $orderId,
+            'old_status' => $oldStatus,
+            'new_status' => $newStatus,
+            'is_on_hold_order' => $isOnHold
+        ]);
 
         // Cập nhật status và các thông tin khác
         $updateData = [
@@ -148,33 +196,46 @@ class TikTokWebhookController extends Controller
         if ($updateTime) {
             // Nếu là timestamp (số), convert sang datetime
             if (is_numeric($updateTime)) {
-                $updateData['update_time'] = date('Y-m-d H:i:s', $updateTime);
+                $updateData['update_time'] = \Carbon\Carbon::createFromTimestamp($updateTime);
             } else {
                 $updateData['update_time'] = $updateTime;
             }
         }
 
-        // Lưu thông tin webhook vào order_data nếu có
-        $isOnHold = $payload['is_on_hold_order'] ?? false;
+        // Lưu thông tin webhook vào order_data
         $orderData = $order->order_data ?? [];
+        $orderData['is_on_hold_order'] = $isOnHold;
         $orderData['webhook_info'] = [
             'is_on_hold_order' => $isOnHold,
             'last_webhook_update' => now()->toISOString(),
             'notification_id' => $payload['tts_notification_id'] ?? null,
-            'webhook_type' => $payload['type'] ?? null
+            'webhook_type' => $payload['type'] ?? null,
+            'update_time' => $updateTime
         ];
         $updateData['order_data'] = $orderData;
 
-        $order->update($updateData);
+        try {
+            $order->update($updateData);
+            
+            // Refresh order để đảm bảo có dữ liệu mới nhất
+            $order->refresh();
 
-        Log::info('Order status updated via webhook', [
-            'order_id' => $orderId,
-            'old_status' => $oldStatus,
-            'new_status' => $newStatus,
-            'is_on_hold_order' => $isOnHold,
-            'shop_id' => $order->tiktok_shop_id,
-            'notification_id' => $payload['tts_notification_id'] ?? null
-        ]);
+            Log::info('Order status updated successfully via webhook', [
+                'order_id' => $orderId,
+                'old_status' => $oldStatus,
+                'new_status' => $order->order_status,
+                'is_on_hold_order' => $isOnHold,
+                'shop_id' => $order->tiktok_shop_id,
+                'notification_id' => $payload['tts_notification_id'] ?? null,
+                'update_time' => $updateTime
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error updating order status via webhook', [
+                'order_id' => $orderId,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
 
         // Trigger event để thông báo cho các service khác (nếu cần)
         // event(new OrderStatusUpdated($order, $oldStatus, $newStatus));

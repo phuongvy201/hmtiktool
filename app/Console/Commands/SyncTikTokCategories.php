@@ -233,21 +233,21 @@ class SyncTikTokCategories extends Command
         $this->info("Saving " . count($records) . " categories in {$totalBatches} batches...");
         
         foreach ($batches as $index => $batch) {
-            TikTokShopCategory::upsert(
+        TikTokShopCategory::upsert(
                 $batch,
-                ['category_id', 'market'],
-                [
-                    'category_name',
-                    'parent_category_id',
-                    'level',
-                    'is_leaf',
-                    'is_active',
-                    'category_version',
-                    'category_data',
-                    'last_synced_at',
-                    'updated_at',
-                ]
-            );
+            ['category_id', 'market'],
+            [
+                'category_name',
+                'parent_category_id',
+                'level',
+                'is_leaf',
+                'is_active',
+                'category_version',
+                'category_data',
+                'last_synced_at',
+                'updated_at',
+            ]
+        );
             
             $batchNum = $index + 1;
             $this->line("  Batch {$batchNum}/{$totalBatches}: " . count($batch) . " categories saved");
