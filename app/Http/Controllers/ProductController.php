@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use App\Services\TikTokImageUploadService;
-use App\Services\TikTokShopProductService;
+    use App\Services\TikTokShopProductService;
 
 class ProductController extends Controller
 {
@@ -32,49 +32,49 @@ class ProductController extends Controller
         $team = $user->currentTeam;
 
         if (!$team) {
-            return redirect()->route('teams.index')->with('error', 'Bạn cần chọn một team để quản lý sản phẩm.');
+            return redirect()->route('teams.index')->with('error', 'You need to select a team to manage products.');
         }
 
         // Kiểm tra quyền xem sản phẩm
         if (!$user->hasPermissionTo('view-products')) {
-            abort(403, 'Bạn không có quyền xem sản phẩm trong team này.');
+            abort(403, 'You do not have permission to view products in this team.');
         }
 
         $query = Product::with(['productTemplate', 'user', 'images'])
             ->byTeam($team->id);
 
-        // Chỉ team-admin và system-admin mới được xem tất cả sản phẩm trong team
-        // Các role khác (seller) chỉ được xem sản phẩm của mình
+        // Only team-admin and system-admin can view all products in the team
+        // Other roles (seller) can only view products of themselves
         if (!$user->hasRole('team-admin') && !$user->hasRole('system-admin')) {
             $query->byUser($user->id);
         }
 
-        // Lọc theo trạng thái
+        // Filter by status
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
-        // Lọc theo template
+        // Filter by template
         if ($request->filled('template_id')) {
             $query->byTemplate($request->template_id);
         }
 
-        // Lọc theo SKU
+        // Filter by SKU
         if ($request->filled('sku')) {
             $query->where('sku', 'like', "%{$request->sku}%");
         }
 
-        // Lọc theo người tạo (chỉ admin)
+        // Filter by creator (only admin)
         if (($user->hasRole('team-admin') || $user->hasRole('system-admin')) && $request->filled('user_id')) {
             $query->where('user_id', $request->user_id);
         }
 
-        // Lọc theo trạng thái active/inactive
+        // Filter by active/inactive status
         if ($request->filled('is_active')) {
             $query->where('is_active', $request->is_active == '1');
         }
 
-        // Tìm kiếm
+        // Search
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -86,15 +86,15 @@ class ProductController extends Controller
 
         $products = $query->orderBy('created_at', 'desc')->paginate(15);
 
-        // Chỉ team-admin mới được lấy template của toàn bộ user trong team
+        // Only team-admin can get templates of all users in the team
         if ($user->hasRole('team-admin') || $user->hasRole('system-admin')) {
             $templates = ProductTemplate::byTeam($team->id)->active()->get();
         } else {
-            // Các role khác chỉ được lấy template của mình
+            // Other roles can only get templates of themselves
             $templates = ProductTemplate::byTeam($team->id)->byUser($user->id)->active()->get();
         }
 
-        // Lấy danh sách users trong team (cho filter người tạo - chỉ admin)
+            // Get list of users in the team (for creator filter - only admin)
         $teamUsers = collect();
         if ($user->hasRole('team-admin') || $user->hasRole('system-admin')) {
             $teamUsers = User::where('team_id', $team->id)
@@ -104,10 +104,10 @@ class ProductController extends Controller
                 ->get();
         }
 
-        // Lấy TikTok shops theo quyền user
+        // Get TikTok shops by user's permission
         $tiktokShops = $this->getUserAccessibleTikTokShops($user, $team);
 
-        // Lấy lịch sử upload cho các sản phẩm (với integration để lấy market)
+        // Get upload history for products (with integration to get market)
         $productIds = $products->pluck('id');
         $uploadHistories = TikTokProductUploadHistory::with([
                 'tiktokShop.integration',
@@ -123,7 +123,7 @@ class ProductController extends Controller
     }
 
     /**
-     * Hiển thị form tạo sản phẩm mới
+     * Display form to create new product
      */
     public function create()
     {
@@ -131,19 +131,19 @@ class ProductController extends Controller
         $team = $user->currentTeam;
 
         if (!$team) {
-            return redirect()->route('teams.index')->with('error', 'Bạn cần chọn một team để tạo sản phẩm.');
+            return redirect()->route('teams.index')->with('error', 'You need to select a team to create a product.');
         }
 
-        // Kiểm tra quyền tạo sản phẩm
+        // Check permission to create product
         if (!$user->hasPermissionTo('create-products')) {
-            abort(403, 'Bạn không có quyền tạo sản phẩm trong team này.');
+            abort(403, 'You do not have permission to create products in this team.');
         }
 
-        // Chỉ team-admin mới được lấy template của toàn bộ user trong team
+        // Only team-admin can get templates of all users in the team
         if ($user->hasRole('team-admin')) {
             $templates = ProductTemplate::byTeam($team->id)->active()->get();
         } else {
-            // Các role khác chỉ được lấy template của mình
+            // Other roles can only get templates of themselves
             $templates = ProductTemplate::byTeam($team->id)->byUser($user->id)->active()->get();
         }
 
@@ -151,7 +151,7 @@ class ProductController extends Controller
     }
 
     /**
-     * Lưu sản phẩm mới
+     * Save new product
      */
     public function store(Request $request)
     {
@@ -159,12 +159,12 @@ class ProductController extends Controller
         $team = $user->currentTeam;
 
         if (!$team) {
-            return redirect()->route('teams.index')->with('error', 'Bạn cần chọn một team để tạo sản phẩm.');
+            return redirect()->route('teams.index')->with('error', 'You need to select a team to create a product.');
         }
 
-        // Kiểm tra quyền tạo sản phẩm
+        // Check permission to create product
         if (!$user->hasPermissionTo('create-products')) {
-            abort(403, 'Bạn không có quyền tạo sản phẩm trong team này.');
+            abort(403, 'You do not have permission to create products in this team.');
         }
 
         $request->validate([
@@ -197,7 +197,7 @@ class ProductController extends Controller
 
         $product = Product::create($data);
 
-        // Xử lý upload ảnh lên S3
+        // Process upload images to S3
         if ($request->hasFile('product_images')) {
             foreach ($request->file('product_images') as $index => $image) {
                 if ($image->isValid()) {
@@ -216,11 +216,11 @@ class ProductController extends Controller
 
                             $product->images()->create([
                                 'file_name' => $image->getClientOriginalName(),
-                                'file_path' => $url, // Lưu S3 URL thay vì local path
+                                    'file_path' => $url, // Save S3 URL instead of local path
                                 'type' => 'image',
                                 'source' => 'product',
                                 'sort_order' => $index,
-                                'is_primary' => $index === 0, // Ảnh đầu tiên là ảnh chính
+                                'is_primary' => $index === 0, // The first image is the main image
                             ]);
                         }
                     } catch (\Exception $e) {
@@ -282,11 +282,11 @@ class ProductController extends Controller
         }
 
         return redirect()->route('products.index')
-            ->with('success', 'Sản phẩm đã được tạo thành công.');
+            ->with('success', 'Product created successfully.');
     }
 
     /**
-     * Hiển thị chi tiết sản phẩm
+     * Display product details
      */
     public function show(Product $product)
     {
@@ -297,9 +297,9 @@ class ProductController extends Controller
             abort(404);
         }
 
-        // Kiểm tra quyền xem sản phẩm
+        // Check permission to view product
         if (!$user->hasPermissionTo('view-products')) {
-            abort(403, 'Bạn không có quyền xem sản phẩm trong team này.');
+            abort(403, 'You do not have permission to view products in this team.');
         }
 
         $product->load(['productTemplate', 'user']);
@@ -308,7 +308,7 @@ class ProductController extends Controller
     }
 
     /**
-     * Hiển thị form chỉnh sửa sản phẩm
+     * Display form to edit product
      */
     public function edit(Product $product)
     {
@@ -321,14 +321,14 @@ class ProductController extends Controller
 
         // Kiểm tra quyền chỉnh sửa sản phẩm
         if (!$user->hasPermissionTo('update-products')) {
-            abort(403, 'Bạn không có quyền chỉnh sửa sản phẩm trong team này.');
+            abort(403, 'You do not have permission to edit products in this team.');
         }
 
-        // Chỉ team-admin mới được lấy template của toàn bộ user trong team
+        // Only team-admin can get templates of all users in the team
         if ($user->hasRole('team-admin')) {
             $templates = ProductTemplate::byTeam($team->id)->active()->get();
         } else {
-            // Các role khác chỉ được lấy template của mình
+            // Other roles can only get templates of themselves
             $templates = ProductTemplate::byTeam($team->id)->byUser($user->id)->active()->get();
         }
 
@@ -336,7 +336,7 @@ class ProductController extends Controller
     }
 
     /**
-     * Cập nhật sản phẩm
+     * Update product
      */
     public function update(Request $request, Product $product)
     {
@@ -347,9 +347,9 @@ class ProductController extends Controller
             abort(404);
         }
 
-        // Kiểm tra quyền chỉnh sửa sản phẩm
+        // Check permission to edit product
         if (!$user->hasPermissionTo('update-products')) {
-            abort(403, 'Bạn không có quyền chỉnh sửa sản phẩm trong team này.');
+            abort(403, 'You do not have permission to edit products in this team.');
         }
 
         $request->validate([
@@ -376,11 +376,11 @@ class ProductController extends Controller
 
         $product->update($data);
 
-        // Xử lý upload ảnh mới lên S3
+        // Process upload new images to S3
         if ($request->hasFile('product_images')) {
-            // Xóa ảnh cũ nếu có
+            // Delete old images if any
             foreach ($product->images as $image) {
-                // Xóa file từ S3 nếu cần
+                // Delete file from S3 if needed
                 if ($image->file_path && str_contains($image->file_path, 'amazonaws.com')) {
                     try {
                         $path = str_replace('https://' . config('filesystems.disks.s3.bucket') . '.s3.' . config('filesystems.disks.s3.region') . '.amazonaws.com/', '', $image->file_path);
@@ -409,11 +409,11 @@ class ProductController extends Controller
 
                             $product->images()->create([
                                 'file_name' => $image->getClientOriginalName(),
-                                'file_path' => $url, // Lưu S3 URL thay vì local path
+                                'file_path' => $url, // Save S3 URL instead of local path
                                 'type' => 'image',
                                 'source' => 'product',
                                 'sort_order' => $index,
-                                'is_primary' => $index === 0, // Ảnh đầu tiên là ảnh chính
+                                'is_primary' => $index === 0, // The first image is the main image
                             ]);
                         }
                     } catch (\Exception $e) {
@@ -427,11 +427,11 @@ class ProductController extends Controller
         }
 
         return redirect()->route('products.index')
-            ->with('success', 'Sản phẩm đã được cập nhật thành công.');
+            ->with('success', 'Product updated successfully.');
     }
 
     /**
-     * Xóa sản phẩm
+        * Delete product
      */
     public function destroy(Product $product)
     {
@@ -442,12 +442,12 @@ class ProductController extends Controller
             abort(404);
         }
 
-        // Kiểm tra quyền xóa sản phẩm
+        // Check permission to delete product
         if (!$user->hasPermissionTo('delete-products')) {
-            abort(403, 'Bạn không có quyền xóa sản phẩm trong team này.');
+            abort(403, 'You do not have permission to delete products in this team.');
         }
 
-        // Xóa ảnh sản phẩm từ S3
+        // Delete product images from S3
         foreach ($product->images as $image) {
             if ($image->file_path && str_contains($image->file_path, 'amazonaws.com')) {
                 try {
@@ -463,11 +463,11 @@ class ProductController extends Controller
         $product->delete();
 
         return redirect()->route('products.index')
-            ->with('success', 'Sản phẩm đã được xóa thành công.');
+            ->with('success', 'Product deleted successfully.');
     }
 
     /**
-     * Thay đổi trạng thái active/inactive
+     * Toggle active/inactive status
      */
     public function toggleStatus(Product $product)
     {
@@ -478,21 +478,21 @@ class ProductController extends Controller
             abort(404);
         }
 
-        // Kiểm tra quyền chỉnh sửa sản phẩm
+        // Check permission to edit product
         if (!$user->hasPermissionTo('update-products')) {
-            abort(403, 'Bạn không có quyền chỉnh sửa sản phẩm trong team này.');
+            abort(403, 'You do not have permission to edit products in this team.');
         }
 
         $product->update(['is_active' => !$product->is_active]);
 
-        $status = $product->is_active ? 'kích hoạt' : 'vô hiệu hóa';
+        $status = $product->is_active ? 'activated' : 'deactivated';
 
         return redirect()->route('products.index')
-            ->with('success', "Sản phẩm đã được {$status} thành công.");
+            ->with('success', "Product has been {$status} successfully.");
     }
 
     /**
-     * API để lấy danh sách sản phẩm theo template
+     * API to get products by template
      */
     public function getByTemplate(Request $request)
     {
@@ -500,7 +500,7 @@ class ProductController extends Controller
         $team = $user->currentTeam;
 
         if (!$team) {
-            return response()->json(['error' => 'Team không tồn tại'], 404);
+            return response()->json(['error' => 'Team does not exist'], 404);
         }
 
         $templateId = $request->get('template_id');
@@ -515,7 +515,7 @@ class ProductController extends Controller
     }
 
     /**
-     * Upload hình ảnh sản phẩm lên TikTok Shop
+        * Upload product images to TikTok Shop
      */
     public function uploadImagesToTikTok(Product $product)
     {
@@ -526,38 +526,38 @@ class ProductController extends Controller
             abort(404);
         }
 
-        // Kiểm tra quyền chỉnh sửa sản phẩm
+        // Check permission to edit product
         if (!$user->hasPermissionTo('update-products')) {
-            abort(403, 'Bạn không có quyền chỉnh sửa sản phẩm trong team này.');
+            abort(403, 'You do not have permission to edit products in this team.');
         }
 
         try {
-            // Lấy TikTok Shop integration của team
+            // Get TikTok Shop integration of the team
             $integration = $team->tiktokShopIntegration;
             if (!$integration) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Team chưa kết nối TikTok Shop'
+                    'message' => 'Team has not connected to TikTok Shop'
                 ], 400);
             }
 
             if (!$integration->access_token) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Access token TikTok Shop không hợp lệ'
+                    'message' => 'Invalid access token TikTok Shop'
                 ], 400);
             }
 
-            // Khởi tạo service upload
+            // Initialize upload service
             $uploadService = new TikTokImageUploadService($integration);
 
-            // Upload hình ảnh
+            // Upload product images
             $result = $uploadService->uploadProductImages($product);
 
             if ($result['success']) {
                 return response()->json([
                     'success' => true,
-                    'message' => "Đã upload {$result['uploaded_count']} hình ảnh lên TikTok Shop thành công",
+                    'message' => "Successfully uploaded {$result['uploaded_count']} images to TikTok Shop",
                     'data' => $result
                 ]);
             } else {
@@ -574,13 +574,13 @@ class ProductController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Có lỗi xảy ra khi upload hình ảnh: ' . $e->getMessage()
+                'message' => 'Error uploading images: ' . $e->getMessage()
             ], 500);
         }
     }
 
     /**
-     * Upload hàng loạt sản phẩm lên TikTok Shop
+     * Upload bulk products to TikTok Shop
      */
     public function bulkUploadToTikTok(Request $request)
     {
@@ -590,15 +590,15 @@ class ProductController extends Controller
         if (!$team) {
             return response()->json([
                 'success' => false,
-                'message' => 'Team không tồn tại'
+                'message' => 'Team does not exist'
             ], 404);
         }
 
-        // Kiểm tra quyền chỉnh sửa sản phẩm
+            // Check permission to edit products
         if (!$user->hasPermissionTo('update-products')) {
             return response()->json([
                 'success' => false,
-                'message' => 'Bạn không có quyền upload sản phẩm'
+                'message' => 'You do not have permission to upload products'
             ], 403);
         }
 
@@ -612,7 +612,7 @@ class ProductController extends Controller
         $productIds = $request->input('product_ids');
         $tiktokShopIds = $request->input('tiktok_shop_ids');
 
-        // Lấy TikTok shops và kiểm tra quyền truy cập
+        // Get TikTok shops and check access permission
         $tiktokShops = \App\Models\TikTokShop::whereIn('id', $tiktokShopIds)
             ->where('team_id', $team->id)
             ->get();
@@ -620,21 +620,21 @@ class ProductController extends Controller
         if ($tiktokShops->count() !== count($tiktokShopIds)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Một số TikTok Shop không tồn tại hoặc không thuộc team này'
+                'message' => 'Some TikTok Shops do not exist or not belong to this team'
             ], 404);
         }
 
-        // Kiểm tra quyền truy cập từng shop
+        // Check access permission for each shop
         foreach ($tiktokShops as $shop) {
             if (!$shop->canUserAccess($user)) {
                 return response()->json([
                     'success' => false,
-                    'message' => "Bạn không có quyền truy cập shop: {$shop->shop_name}"
+                    'message' => "You do not have permission to access shop: {$shop->shop_name}"
                 ], 403);
             }
         }
 
-        // Lấy sản phẩm và kiểm tra quyền
+        // Get products and check permission
         $products = Product::whereIn('id', $productIds)
             ->where('team_id', $team->id)
             ->get();
@@ -642,16 +642,16 @@ class ProductController extends Controller
         if ($products->count() !== count($productIds)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Một số sản phẩm không tồn tại hoặc không thuộc team này'
+                'message' => 'Some products do not exist or not belong to this team'
             ], 400);
         }
 
-        // Lấy TikTok Shop integration
+        // Get TikTok Shop integration
         $integration = $team->tiktokShopIntegration;
         if (!$integration || !$integration->isActive()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Team chưa kết nối TikTok Shop hoặc kết nối không hoạt động'
+                'message' => 'Team has not connected to TikTok Shop or connection is not active'
             ], 400);
         }
 
@@ -661,7 +661,7 @@ class ProductController extends Controller
         $shopResults = [];
 
         try {
-            // Khởi tạo service upload
+            // Initialize upload service
             $uploadService = new TikTokImageUploadService($integration);
 
             foreach ($tiktokShops as $shop) {
@@ -671,7 +671,7 @@ class ProductController extends Controller
 
                 foreach ($products as $product) {
                     try {
-                        // Upload hình ảnh cho từng sản phẩm
+                        // Upload product images for each product
                         $result = $uploadService->uploadProductImages($product);
 
                         if ($result['success']) {
@@ -687,7 +687,7 @@ class ProductController extends Controller
                         } else {
                             $shopFailureCount++;
                             $totalFailureCount++;
-                            $shopErrors[] = "Sản phẩm '{$product->title}': {$result['message']}";
+                                $shopErrors[] = "Product '{$product->title}': {$result['message']}";
                             Log::warning('Bulk upload failed', [
                                 'product_id' => $product->id,
                                 'product_title' => $product->title,
@@ -699,7 +699,7 @@ class ProductController extends Controller
                     } catch (\Exception $e) {
                         $shopFailureCount++;
                         $totalFailureCount++;
-                        $shopErrors[] = "Sản phẩm '{$product->title}': {$e->getMessage()}";
+                        $shopErrors[] = "Product '{$product->title}': {$e->getMessage()}";
                         Log::error('Bulk upload error', [
                             'product_id' => $product->id,
                             'product_title' => $product->title,
@@ -720,11 +720,11 @@ class ProductController extends Controller
                 $errors = array_merge($errors, $shopErrors);
             }
 
-            $message = "Upload hoàn tất: {$totalSuccessCount} thành công, {$totalFailureCount} thất bại";
+            $message = "Upload completed: {$totalSuccessCount} successful, {$totalFailureCount} failed";
             if (!empty($errors)) {
-                $message .= "\n\nLỗi chi tiết:\n" . implode("\n", array_slice($errors, 0, 5));
+                $message .= "\n\nDetailed errors:\n" . implode("\n", array_slice($errors, 0, 5));
                 if (count($errors) > 5) {
-                    $message .= "\n... và " . (count($errors) - 5) . " lỗi khác";
+                    $message .= "\n... and " . (count($errors) - 5) . " other errors";
                 }
             }
 
@@ -747,29 +747,29 @@ class ProductController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Có lỗi xảy ra khi upload hàng loạt: ' . $e->getMessage()
+                'message' => 'Error uploading bulk products: ' . $e->getMessage()
             ], 500);
         }
     }
 
     /**
-     * Lấy danh sách TikTok shops mà user có quyền truy cập
+     * Get list of TikTok shops that user has access permission
      */
     private function getUserAccessibleTikTokShops($user, $team)
     {
         $shops = $team->activeTikTokShops;
 
-        // System admin có thể truy cập tất cả shops
+        // System admin can access all shops
         if ($user->hasRole('system-admin')) {
             return $shops;
         }
 
-        // Team admin có thể truy cập tất cả shops trong team
+        // Team admin can access all shops in the team
         if ($user->hasRole('team-admin')) {
             return $shops;
         }
 
-        // Seller chỉ có thể truy cập shops mà họ được assign
+        // Seller can only access shops that they are assigned to
         $accessibleShops = collect();
         foreach ($shops as $shop) {
             if ($shop->canUserAccess($user)) {
@@ -781,7 +781,7 @@ class ProductController extends Controller
     }
 
     /**
-     * Upload sản phẩm lên TikTok Shop (không chỉ hình ảnh)
+     * Upload product to TikTok Shop (without images)
      */
     public function uploadProductToTikTok(Request $request)
     {
@@ -791,15 +791,15 @@ class ProductController extends Controller
         if (!$team) {
             return response()->json([
                 'success' => false,
-                'message' => 'Team không tồn tại'
+                'message' => 'Team does not exist'
             ], 404);
         }
 
-        // Kiểm tra quyền chỉnh sửa sản phẩm
+        // Check permission to edit product
         if (!$user->hasPermissionTo('update-products')) {
             return response()->json([
                 'success' => false,
-                'message' => 'Bạn không có quyền upload sản phẩm'
+                    'message' => 'You do not have permission to upload products'
             ], 403);
         }
 
@@ -813,7 +813,7 @@ class ProductController extends Controller
         $productIds = $request->input('product_ids');
         $tiktokShopIds = $request->input('tiktok_shop_ids');
 
-        // Lấy TikTok shops và kiểm tra quyền truy cập
+        // Get TikTok shops and check access permission
         $tiktokShops = \App\Models\TikTokShop::whereIn('id', $tiktokShopIds)
             ->where('team_id', $team->id)
             ->get();
@@ -821,21 +821,21 @@ class ProductController extends Controller
         if ($tiktokShops->count() !== count($tiktokShopIds)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Một số TikTok Shop không tồn tại hoặc không thuộc team này'
+                'message' => 'Some TikTok Shops do not exist or not belong to this team'
             ], 404);
         }
 
-        // Kiểm tra quyền truy cập từng shop
+        // Check access permission for each shop
         foreach ($tiktokShops as $shop) {
             if (!$shop->canUserAccess($user)) {
                 return response()->json([
                     'success' => false,
-                    'message' => "Bạn không có quyền truy cập shop: {$shop->shop_name}"
+                    'message' => "You do not have permission to access shop: {$shop->shop_name}"
                 ], 403);
             }
         }
 
-        // Lấy sản phẩm và kiểm tra quyền
+        // Get products and check permission
         $products = Product::whereIn('id', $productIds)
             ->where('team_id', $team->id)
             ->get();
@@ -843,18 +843,18 @@ class ProductController extends Controller
         if ($products->count() !== count($productIds)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Một số sản phẩm không tồn tại hoặc không thuộc team này'
+                'message' => 'Some products do not exist or not belong to this team'
             ], 400);
         }
 
         try {
-            // Khởi tạo service upload sản phẩm
+            // Initialize upload service
             $productService = new TikTokShopProductService();
 
-            // Gọi method bulk upload
+            // Call bulk upload method
             $results = $productService->bulkUploadProducts($productIds, $tiktokShopIds, $user->id);
 
-            $message = "Upload sản phẩm hoàn tất: {$results['success_count']} thành công, {$results['failure_count']} thất bại";
+            $message = "Upload completed: {$results['success_count']} successful, {$results['failure_count']} failed";
 
             return response()->json([
                 'success' => true,
@@ -874,13 +874,13 @@ class ProductController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Có lỗi xảy ra khi upload sản phẩm: ' . $e->getMessage()
+                'message' => 'Error uploading products: ' . $e->getMessage()
             ], 500);
         }
     }
 
     /**
-     * Retry upload sản phẩm từ lịch sử
+     * Retry upload product from history
      */
     public function retryUpload(Request $request, $historyId)
     {
@@ -890,15 +890,15 @@ class ProductController extends Controller
         if (!$team) {
             return response()->json([
                 'success' => false,
-                'message' => 'Bạn cần chọn một team để thực hiện thao tác này.'
+                    'message' => 'You need to select a team to perform this action.'
             ], 400);
         }
 
-        // Kiểm tra quyền upload sản phẩm
+        // Check permission to upload products
         if (!$user->hasPermissionTo('upload-products')) {
             return response()->json([
                 'success' => false,
-                'message' => 'Bạn không có quyền upload sản phẩm.'
+                'message' => 'You do not have permission to upload products.'
             ], 403);
         }
 
@@ -906,15 +906,15 @@ class ProductController extends Controller
             $uploadHistory = TikTokProductUploadHistory::with(['product', 'tiktokShop'])
                 ->findOrFail($historyId);
 
-            // Kiểm tra quyền truy cập sản phẩm
+            // Check access permission for product
             if ($uploadHistory->product->team_id !== $team->id) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Bạn không có quyền truy cập sản phẩm này.'
+                    'message' => 'You do not have permission to access this product.'
                 ], 403);
             }
 
-            // Thực hiện upload lại
+            // Retry upload
             $service = new TikTokShopProductService();
             $result = $service->uploadProduct($uploadHistory->product, $uploadHistory->tiktokShop, $user->id);
 
@@ -933,13 +933,13 @@ class ProductController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Có lỗi xảy ra khi retry upload: ' . $e->getMessage()
+                    'message' => 'Error retrying upload: ' . $e->getMessage()
             ], 500);
         }
     }
 
     /**
-     * Export sản phẩm ra file CSV
+     * Export products to CSV
      */
     public function export(Request $request)
     {
@@ -947,33 +947,33 @@ class ProductController extends Controller
         $team = $user->currentTeam;
 
         if (!$team) {
-            return redirect()->route('teams.index')->with('error', 'Bạn cần chọn một team để export sản phẩm.');
+            return redirect()->route('teams.index')->with('error', 'You need to select a team to export products.');
         }
 
-        // Kiểm tra quyền xem sản phẩm
+        // Check permission to view products
         if (!$user->hasPermissionTo('view-products')) {
-            abort(403, 'Bạn không có quyền export sản phẩm trong team này.');
+            abort(403, 'You do not have permission to export products in this team.');
         }
 
         $query = Product::with(['productTemplate', 'user'])
             ->byTeam($team->id);
 
-        // Chỉ team-admin và system-admin mới được xem tất cả sản phẩm trong team
+        // Only team-admin and system-admin can view all products in the team
         if (!$user->hasRole('team-admin') && !$user->hasRole('system-admin')) {
             $query->byUser($user->id);
         }
 
-        // Lọc theo trạng thái
+        // Filter by status
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
-        // Lọc theo template
+        // Filter by template
         if ($request->filled('template_id')) {
             $query->byTemplate($request->template_id);
         }
 
-        // Tìm kiếm
+        // Search
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -984,41 +984,41 @@ class ProductController extends Controller
 
         $products = $query->orderBy('created_at', 'desc')->get();
 
-        // Tạo file CSV
+        // Create CSV file
         $filename = 'products_' . date('Y-m-d_His') . '.csv';
         $headers = [
             'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ];
 
-        // Thêm BOM để Excel hiển thị tiếng Việt đúng
+        // Add BOM to Excel to display Vietnamese correctly
         $callback = function () use ($products) {
             $file = fopen('php://output', 'w');
 
-            // Thêm BOM cho UTF-8
+                    // Add BOM for UTF-8
             fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
-            // Header row - Match với import template
+            // Header row - Match with import template
             fputcsv($file, [
-                'Tên sản phẩm',
-                'Mô tả',
+                'Product Name',
+                'Description',
                 'SKU',
-                'Giá',
+                'Price',
                 'Template ID',
-                'Trạng thái',
-                'Hoạt động'
+                'Status',
+                'Active'
             ]);
 
-            // Data rows - Match với import format
+            // Data rows - Match with import format
             foreach ($products as $product) {
                 fputcsv($file, [
                     $product->title,
                     $product->description ?? '',
                     $product->sku,
-                    number_format($product->price, 2, '.', ''), // Format số với 2 chữ số thập phân
+                    number_format($product->price, 2, '.', ''), // Format number with 2 decimal places
                     $product->product_template_id ?? '',
-                    $product->status, // active hoặc inactive
-                    $product->is_active ? 'Có' : 'Không', // Có hoặc Không
+                    $product->status, // active or inactive
+                    $product->is_active ? 'Yes' : 'No', // Yes or No
                 ]);
             }
 
@@ -1029,7 +1029,7 @@ class ProductController extends Controller
     }
 
     /**
-     * Import sản phẩm từ file CSV
+     * Import products from CSV file
      */
     public function import(Request $request)
     {
@@ -1037,16 +1037,16 @@ class ProductController extends Controller
         $team = $user->currentTeam;
 
         if (!$team) {
-            return redirect()->route('products.index')->with('error', 'Bạn cần chọn một team để import sản phẩm.');
+            return redirect()->route('products.index')->with('error', 'You need to select a team to import products.');
         }
 
-        // Kiểm tra quyền tạo sản phẩm
+        // Check permission to create products
         if (!$user->hasPermissionTo('create-products')) {
-            abort(403, 'Bạn không có quyền import sản phẩm trong team này.');
+            abort(403, 'You do not have permission to import products in this team.');
         }
 
         $request->validate([
-            'file' => 'required|file|mimes:csv,txt|max:10240', // Max 10MB
+            'file' => 'required|file|mimes:csv,txt|max:10240', // Maximum 10MB
         ]);
 
         $file = $request->file('file');
@@ -1056,80 +1056,80 @@ class ProductController extends Controller
         $failureCount = 0;
         $errors = [];
 
-        // Đọc file CSV
+                // Read CSV file
         if (($handle = fopen($path, 'r')) !== false) {
-            // Bỏ qua BOM nếu có
+            // Skip BOM if exists
             $bom = fread($handle, 3);
             if ($bom !== chr(0xEF) . chr(0xBB) . chr(0xBF)) {
                 rewind($handle);
             }
 
-            // Đọc header row
+            // Read header row
             $headers = fgetcsv($handle);
             if (!$headers) {
                 return redirect()->route('products.index')
-                    ->with('error', 'File CSV không hợp lệ hoặc rỗng.');
+                    ->with('error', 'Invalid or empty CSV file.');
             }
 
-            // Map header để không phụ thuộc vào thứ tự cột
+            // Map header to avoid depending on column order
             $headerMap = [];
             foreach ($headers as $index => $header) {
                 $headerMap[trim($header)] = $index;
             }
 
-            $rowNumber = 1; // Đếm từ 1 vì đã đọc header
+            $rowNumber = 1; // Start counting from 1 because header row has been read
 
-            // Đọc từng dòng dữ liệu
+            // Read each data row
             while (($row = fgetcsv($handle)) !== false) {
                 $rowNumber++;
 
-                // Bỏ qua dòng trống
+                // Skip empty row
                 if (empty(array_filter($row))) {
                     continue;
                 }
 
                 try {
-                    // Lấy dữ liệu từ các cột
-                    $title = isset($headerMap['Tên sản phẩm']) ? trim($row[$headerMap['Tên sản phẩm']]) : '';
+                    // Get data from columns
+                    $title = isset($headerMap['Product Name']) ? trim($row[$headerMap['Product Name']]) : '';
                     $sku = isset($headerMap['SKU']) ? trim($row[$headerMap['SKU']]) : '';
-                    $priceRaw = isset($headerMap['Giá']) ? trim($row[$headerMap['Giá']]) : '';
-                    $description = isset($headerMap['Mô tả']) ? trim($row[$headerMap['Mô tả']]) : '';
+                    $priceRaw = isset($headerMap['Price']) ? trim($row[$headerMap['Price']]) : '';
+                    $description = isset($headerMap['Description']) ? trim($row[$headerMap['Description']]) : '';
                     $templateId = isset($headerMap['Template ID']) ? trim($row[$headerMap['Template ID']]) : '';
-                    $status = isset($headerMap['Trạng thái']) ? trim($row[$headerMap['Trạng thái']]) : 'active';
-                    $isActive = isset($headerMap['Hoạt động']) ? trim($row[$headerMap['Hoạt động']]) : 'Có';
+                    $status = isset($headerMap['Status']) ? trim($row[$headerMap['Status']]) : 'active';
+                    $isActive = isset($headerMap['Active']) ? trim($row[$headerMap['Active']]) : 'Yes';
 
-                    // Validate dữ liệu bắt buộc
+                    // Validate required data
                     if (empty($title)) {
-                        $errors[] = "Dòng {$rowNumber}: Thiếu tên sản phẩm";
+                        $errors[] = "Row {$rowNumber}: Missing product name";
                         $failureCount++;
                         continue;
                     }
 
                     if (empty($sku)) {
-                        $errors[] = "Dòng {$rowNumber}: Thiếu SKU";
+                        $errors[] = "Row {$rowNumber}: Missing SKU";
                         $failureCount++;
                         continue;
                     }
 
-                    // Xử lý giá - hỗ trợ cả dấu phẩy và dấu chấm
-                    $price = str_replace(',', '.', $priceRaw); // Thay dấu phẩy bằng dấu chấm
-                    $price = preg_replace('/[^0-9.]/', '', $price); // Loại bỏ các ký tự không phải số và dấu chấm
+                    // Handle price - support both comma and dot
+                    $price = str_replace(',', '.', $priceRaw); // Replace comma with dot
+                    $price = preg_replace('/[^0-9.]/', '', $price); // Remove non-numeric and dot characters
 
                     if (!is_numeric($price) || $price < 0) {
-                        $errors[] = "Dòng {$rowNumber}: Giá không hợp lệ ({$priceRaw})";
+                        $errors[] = "Row {$rowNumber}: Invalid price ({$priceRaw})";
                         $failureCount++;
                         continue;
                     }
 
-                    $price = (float) $price; // Chuyển sang float
+                    $price = (float) $price; // Convert to float
 
-                    // Kiểm tra SKU trùng lặp trong team
+                    // Check if SKU is duplicated in the team
                     $existingProduct = Product::where('team_id', $team->id)
                         ->where('sku', $sku)
                         ->first();
 
                     if ($existingProduct) {
-                        $errors[] = "Dòng {$rowNumber}: SKU '{$sku}' đã tồn tại";
+                        $errors[] = "Row {$rowNumber}: SKU '{$sku}' already exists";
                         $failureCount++;
                         continue;
                     }
@@ -1141,15 +1141,15 @@ class ProductController extends Controller
                             ->first();
 
                         if (!$template) {
-                            $errors[] = "Dòng {$rowNumber}: Template ID '{$templateId}' không tồn tại trong team";
+                                    $errors[] = "Row {$rowNumber}: Template ID '{$templateId}' does not exist in the team";
                             $failureCount++;
                             continue;
                         }
 
-                        // Chỉ team-admin mới được dùng template của user khác
+                                // Only team-admin can use template of other users
                         if (!$user->hasRole('team-admin') && !$user->hasRole('system-admin')) {
                             if ($template->user_id !== $user->id) {
-                                $errors[] = "Dòng {$rowNumber}: Bạn không có quyền sử dụng template ID '{$templateId}'";
+                                $errors[] = "Row {$rowNumber}: You do not have permission to use template ID '{$templateId}'";
                                 $failureCount++;
                                 continue;
                             }
@@ -1158,11 +1158,11 @@ class ProductController extends Controller
                         $templateId = null;
                     }
 
-                    // Chuyển đổi trạng thái
-                    $status = in_array(strtolower($status), ['active', 'hoạt động']) ? 'active' : 'inactive';
-                    $isActive = in_array(strtolower($isActive), ['có', 'yes', 'true', '1']) ? true : false;
+                    // Convert status to lowercase
+                    $status = in_array(strtolower($status), ['active', 'inactive']) ? 'active' : 'inactive';
+                    $isActive = in_array(strtolower($isActive), ['yes', 'true', '1']) ? true : false;
 
-                    // Tạo sản phẩm
+                    // Create product
                     $product = Product::create([
                         'user_id' => $user->id,
                         'team_id' => $team->id,
@@ -1177,7 +1177,7 @@ class ProductController extends Controller
 
                     $successCount++;
                 } catch (\Exception $e) {
-                    $errors[] = "Dòng {$rowNumber}: " . $e->getMessage();
+                    $errors[] = "Row {$rowNumber}: " . $e->getMessage();
                     $failureCount++;
                     Log::error('Error importing product', [
                         'row' => $rowNumber,
@@ -1190,11 +1190,11 @@ class ProductController extends Controller
             fclose($handle);
         }
 
-        $message = "Import hoàn tất: {$successCount} thành công, {$failureCount} thất bại";
+        $message = "Import completed: {$successCount} successful, {$failureCount} failed";
         if (!empty($errors)) {
-            $message .= "\n\nLỗi chi tiết:\n" . implode("\n", array_slice($errors, 0, 10));
+            $message .= "\n\nDetailed errors:\n" . implode("\n", array_slice($errors, 0, 10));
             if (count($errors) > 10) {
-                $message .= "\n... và " . (count($errors) - 10) . " lỗi khác";
+                $message .= "\n... and " . (count($errors) - 10) . " other errors";
             }
         }
 
@@ -1203,7 +1203,7 @@ class ProductController extends Controller
     }
 
     /**
-     * Download template CSV để import
+     * Download template CSV to import
      */
     public function downloadTemplate()
     {
@@ -1216,29 +1216,29 @@ class ProductController extends Controller
         $callback = function () {
             $file = fopen('php://output', 'w');
 
-            // Thêm BOM cho UTF-8
+            // Add BOM for UTF-8
             fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
             // Header row
             fputcsv($file, [
-                'Tên sản phẩm',
-                'Mô tả',
+                'Product Name',
+                'Description',
                 'SKU',
-                'Giá',
+                'Price',
                 'Template ID',
-                'Trạng thái',
-                'Hoạt động'
+                'Status',
+                'Active'
             ]);
 
-            // Thêm một dòng mẫu
+                // Add a sample row
             fputcsv($file, [
-                'Sản phẩm mẫu',
-                'Đây là mô tả sản phẩm mẫu',
-                'SKU001',
+                        'Product Template',
+                'This is the description of the product template',
+                'TEMPLATE001',
                 '100.00',
                 '',
                 'active',
-                'Có'
+                'Yes'
             ]);
 
             fclose($file);
