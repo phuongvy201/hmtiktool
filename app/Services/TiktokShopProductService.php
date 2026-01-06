@@ -621,16 +621,6 @@ class TikTokShopProductService
                 $salesAttributes[] = [
                     'value_name' => $optionValue->value,
                     'name' => $optionValue->option->name ?? 'Unknown',
-                    // Comment sku_img và supplementary_sku_images theo yêu cầu
-                    // 'sku_img' => [
-                    //     'uri' => 'tos-maliva-i-o3syd03w52-us/c668cdf70b7f483c94dbe'
-                    // ],
-                    // 'supplementary_sku_images' => [
-                    //     [
-
-                    //         'uri' => 'tos-maliva-i-o3syd03w52-us/c668cdf70b7f483c94dbe'
-                    //     ]
-                    // ]
                 ];
             }
         }
@@ -643,9 +633,6 @@ class TikTokShopProductService
                     'value_id' => '1729592969712207000',
                     'value_name' => $value,
                     'name' => ucfirst($key),
-                    // Comment sku_img và supplementary_sku_images theo yêu cầu
-                    // 'sku_img' => [...],
-                    // 'supplementary_sku_images' => [...]
                 ];
             }
         }
@@ -657,9 +644,6 @@ class TikTokShopProductService
                 'value_id' => '1729592969712207000',
                 'value_name' => (string) $variant->price,
                 'name' => 'Price',
-                // Comment sku_img và supplementary_sku_images theo yêu cầu
-                // 'sku_img' => [...],
-                // 'supplementary_sku_images' => [...]
             ];
         }
 
