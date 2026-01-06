@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>TikTool - Partner Tool</title>
+    <title>Blustack - Partner Tool</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/blustack icon.png') }}">
     <!-- FontAwesome CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -107,8 +108,8 @@
             <div class="flex justify-between items-center h-16">
                 <!-- Logo -->
                 <div class="flex items-center">
-                    <a href="/" class="text-xl font-bold text-white hover:text-blue-300 transition-colors duration-200">
-                        HMTik
+                    <a href="/" class="flex items-center">
+                        <img src="{{ asset('images/blustack logo white.png') }}" alt="Blustack" style="height: 80px; width: auto;">
                     </a>
                 </div>
 

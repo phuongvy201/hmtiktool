@@ -3,7 +3,8 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>HMTik Partner Portal</title>
+    <title>Blustack Partner Portal</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/blustack icon.png') }}">
         <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
             @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -14,12 +15,10 @@
     <div class="relative max-w-6xl mx-auto px-4 py-10 lg:py-14">
         <header class="flex items-center justify-between mb-10">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold">
-                    H
-                </div>
+                <img src="{{ asset('images/blustack icon.png') }}" alt="Blustack" class="w-10 h-10 object-contain">
                 <div>
                     <p class="text-xs uppercase tracking-[0.18em] text-blue-300">TikTok Partner</p>
-                    <h1 class="text-lg font-semibold">HMTik Operations Portal</h1>
+                    <h1 class="text-lg font-semibold">Blustack Operations Portal</h1>
                 </div>
             </div>
             @if (Route::has('login'))
@@ -127,7 +126,7 @@
         </main>
 
         <footer class="mt-10 text-xs text-slate-500 flex flex-wrap gap-3">
-            <span>© {{ date('Y') }} HMTik. All rights reserved.</span>
+            <span>© {{ date('Y') }} Blustack. All rights reserved.</span>
             <span>•</span>
             <a href="#" class="hover:text-blue-300">Status</a>
             <a href="#" class="hover:text-blue-300">Docs</a>

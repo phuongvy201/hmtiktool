@@ -270,6 +270,7 @@ Route::middleware('auth')->group(function () {
     // TikTok Webhook routes (không cần authentication)
     Route::prefix('tiktok/webhook')->name('tiktok.webhook.')->group(function () {
         Route::post('/handle', [App\Http\Controllers\TikTokWebhookController::class, 'handleWebhook'])->name('handle');
+        Route::post('/order-status', [App\Http\Controllers\TikTokWebhookController::class, 'handleOrderStatusChange'])->name('order-status');
         Route::get('/test', [App\Http\Controllers\TikTokWebhookController::class, 'testWebhook'])->name('test');
     });
     Route::post('/products/{product}/upload-images-to-tiktok', [ProductController::class, 'uploadImagesToTikTok'])->name('products.upload-images-to-tiktok');

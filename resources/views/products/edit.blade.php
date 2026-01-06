@@ -146,6 +146,9 @@
                             <div id="image-preview" class="mt-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 hidden">
                                 <!-- Ảnh preview sẽ được thêm vào đây bằng JavaScript -->
                             </div>
+                            <p class="text-xs text-gray-500 mt-2 hidden" id="drag-hint">
+                                <i class="fas fa-info-circle mr-1"></i>Kéo thả hình ảnh để sắp xếp lại thứ tự
+                            </p>
                             
                             @error('product_images.*')
                                 <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
@@ -201,6 +204,28 @@
     </div>
 </div>
 
+@push('styles')
+<style>
+    .image-preview-item {
+        transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+    
+    .image-preview-item.dragging {
+        opacity: 0.5;
+        transform: scale(0.95);
+    }
+    
+    .image-preview-item.drag-over {
+        border-color: #3b82f6 !important;
+        transform: scale(1.05);
+    }
+    
+    .image-preview-item:hover {
+        transform: translateY(-2px);
+    }
+</style>
+@endpush
+
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -241,14 +266,19 @@ document.addEventListener('DOMContentLoaded', function() {
     // Image upload and preview functionality
     const fileInput = document.getElementById('product_images');
     const imagePreview = document.getElementById('image-preview');
+    const dragHint = document.getElementById('drag-hint');
     const dropZone = document.querySelector('.border-dashed');
+    
+    // Store files and their preview data
+    let imageFiles = [];
+    let imagePreviews = [];
 
     // Handle file selection
     fileInput.addEventListener('change', function(e) {
         handleFiles(e.target.files);
     });
 
-    // Handle drag and drop
+    // Handle drag and drop from outside
     dropZone.addEventListener('dragover', function(e) {
         e.preventDefault();
         dropZone.classList.add('border-blue-400', 'bg-gray-600');
@@ -270,39 +300,174 @@ document.addEventListener('DOMContentLoaded', function() {
     function handleFiles(files) {
         if (files.length === 0) return;
 
+        // Filter only image files
+        const imageFilesArray = Array.from(files).filter(file => file.type.startsWith('image/'));
+        if (imageFilesArray.length === 0) return;
+
+        // Add new files to existing array
+        imageFiles = [...imageFiles, ...imageFilesArray];
+        
+        // Render previews
+        renderPreviews();
+        updateFileInput();
+    }
+
+    function renderPreviews() {
         // Clear existing preview
         imagePreview.innerHTML = '';
+        
+        if (imageFiles.length === 0) {
+            imagePreview.classList.add('hidden');
+            dragHint.classList.add('hidden');
+            return;
+        }
+
         imagePreview.classList.remove('hidden');
+        dragHint.classList.remove('hidden');
 
-        Array.from(files).forEach((file, index) => {
-            if (!file.type.startsWith('image/')) return;
+        // Read all files and create previews
+        imagePreviews = [];
+        let loadedCount = 0;
 
+        imageFiles.forEach((file, index) => {
             const reader = new FileReader();
             reader.onload = function(e) {
-                const previewItem = document.createElement('div');
-                previewItem.className = 'relative group';
-                previewItem.innerHTML = `
-                    <div class="relative aspect-square bg-gray-600 rounded-lg overflow-hidden">
-                        <img src="${e.target.result}" alt="Preview" class="w-full h-full object-cover">
-                        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center">
-                            <button type="button" class="remove-image-btn opacity-0 group-hover:opacity-100 bg-red-500 hover:bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center transition-all duration-200" data-index="${index}">
-                                <i class="fas fa-times text-sm"></i>
-                            </button>
-                        </div>
-                        <div class="absolute top-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded">
-                            ${index === 0 ? 'Primary Image' : 'Image ' + (index + 1)}
-                        </div>
-                    </div>
-                    <p class="text-xs text-gray-400 mt-1 truncate">${file.name}</p>
-                `;
-                imagePreview.appendChild(previewItem);
+                imagePreviews[index] = {
+                    file: file,
+                    preview: e.target.result,
+                    index: index
+                };
+                loadedCount++;
+
+                // When all files are loaded, render them
+                if (loadedCount === imageFiles.length) {
+                    renderPreviewItems();
+                }
             };
             reader.readAsDataURL(file);
         });
+    }
 
-        // Update file input
+    function renderPreviewItems() {
+        imagePreview.innerHTML = '';
+        
+        imagePreviews.forEach((item, index) => {
+            const previewItem = document.createElement('div');
+            previewItem.className = 'relative group image-preview-item cursor-move';
+            previewItem.draggable = true;
+            previewItem.dataset.index = index;
+            
+            previewItem.innerHTML = `
+                <div class="relative aspect-square bg-gray-600 rounded-lg overflow-hidden border-2 border-transparent hover:border-blue-500 transition-all duration-200">
+                    <img src="${item.preview}" alt="Preview" class="w-full h-full object-cover pointer-events-none">
+                    <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center">
+                        <button type="button" class="remove-image-btn opacity-0 group-hover:opacity-100 bg-red-500 hover:bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center transition-all duration-200" data-index="${index}">
+                            <i class="fas fa-times text-sm"></i>
+                        </button>
+                    </div>
+                    <div class="absolute top-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded">
+                        ${index === 0 ? 'Primary Image' : 'Image ' + (index + 1)}
+                    </div>
+                    <div class="absolute top-2 right-2 bg-gray-800 bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+                        <i class="fas fa-grip-vertical"></i>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-400 mt-1 truncate">${item.file.name}</p>
+            `;
+            
+            imagePreview.appendChild(previewItem);
+        });
+
+        // Attach drag and drop event listeners
+        attachDragAndDropListeners();
+    }
+
+    function attachDragAndDropListeners() {
+        const items = imagePreview.querySelectorAll('.image-preview-item');
+        
+        items.forEach(item => {
+            item.addEventListener('dragstart', handleDragStart);
+            item.addEventListener('dragover', handleDragOver);
+            item.addEventListener('drop', handleDrop);
+            item.addEventListener('dragend', handleDragEnd);
+            item.addEventListener('dragenter', handleDragEnter);
+            item.addEventListener('dragleave', handleDragLeave);
+        });
+    }
+
+    let draggedElement = null;
+    let draggedIndex = null;
+
+    function handleDragStart(e) {
+        draggedElement = this;
+        draggedIndex = parseInt(this.dataset.index);
+        this.classList.add('opacity-50', 'scale-95');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/html', this.innerHTML);
+    }
+
+    function handleDragOver(e) {
+        if (e.preventDefault) {
+            e.preventDefault();
+        }
+        e.dataTransfer.dropEffect = 'move';
+        return false;
+    }
+
+    function handleDragEnter(e) {
+        if (this !== draggedElement) {
+            this.classList.add('border-blue-400', 'scale-105');
+        }
+    }
+
+    function handleDragLeave(e) {
+        this.classList.remove('border-blue-400', 'scale-105');
+    }
+
+    function handleDrop(e) {
+        if (e.stopPropagation) {
+            e.stopPropagation();
+        }
+
+        if (draggedElement !== this) {
+            const dropIndex = parseInt(this.dataset.index);
+            
+            // Reorder arrays
+            const draggedPreview = imagePreviews[draggedIndex];
+            const draggedFile = imageFiles[draggedIndex];
+            
+            // Remove from old position
+            imagePreviews.splice(draggedIndex, 1);
+            imageFiles.splice(draggedIndex, 1);
+            
+            // Insert at new position
+            imagePreviews.splice(dropIndex, 0, draggedPreview);
+            imageFiles.splice(dropIndex, 0, draggedFile);
+            
+            // Update indices
+            imagePreviews.forEach((item, index) => {
+                item.index = index;
+            });
+            
+            // Re-render
+            renderPreviewItems();
+            updateFileInput();
+        }
+
+        return false;
+    }
+
+    function handleDragEnd(e) {
+        const items = imagePreview.querySelectorAll('.image-preview-item');
+        items.forEach(item => {
+            item.classList.remove('opacity-50', 'scale-95', 'border-blue-400', 'scale-105');
+        });
+    }
+
+    function updateFileInput() {
+        // Update file input with reordered files
         const dataTransfer = new DataTransfer();
-        Array.from(files).forEach(file => dataTransfer.items.add(file));
+        imageFiles.forEach(file => dataTransfer.items.add(file));
         fileInput.files = dataTransfer.files;
     }
 
@@ -310,14 +475,19 @@ document.addEventListener('DOMContentLoaded', function() {
     imagePreview.addEventListener('click', function(e) {
         if (e.target.closest('.remove-image-btn')) {
             const index = parseInt(e.target.closest('.remove-image-btn').dataset.index);
-            const files = Array.from(fileInput.files);
-            files.splice(index, 1);
             
-            const dataTransfer = new DataTransfer();
-            files.forEach(file => dataTransfer.items.add(file));
-            fileInput.files = dataTransfer.files;
+            // Remove from arrays
+            imageFiles.splice(index, 1);
+            imagePreviews.splice(index, 1);
             
-            handleFiles(fileInput.files);
+            // Update indices
+            imagePreviews.forEach((item, idx) => {
+                item.index = idx;
+            });
+            
+            // Re-render
+            renderPreviewItems();
+            updateFileInput();
         }
     });
 });

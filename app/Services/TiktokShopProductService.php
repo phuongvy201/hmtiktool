@@ -216,14 +216,42 @@ class TikTokShopProductService
         }
 
         // Thêm size chart nếu có (từ product hoặc template)
+        // Ưu tiên lấy từ product, nếu không có thì lấy từ template
         $sizeChart = $product->size_chart ?? ($template ? $template->size_chart : null) ?? null;
         if ($sizeChart) {
+            Log::info('Found size chart, uploading to TikTok', [
+                'product_id' => $product->id,
+                'template_id' => $template ? $template->id : null,
+                'size_chart_source' => $product->size_chart ? 'product' : 'template',
+                'size_chart_url' => $sizeChart
+            ]);
+            
             $sizeChartUri = $this->ensureSizeChartHasTikTokUri($sizeChart, $shop);
             if ($sizeChartUri) {
+                // Theo TikTok API: size_chart phải là object với image.uri
                 $productData['size_chart'] = [
-                    'uri' => $sizeChartUri
+                    'image' => [
+                        'uri' => $sizeChartUri
+                    ]
                 ];
+                Log::info('Size chart URI added to product data', [
+                    'product_id' => $product->id,
+                    'tiktok_uri' => $sizeChartUri,
+                    'structure' => 'size_chart.image.uri'
+                ]);
+            } else {
+                Log::warning('Failed to get size chart TikTok URI', [
+                    'product_id' => $product->id,
+                    'size_chart_url' => $sizeChart
+                ]);
             }
+        } else {
+            Log::debug('No size chart found for product', [
+                'product_id' => $product->id,
+                'template_id' => $template ? $template->id : null,
+                'product_has_size_chart' => !empty($product->size_chart),
+                'template_has_size_chart' => $template ? !empty($template->size_chart) : false
+            ]);
         }
 
         // Thêm product video nếu có (từ product hoặc template)
@@ -1148,33 +1176,46 @@ class TikTokShopProductService
 
     /**
      * Đảm bảo size chart đã có TikTok URI (upload nếu chưa có)
+     * Size chart được upload như image bình thường lên TikTok
+     * Hỗ trợ cả S3 URL và local file path
      */
     private function ensureSizeChartHasTikTokUri(string $sizeChartUrl, TikTokShop $shop): ?string
     {
         try {
+            Log::info('Starting size chart upload to TikTok', [
+                'size_chart_url' => $sizeChartUrl,
+                'shop_id' => $shop->id,
+                'is_s3_url' => str_contains($sizeChartUrl, 'amazonaws.com')
+            ]);
+            
             // Size chart là image, upload như image bình thường
+            // TikTokImageUploadService sẽ tự động xử lý S3 URL hoặc local file
             $imageUploadService = new \App\Services\TikTokImageUploadService($shop->integration);
             
-            // Upload size chart image
-            $result = $this->uploadImageToTikTok($imageUploadService, $sizeChartUrl, 'MAIN_IMAGE');
+            // Upload size chart image với use_case=SIZE_CHART_IMAGE (theo TikTok API documentation)
+            $result = $this->uploadImageToTikTok($imageUploadService, $sizeChartUrl, 'SIZE_CHART_IMAGE');
             
             if ($result['success'] && isset($result['data']['uri'])) {
                 Log::info('Size chart uploaded to TikTok successfully', [
                     'size_chart_url' => $sizeChartUrl,
-                    'tiktok_uri' => $result['data']['uri']
+                    'tiktok_uri' => $result['data']['uri'],
+                    'tiktok_url' => $result['data']['url'] ?? null
                 ]);
                 return $result['data']['uri'];
             } else {
                 Log::warning('Failed to upload size chart to TikTok', [
                     'size_chart_url' => $sizeChartUrl,
-                    'error' => $result['message'] ?? 'Unknown error'
+                    'error' => $result['message'] ?? 'Unknown error',
+                    'response' => $result
                 ]);
                 return null;
             }
         } catch (\Exception $e) {
-            Log::error('Error uploading size chart to TikTok', [
+            Log::error('Exception while uploading size chart to TikTok', [
                 'size_chart_url' => $sizeChartUrl,
-                'error' => $e->getMessage()
+                'shop_id' => $shop->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
             return null;
         }
