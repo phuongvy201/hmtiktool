@@ -24,13 +24,19 @@ class TikTokShopAnalyticsController extends Controller
             Log::info('Analytics index method called');
 
             $user = Auth::user();
+            
+            // Lấy filter parameters
+            $marketFilter = $request->get('market');
+            $teamFilter = $request->get('team_id');
 
             // Lấy danh sách shop mà user có quyền truy cập
-            $shops = $this->getAccessibleShops($user);
+            $shops = $this->getAccessibleShops($user, $marketFilter, $teamFilter);
 
             Log::info('Accessible shops found', [
                 'count' => $shops->count(),
-                'shop_ids' => $shops->pluck('id')->toArray()
+                'shop_ids' => $shops->pluck('id')->toArray(),
+                'market_filter' => $marketFilter,
+                'team_filter' => $teamFilter
             ]);
 
             // Lấy analytics data trực tiếp từ database (không cache)
@@ -58,12 +64,28 @@ class TikTokShopAnalyticsController extends Controller
                 'has_more_pages' => $currentPage < ceil($total / $perPage)
             ];
 
-            return view('tiktok.shop-analytics', compact('analytics', 'dailyOrders', 'pagination'));
+            // Lấy danh sách teams và markets cho filter
+            $teams = [];
+            $markets = ['US', 'UK'];
+            
+            if ($user->hasRole('system-admin')) {
+                $teams = \App\Models\Team::orderBy('name')->get();
+            }
+
+            return view('tiktok.shop-analytics', compact('analytics', 'dailyOrders', 'pagination', 'teams', 'markets'));
         } catch (\Exception $e) {
             Log::error('Error in Analytics index', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
+
+            // Lấy danh sách teams và markets cho filter (ngay cả khi có lỗi)
+            $teams = [];
+            $markets = ['US', 'UK'];
+            
+            if ($user->hasRole('system-admin')) {
+                $teams = \App\Models\Team::orderBy('name')->get();
+            }
 
             return view('tiktok.shop-analytics', [
                 'analytics' => [],
@@ -76,7 +98,9 @@ class TikTokShopAnalyticsController extends Controller
                     'from' => 0,
                     'to' => 0,
                     'has_more_pages' => false
-                ]
+                ],
+                'teams' => $teams,
+                'markets' => $markets
             ]);
         }
     }
@@ -84,18 +108,45 @@ class TikTokShopAnalyticsController extends Controller
     /**
      * Lấy danh sách shop mà user có quyền truy cập
      */
-    private function getAccessibleShops($user)
+    private function getAccessibleShops($user, $marketFilter = null, $teamFilter = null)
     {
-        if ($user->hasRole('team-admin')) {
+        if ($user->hasRole('system-admin')) {
+            // System admin xem tất cả shops
+            $query = TikTokShop::where('status', 'active')
+                ->with(['orders', 'integration', 'team']);
+
+            // Filter theo market nếu có
+            if ($marketFilter) {
+                $query->whereHas('integration', function ($q) use ($marketFilter) {
+                    $q->where('additional_data->market', strtoupper($marketFilter));
+                });
+            }
+
+            // Filter theo team nếu có
+            if ($teamFilter) {
+                $query->where('team_id', $teamFilter);
+            }
+
+            return $query->get();
+        } elseif ($user->hasRole('team-admin')) {
             // Team admin xem tất cả shop trong team
-            return TikTokShop::whereHas('team', function ($query) use ($user) {
-                $query->where('id', $user->team_id);
-            })->with(['orders'])->get();
+            $query = TikTokShop::whereHas('team', function ($q) use ($user) {
+                $q->where('id', $user->team_id);
+            })->with(['orders', 'integration', 'team']);
+
+            // Filter theo market nếu có
+            if ($marketFilter) {
+                $query->whereHas('integration', function ($q) use ($marketFilter) {
+                    $q->where('additional_data->market', strtoupper($marketFilter));
+                });
+            }
+
+            return $query->get();
         } elseif ($user->hasRole('seller')) {
             // Seller chỉ xem shop được assign
             return TikTokShop::whereHas('teamMembers', function ($query) use ($user) {
                 $query->where('user_id', $user->id);
-            })->with(['orders'])->get();
+            })->with(['orders', 'integration', 'team'])->get();
         }
 
         return collect();

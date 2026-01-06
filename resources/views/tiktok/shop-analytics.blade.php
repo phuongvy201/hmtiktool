@@ -259,31 +259,53 @@
 
         <!-- Enhanced Search Section -->
         <div class="px-6 py-6 border-b border-gray-700 bg-gradient-to-r from-gray-800 to-gray-900">
-            <div class="flex flex-col md:flex-row gap-4 items-center">
-                <div class="flex-1 relative">
-                    <input type="text" 
-                           id="shopSearch" 
-                           placeholder="Search by Shop ID or Profile..." 
-                           class="w-full px-4 py-3 pl-12 bg-gray-700 border border-gray-600 rounded-xl text-gray-300 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300">
-                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <i class="fas fa-search text-gray-400"></i>
+            <form method="GET" action="{{ route('tiktok.analytics.index') }}" id="filterForm" class="space-y-4">
+                <div class="flex flex-col md:flex-row gap-4 items-center">
+                    <div class="flex-1 relative">
+                        <input type="text" 
+                               id="shopSearch" 
+                               placeholder="Search by Shop ID or Profile..." 
+                               class="w-full px-4 py-3 pl-12 bg-gray-700 border border-gray-600 rounded-xl text-gray-300 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="fas fa-search text-gray-400"></i>
+                        </div>
+                    </div>
+                    @if(auth()->user()->hasAnyRole(['system-admin', 'team-admin']))
+                    <div class="w-full md:w-auto">
+                        <select name="market" id="market-filter" class="w-full md:w-40 px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">All Markets</option>
+                            @foreach($markets ?? [] as $market)
+                                <option value="{{ $market }}" {{ request('market') == $market ? 'selected' : '' }}>{{ $market }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @endif
+                    @if(auth()->user()->hasRole('system-admin'))
+                    <div class="w-full md:w-auto">
+                        <select name="team_id" id="team-filter" class="w-full md:w-48 px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">All Teams</option>
+                            @foreach($teams ?? [] as $team)
+                                <option value="{{ $team->id }}" {{ request('team_id') == $team->id ? 'selected' : '' }}>{{ $team->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @endif
+                    <div class="flex gap-2">
+                        <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 flex items-center">
+                            <i class="fas fa-filter mr-2"></i>
+                            Filter
+                        </button>
+                        <button id="refreshData" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 flex items-center">
+                            <i class="fas fa-sync-alt mr-2"></i>
+                            Refresh Data
+                        </button>
+                        <button type="button" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg transition-colors duration-200 flex items-center">
+                            <i class="fas fa-download mr-2"></i>
+                            Export
+                        </button>
                     </div>
                 </div>
-                <div class="flex gap-2">
-                    <button id="refreshData" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 flex items-center">
-                        <i class="fas fa-sync-alt mr-2"></i>
-                        Refresh Data
-                    </button>
-                    <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 flex items-center">
-                        <i class="fas fa-filter mr-2"></i>
-                        Filter
-                    </button>
-                    <button class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg transition-colors duration-200 flex items-center">
-                        <i class="fas fa-download mr-2"></i>
-                        Export
-                    </button>
-                </div>
-            </div>
+            </form>
         </div>
 
         <!-- Enhanced Analytics Table -->
@@ -305,6 +327,22 @@
                                 <i class="fas fa-sort-up ml-1 text-blue-400"></i>
                             </div>
                         </th>
+                        @if(auth()->user()->hasAnyRole(['system-admin', 'team-admin']))
+                        <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                            <div class="flex items-center">
+                                <i class="fas fa-globe mr-2 text-indigo-400"></i>
+                                Market
+                            </div>
+                        </th>
+                        @endif
+                        @if(auth()->user()->hasRole('system-admin'))
+                        <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                            <div class="flex items-center">
+                                <i class="fas fa-users mr-2 text-purple-400"></i>
+                                Team
+                            </div>
+                        </th>
+                        @endif
                         <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-600 transition-colors">
                             <div class="flex items-center">
                                 <i class="fas fa-list-alt mr-2 text-green-400"></i>
@@ -404,6 +442,21 @@
                                 </div>
                             </div>
                         </td>
+                        @if(auth()->user()->hasAnyRole(['system-admin', 'team-admin']))
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            @php
+                                $market = $shopData['shop']->integration->market ?? 'N/A';
+                            @endphp
+                            <span class="px-2 py-1 rounded text-xs font-semibold {{ $market == 'US' ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' : 'bg-purple-500/20 text-purple-300 border border-purple-500/30' }}">
+                                {{ $market }}
+                            </span>
+                        </td>
+                        @endif
+                        @if(auth()->user()->hasRole('system-admin'))
+                        <td class="px-6 py-4 whitespace-nowrap text-gray-300">
+                            {{ $shopData['shop']->team->name ?? 'N/A' }}
+                        </td>
+                        @endif
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -446,7 +499,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="12" class="px-6 py-12 text-center">
+                        <td colspan="{{ auth()->user()->hasRole('system-admin') ? '14' : (auth()->user()->hasRole('team-admin') ? '13' : '12') }}" class="px-6 py-12 text-center">
                             <div class="flex flex-col items-center">
                                 <i class="fas fa-chart-line text-4xl text-gray-400 mb-4"></i>
                                 <div class="text-gray-400 text-lg font-medium">Không có dữ liệu analytics</div>

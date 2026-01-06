@@ -7,6 +7,7 @@ use App\Models\ProductTemplate;
 use App\Models\TikTokShop;
 use App\Models\TikTokOrder;
 use App\Models\TikTokShopIntegration;
+use App\Models\Team;
 use App\Services\TikTokAnalyticsCacheService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -33,7 +34,9 @@ class DashboardController extends Controller
         // Lấy thống kê orders theo shop với filter thời gian
         $startDate = $request->get('start_date');
         $endDate = $request->get('end_date');
-        $shopStats = $this->getOrderStatistics($user, $team, $startDate, $endDate);
+        $marketFilter = $request->get('market');
+        $teamFilter = $request->get('team_id');
+        $shopStats = $this->getOrderStatistics($user, $team, $startDate, $endDate, $marketFilter, $teamFilter);
 
         // Lấy danh sách tích hợp TikTok Shop của team
         $integrations = [];
@@ -43,32 +46,47 @@ class DashboardController extends Controller
                 ->get();
         }
 
+        // Lấy danh sách teams và markets cho filter
+        $teams = [];
+        $markets = ['US', 'UK'];
+        
+        if ($user->hasRole('system-admin')) {
+            $teams = Team::orderBy('name')->get();
+        } elseif ($user->hasRole('team-admin')) {
+            // Team-admin cũng cần markets để filter
+            $markets = ['US', 'UK'];
+        }
+
         // Nếu là AJAX request, trả về JSON
         if ($request->ajax()) {
             return response()->json($shopStats);
         }
 
-        return view('dashboard', compact('templateCount', 'productCount', 'shopStats', 'integrations'));
+        return view('dashboard', compact('templateCount', 'productCount', 'shopStats', 'integrations', 'teams', 'markets'));
     }
 
     /**
-     * Lấy thống kê đơn hàng theo shop với filter thời gian
+     * Lấy thống kê đơn hàng theo shop với filter thời gian, market và team
      */
-    private function getOrderStatistics($user, $team, $startDate = null, $endDate = null)
+    private function getOrderStatistics($user, $team, $startDate = null, $endDate = null, $marketFilter = null, $teamFilter = null)
     {
-        if (!$team) {
-            return [
-                'shops' => [],
-                'total' => [
-                    'total_orders' => 0,
-                    'success_orders' => 0,
-                    'cancel_orders' => 0,
-                ]
-            ];
+        // Nếu là system-admin, có thể xem tất cả teams
+        if ($user->hasRole('system-admin')) {
+            $shops = $this->getAccessibleShopsForSystemAdmin($marketFilter, $teamFilter);
+        } else {
+            if (!$team) {
+                return [
+                    'shops' => [],
+                    'total' => [
+                        'total_orders' => 0,
+                        'success_orders' => 0,
+                        'cancel_orders' => 0,
+                    ]
+                ];
+            }
+            // Xác định shops có thể xem được với eager loading relationships
+            $shops = $this->getAccessibleShops($user, $team, $marketFilter);
         }
-
-        // Xác định shops có thể xem được với eager loading relationships
-        $shops = $this->getAccessibleShops($user, $team);
 
         if ($shops->isEmpty()) {
             return [
@@ -116,12 +134,21 @@ class DashboardController extends Controller
 
             // Lấy profile name từ integration
             $profileName = $shop->integration->name ?? 'N/A';
+            
+            // Lấy market từ integration
+            $market = $shop->integration->market ?? 'N/A';
+            
+            // Lấy team name
+            $teamName = $shop->team->name ?? 'N/A';
 
             $stats[] = [
                 'shop' => $shop,
                 'shop_id' => $shop->id,
                 'shop_name' => $shop->shop_name,
                 'profile' => $profileName,
+                'market' => $market,
+                'team_id' => $shop->team_id,
+                'team_name' => $teamName,
                 'total_orders' => $totalOrders,
                 'success_orders' => $successOrders,
                 'cancel_orders' => $cancelOrders,
@@ -146,24 +173,52 @@ class DashboardController extends Controller
     }
 
     /**
+     * Lấy danh sách shops có thể truy cập cho system-admin
+     */
+    private function getAccessibleShopsForSystemAdmin($marketFilter = null, $teamFilter = null)
+    {
+        $query = TikTokShop::where('status', 'active')
+            ->with(['integration', 'team', 'sellers.user']);
+
+        // Filter theo market nếu có
+        if ($marketFilter) {
+            $query->whereHas('integration', function ($q) use ($marketFilter) {
+                $q->where('additional_data->market', strtoupper($marketFilter));
+            });
+        }
+
+        // Filter theo team nếu có
+        if ($teamFilter) {
+            $query->where('team_id', $teamFilter);
+        }
+
+        return $query->get();
+    }
+
+    /**
      * Lấy danh sách shops có thể truy cập
      */
-    private function getAccessibleShops($user, $team)
+    private function getAccessibleShops($user, $team, $marketFilter = null)
     {
+        $query = TikTokShop::where('team_id', $team->id)
+            ->where('status', 'active');
+
+        // Filter theo market nếu có
+        if ($marketFilter) {
+            $query->whereHas('integration', function ($q) use ($marketFilter) {
+                $q->where('additional_data->market', strtoupper($marketFilter));
+            });
+        }
+
         if ($user->hasRole('team-admin')) {
             // Team admin có thể xem tất cả shops trong team
-            return TikTokShop::where('team_id', $team->id)
-                ->where('status', 'active')
-                ->with(['integration', 'sellers.user'])
-                ->get();
+            return $query->with(['integration', 'team', 'sellers.user'])->get();
         } else {
             // Seller chỉ xem được shops của mình
-            return TikTokShop::where('team_id', $team->id)
-                ->where('status', 'active')
-                ->whereHas('teamMembers', function ($query) use ($user) {
-                    $query->where('user_id', $user->id);
+            return $query->whereHas('teamMembers', function ($q) use ($user) {
+                    $q->where('user_id', $user->id);
                 })
-                ->with(['integration', 'sellers.user'])
+                ->with(['integration', 'team', 'sellers.user'])
                 ->get();
         }
     }

@@ -43,7 +43,7 @@
                 </h2>
                 
                 <!-- Filters -->
-                <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="mb-6 grid grid-cols-1 md:grid-cols-{{ auth()->user()->hasAnyRole(['system-admin', 'team-admin']) ? (auth()->user()->hasRole('system-admin') ? '5' : '4') : '3' }} gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-300 mb-2">Start Date</label>
                         <input type="date" id="start-date" value="{{ request('start_date') }}" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
@@ -52,6 +52,28 @@
                         <label class="block text-sm font-medium text-gray-300 mb-2">End Date</label>
                         <input type="date" id="end-date" value="{{ request('end_date') }}" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
                     </div>
+                    @if(auth()->user()->hasAnyRole(['system-admin', 'team-admin']))
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Market</label>
+                        <select id="market-filter" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+                            <option value="">All Markets</option>
+                            @foreach($markets ?? [] as $market)
+                                <option value="{{ $market }}" {{ request('market') == $market ? 'selected' : '' }}>{{ $market }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @endif
+                    @if(auth()->user()->hasRole('system-admin'))
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Team</label>
+                        <select id="team-filter" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+                            <option value="">All Teams</option>
+                            @foreach($teams ?? [] as $team)
+                                <option value="{{ $team->id }}" {{ request('team_id') == $team->id ? 'selected' : '' }}>{{ $team->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @endif
                     <div class="flex items-end">
                         <button id="filter-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200">
                             <i class="fas fa-filter mr-2"></i>Filter
@@ -72,6 +94,12 @@
                             <tr class="border-b border-gray-700">
                                 <th class="pb-3 text-sm font-semibold text-gray-300">Name</th>
                                 <th class="pb-3 text-sm font-semibold text-gray-300">Profile</th>
+                                @if(auth()->user()->hasAnyRole(['system-admin', 'team-admin']))
+                                <th class="pb-3 text-sm font-semibold text-gray-300">Market</th>
+                                @endif
+                                @if(auth()->user()->hasRole('system-admin'))
+                                <th class="pb-3 text-sm font-semibold text-gray-300">Team</th>
+                                @endif
                                 <th class="pb-3 text-sm font-semibold text-gray-300 text-right">Total Orders</th>
                                 <th class="pb-3 text-sm font-semibold text-gray-300 text-right">Success Orders</th>
                                 <th class="pb-3 text-sm font-semibold text-gray-300 text-right">Cancel Orders</th>
@@ -87,6 +115,16 @@
                                     </a>
                                 </td>
                                 <td class="py-3 text-gray-300">{{ $stat['profile'] }}</td>
+                                @if(auth()->user()->hasAnyRole(['system-admin', 'team-admin']))
+                                <td class="py-3">
+                                    <span class="px-2 py-1 rounded text-xs font-semibold {{ ($stat['market'] ?? 'N/A') == 'US' ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' : 'bg-purple-500/20 text-purple-300 border border-purple-500/30' }}">
+                                        {{ $stat['market'] ?? 'N/A' }}
+                                    </span>
+                                </td>
+                                @endif
+                                @if(auth()->user()->hasRole('system-admin'))
+                                <td class="py-3 text-gray-300">{{ $stat['team_name'] ?? 'N/A' }}</td>
+                                @endif
                                 <td class="py-3 text-right text-white font-semibold">{{ number_format($stat['total_orders'] ?? 0) }}</td>
                                 <td class="py-3 text-right text-white font-semibold">{{ number_format($stat['success_orders']) }}</td>
                                 <td class="py-3 text-right text-white font-semibold">{{ number_format($stat['cancel_orders']) }}</td>
@@ -109,6 +147,12 @@
                             <tr class="border-t-2 border-gray-600 bg-gray-700/30">
                                 <td class="py-3 font-bold text-white">Total</td>
                                 <td class="py-3"></td>
+                                @if(auth()->user()->hasAnyRole(['system-admin', 'team-admin']))
+                                <td class="py-3"></td>
+                                @endif
+                                @if(auth()->user()->hasRole('system-admin'))
+                                <td class="py-3"></td>
+                                @endif
                                 <td class="py-3 text-right font-bold text-white">{{ number_format($shopStats['total']['total_orders'] ?? 0) }}</td>
                                 <td class="py-3 text-right font-bold text-white">{{ number_format($shopStats['total']['success_orders']) }}</td>
                                 <td class="py-3 text-right font-bold text-white">{{ number_format($shopStats['total']['cancel_orders']) }}</td>
@@ -207,11 +251,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const endDateInput = document.getElementById('end-date');
     const loadingIndicator = document.getElementById('loading-indicator');
     const statsTableBody = document.getElementById('stats-table-body');
+    const isSystemAdmin = {{ auth()->user()->hasRole('system-admin') ? 'true' : 'false' }};
+    const hasMarketColumn = {{ auth()->user()->hasAnyRole(['system-admin', 'team-admin']) ? 'true' : 'false' }};
 
     if (filterBtn) {
         filterBtn.addEventListener('click', function() {
             const startDate = startDateInput.value;
             const endDate = endDateInput.value;
+            const marketFilter = document.getElementById('market-filter')?.value || '';
+            const teamFilter = document.getElementById('team-filter')?.value || '';
 
             // Show loading
             loadingIndicator.classList.remove('hidden');
@@ -228,6 +276,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 url.searchParams.set('end_date', endDate);
             } else {
                 url.searchParams.delete('end_date');
+            }
+            if (marketFilter) {
+                url.searchParams.set('market', marketFilter);
+            } else {
+                url.searchParams.delete('market');
+            }
+            if (teamFilter) {
+                url.searchParams.set('team_id', teamFilter);
+            } else {
+                url.searchParams.delete('team_id');
             }
 
             // Make AJAX request
@@ -254,6 +312,16 @@ document.addEventListener('DOMContentLoaded', function() {
                                     </a>
                                 </td>
                                 <td class="py-3 text-gray-300">${stat.profile}</td>
+                                ${hasMarketColumn ? `
+                                <td class="py-3">
+                                    <span class="px-2 py-1 rounded text-xs font-semibold ${(stat.market || 'N/A') === 'US' ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' : 'bg-purple-500/20 text-purple-300 border border-purple-500/30'}">
+                                        ${stat.market || 'N/A'}
+                                    </span>
+                                </td>
+                                ` : ''}
+                                ${isSystemAdmin ? `
+                                <td class="py-3 text-gray-300">${stat.team_name || 'N/A'}</td>
+                                ` : ''}
                                 <td class="py-3 text-right text-white font-semibold">${parseInt(stat.total_orders || 0).toLocaleString()}</td>
                                 <td class="py-3 text-right text-white font-semibold">${parseInt(stat.success_orders).toLocaleString()}</td>
                                 <td class="py-3 text-right text-white font-semibold">${parseInt(stat.cancel_orders).toLocaleString()}</td>
@@ -276,6 +344,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         <tr class="border-t-2 border-gray-600 bg-gray-700/30">
                             <td class="py-3 font-bold text-white">Total</td>
                             <td class="py-3"></td>
+                            ${hasMarketColumn ? '<td class="py-3"></td>' : ''}
+                            ${isSystemAdmin ? '<td class="py-3"></td>' : ''}
                             <td class="py-3 text-right font-bold text-white">${parseInt(data.total.total_orders || 0).toLocaleString()}</td>
                             <td class="py-3 text-right font-bold text-white">${parseInt(data.total.success_orders).toLocaleString()}</td>
                             <td class="py-3 text-right font-bold text-white">${parseInt(data.total.cancel_orders).toLocaleString()}</td>
@@ -285,13 +355,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     statsTableBody.innerHTML = html;
                 } else {
-                    statsTableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-gray-400">No data found</td></tr>';
+                    const colspan = hasMarketColumn ? (isSystemAdmin ? '8' : '7') : '6';
+                    statsTableBody.innerHTML = `<tr><td colspan="${colspan}" class="py-4 text-center text-gray-400">No data found</td></tr>`;
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
                 loadingIndicator.classList.add('hidden');
-                statsTableBody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-red-400">Error loading data</td></tr>';
+                const colspan = hasMarketColumn ? (isSystemAdmin ? '8' : '7') : '6';
+                statsTableBody.innerHTML = `<tr><td colspan="${colspan}" class="py-4 text-center text-red-400">Error loading data</td></tr>`;
             });
         });
     }
