@@ -107,9 +107,9 @@
         <div class="container mx-auto px-4">
             <div class="flex justify-between items-center h-20">
                 <!-- Logo -->
-                <div class="flex items-center flex-shrink-0">
-                    <a href="/" class="flex items-center">
-                        <img src="{{ asset('images/blustack logo white.png') }}" alt="Blustack" style="height: 60px; width: auto; max-height: 100%;">
+                <div class=" flex-shrink-0">
+                    <a href="/" class="">
+                        <img src="{{ asset('images/blustack logo white.png') }}" alt="Blustack" style="height: 180px; width: auto; max-height: 100%;">
                     </a>
                 </div>
 

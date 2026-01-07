@@ -22,11 +22,8 @@
         <h2 class="text-3xl font-bold text-white leading-tight">Contact our staff to provision your team account.</h2>
         <p class="text-slate-300 leading-relaxed">We'll help you set up team access, roles, and TikTok Shop integrations. Reach out via the channels below.</p>
         <div class="flex flex-col gap-3">
-            <a href="mailto:team-access@blustack.com" class="inline-flex items-center gap-2 px-4 py-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold transition-colors">
-                <span>team-access@blustack.com</span>
-            </a>
-            <a href="mailto:support@blustack.com" class="inline-flex items-center gap-2 px-4 py-3 rounded-lg border border-slate-700 hover:border-blue-500 text-sm font-semibold text-slate-200 transition-colors">
-                <span>support@blustack.com</span>
+            <a href="mailto:admin@bluprinter.com" class="inline-flex items-center gap-2 px-4 py-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold transition-colors">
+                <span>admin@bluprinter.com</span>
             </a>
         </div>
         <div class="text-xs text-slate-400">Response window: Mon–Sat, 08:00–20:00 (GMT+7). For urgent incidents, include "[URGENT]" in the subject.</div>
