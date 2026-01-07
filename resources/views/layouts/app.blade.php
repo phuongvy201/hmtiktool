@@ -105,11 +105,11 @@
 <body class="bg-slate-900 font-product-sans min-h-screen">
     <nav class="bg-slate-800 border-b border-slate-700">
         <div class="container mx-auto px-4">
-            <div class="flex justify-between items-center h-16">
+            <div class="flex justify-between items-center h-20">
                 <!-- Logo -->
-                <div class="flex items-center">
+                <div class="flex items-center flex-shrink-0">
                     <a href="/" class="flex items-center">
-                        <img src="{{ asset('images/blustack logo white.png') }}" alt="Blustack" style="height: 80px; width: auto;">
+                        <img src="{{ asset('images/blustack logo white.png') }}" alt="Blustack" style="height: 60px; width: auto; max-height: 100%;">
                     </a>
                 </div>
 
